@@ -1,0 +1,271 @@
+---
+title: Mini tables 
+author: Andrew Clark
+date: '2017-05-25'
+tags:
+  - plotly
+  - crosstalk
+slug: miniTables
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="/rmarkdown-libs/selectize/css/selectize.bootstrap3.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/selectize/js/selectize.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+<link href="/rmarkdown-libs/plotlyjs/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/plotlyjs/plotly-latest.min.js"></script>
+<script src="/rmarkdown-libs/plotly-binding/plotly.js"></script>
+<script src="/rmarkdown-libs/typedarray/typedarray.min.js"></script>
+
+<p>Every year there is talk of how a team near the top of the table only won because they beat the teams around them or failed to prosper because they couldn’t get enough points off the teams below them (Liverpool, in particular, being a case in point the this season)</p>
+<p>Let’s have a look at that for the history of the Premier League as far as the top teams go. This year, there have been, realistically, six teams vying for the top four places which guarantees entry into the following year’s, exclusive, Champions League. I will, thus, concentrate on how the ‘Top Sixes’ have fared against each other over the 25 years of the Premier League</p>
+<p>Let’s load the libraries and data required. The latter has been personally accumulated over many years but similar data can also be obtained from <strong>James Curley’s</strong> <a href="https://github.com/jalapic/engsoccerdata">engsoccerdata package</a></p>
+<pre class="r"><code>library(DT)
+library(knitr)
+library(plotly)
+library(crosstalk)
+library(htmltools)
+library(tidyverse)
+
+
+
+standings &lt;- readRDS(&quot;data/standings.rds&quot;)
+
+glimpse(standings)</code></pre>
+<pre><code>## Observations: 19,492
+## Variables: 20
+## $ season        &lt;chr&gt; &quot;2004/05&quot;, &quot;2004/05&quot;, &quot;2004/05&quot;, &quot;2004/05&quot;, &quot;200...
+## $ final_Pos     &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+## $ team          &lt;chr&gt; &quot;Chelsea&quot;, &quot;Chelsea&quot;, &quot;Chelsea&quot;, &quot;Chelsea&quot;, &quot;Che...
+## $ GF            &lt;int&gt; 1, 3, 1, 2, 3, 0, 1, 3, 4, 1, 3, 1, 0, 1, 3, 2, ...
+## $ GA            &lt;int&gt; 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, ...
+## $ gameDate      &lt;date&gt; 2005-05-15, 2005-05-10, 2005-05-07, 2005-04-30,...
+## $ tmGameOrder   &lt;int&gt; 506, 505, 504, 503, 502, 501, 500, 499, 498, 497...
+## $ tmYrGameOrder &lt;int&gt; 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, ...
+## $ venue         &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;H&quot;, &quot;A&quot;, &quot;H&quot;, &quot;H&quot;, &quot;H&quot;, &quot;A&quot;, &quot;H&quot;, &quot;H&quot;...
+## $ MATCHID       &lt;int&gt; 5285, 5277, 5265, 5253, 5243, 5235, 5217, 5212, ...
+## $ OppTeam       &lt;chr&gt; &quot;Newcastle U&quot;, &quot;Man. Utd.&quot;, &quot;Charlton&quot;, &quot;Bolton&quot;...
+## $ points        &lt;dbl&gt; 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 1, 3, 3, 3, ...
+## $ cumGF         &lt;int&gt; 72, 71, 68, 67, 65, 62, 62, 61, 58, 54, 53, 50, ...
+## $ cumGA         &lt;int&gt; 15, 14, 13, 13, 13, 12, 12, 11, 10, 9, 9, 8, 8, ...
+## $ cumPts        &lt;dbl&gt; 95, 94, 91, 88, 85, 82, 81, 80, 77, 74, 71, 68, ...
+## $ cumGD         &lt;int&gt; 57, 57, 55, 54, 52, 50, 50, 50, 48, 45, 44, 42, ...
+## $ allGames      &lt;dbl&gt; 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, ...
+## $ position      &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+## $ res           &lt;chr&gt; &quot;Draw&quot;, &quot;Win&quot;, &quot;Win&quot;, &quot;Win&quot;, &quot;Win&quot;, &quot;Draw&quot;, &quot;Dra...
+## $ tt            &lt;chr&gt; &quot;&lt;table cellpadding=&#39;4&#39; style=&#39;line-height:1&#39;&gt;&lt;t...</code></pre>
+<p>The ‘standings’ data.frame has a row for each team for each round so, firstly, I need to construct a subset restricted to end-of-season data for the top six each year, retaining just the team, season, final position and points (3 for win, 1 for tie/draw) fields</p>
+<pre class="r"><code>  topSixes &lt;- standings %&gt;% 
+    group_by(season) %&gt;% 
+     filter(tmYrGameOrder==max(tmYrGameOrder)&amp;final_Pos&lt;=6) %&gt;% 
+  select(team,season,final_Pos,cumPts)
+
+# test for specific season
+(topSixes %&gt;% 
+  filter(season==&quot;2015/16&quot;))</code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   season [1]
+##          team  season final_Pos cumPts
+##         &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt;  &lt;dbl&gt;
+## 1 Leicester C 2015/16         1     81
+## 2     Arsenal 2015/16         2     71
+## 3 Tottenham H 2015/16         3     70
+## 4   Man. City 2015/16         4     66
+## 5   Man. Utd. 2015/16         5     66
+## 6 Southampton 2015/16         6     63</code></pre>
+<p>As you may recall, last year Leicester convincingly won the title and Arsenal did their perennial - up until then at least - eclipsing of local rivals, Spurs</p>
+<p>We now want to construct a minitable for the encounters between these clubs. It usually pays to look at one season first and then extend to all years, using the mapping functions from the purrr package (part of the tidyverse package loaded above)</p>
+<pre class="r"><code># top teams for 2016/17
+oppsOneYear &lt;- topSixes %&gt;% 
+    filter(season==&quot;2016/17&quot;) %&gt;% 
+    .$team
+
+
+#function to create results for club
+  make_OneYeartable &lt;- function(x) {
+   
+    temp &lt;- standings %&gt;% 
+      filter(season==&quot;2016/17&quot;&amp;team==x&amp;OppTeam %in% oppsOneYear) %&gt;% 
+      summarize(totPoints=sum(points),totGF=sum(GF),totGA=sum(GA),totGD=totGF-totGA)
+    
+    cbind(team=x,temp)
+    
+  }
+ 
+  ## apply the function to each of the six teams. Use map_df as we want a data.frame as outcome
+  dataOneYear &lt;-map_df(oppsOneYear, make_OneYeartable)
+
+  
+dataOneYear</code></pre>
+<pre><code>##          team totPoints totGF totGA totGD
+## 1     Chelsea        16    16    14     2
+## 2 Tottenham H        15    13    10     3
+## 3   Man. City        10    11    15    -4
+## 4   Liverpool        20    16     9     7
+## 5     Arsenal         9    15    18    -3
+## 6   Man. Utd.        10     7    12    -5</code></pre>
+<p>Arsenal’s relative failure against the top clubs cost them a place in the Champions League as they finished just one point shy of fourth place</p>
+<p>OK, now we can look at applying the process to all seasons. This requires use of the map2_df() function</p>
+<pre class="r"><code>make_table &lt;- function(x,y) {
+    
+  # need to create a separate top 6 for each season
+    opps &lt;- topSixes %&gt;% 
+      filter(season==x) %&gt;% 
+      .$team
+    
+    temp &lt;- standings %&gt;% 
+      filter(season==x&amp;team==y&amp;OppTeam %in% opps) %&gt;%  #10 games
+      summarize(totPoints=sum(points),totGF=sum(GF),totGA=sum(GA),totGD=totGF-totGA)
+    
+    # add both season and team to the data
+    cbind(season=x,team=y,temp)
+    
+  } 
+  
+# use  map2 is specialised to iterate over two arguments
+  data &lt;-map2_df(topSixes$season,topSixes$team, make_table) 
+  
+  # add back in the relevant full table data (still needs bit of work)
+  
+  data &lt;- data %&gt;% 
+    left_join(topSixes) %&gt;% 
+    # create minitable position
+    arrange(desc(totPoints),desc(totGD),desc(totGF),team) %&gt;% 
+    group_by(season) %&gt;% 
+    mutate(pos=row_number()) %&gt;% 
+    ungroup() %&gt;% 
+    mutate(other_pts=cumPts-totPoints) %&gt;% 
+  select(season,team,pos,points=totPoints,GD=totGD,other_pts,all_pos=final_Pos,all_pts=cumPts) %&gt;% 
+    arrange(season,pos)
+  
+ 
+  head(data)</code></pre>
+<pre><code>## # A tibble: 6 x 8
+##    season        team   pos points    GD other_pts all_pos all_pts
+##     &lt;chr&gt;       &lt;chr&gt; &lt;int&gt;  &lt;dbl&gt; &lt;int&gt;     &lt;dbl&gt;   &lt;int&gt;   &lt;dbl&gt;
+## 1 1992/93   Man. Utd.     1     19     7        65       1      84
+## 2 1992/93   Blackburn     2     18    13        53       4      71
+## 3 1992/93 Aston Villa     3     14     0        60       2      74
+## 4 1992/93   Liverpool     4     13    -2        46       6      59
+## 5 1992/93   Norwich C     5     13   -10        59       3      72
+## 6 1992/93         QPR     6      7    -8        56       5      63</code></pre>
+<p>In 1992/93, Year One of the Premier League, Blackburn and Liverpool (sound familiar) suffered by not taking advantage of lesser teams</p>
+<hr />
+<p>One piece of trivia for this season is that Manchester United have only managed one goal away from home against others in the top six and that was a consolation goal in the last of them, against Spurs</p>
+<pre class="r"><code>teams &lt;- topSixes %&gt;% 
+  filter(season==&quot;2016/17&quot;) %&gt;% 
+  .$team
+
+# mini1 &lt;- standings %&gt;%
+#   filter(team==&quot;Man. Utd.&quot; &amp; season==&quot;2016/17&quot; &amp; OppTeam %in% teams) %&gt;% 
+#   arrange(gameDate) %&gt;% 
+#   mutate(result=paste0(GF,&quot;-&quot;,GA)) %&gt;% 
+#   select(Opponent=OppTeam,date=gameDate,venue,result) %&gt;%
+#                          DT::datatable(width=400,class=&#39;compact stripe hover row-border order-column&#39;,rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+# 
+# 
+# ## not working as in other files?? - though is in system
+# #htmlwidgets::saveWidget(mini1, file = &quot;mini1.html&quot;, selfcontained = TRUE)
+
+ standings %&gt;%
+  filter(team==&quot;Man. Utd.&quot; &amp; season==&quot;2016/17&quot; &amp; OppTeam %in% teams) %&gt;% 
+  arrange(gameDate) %&gt;% 
+  mutate(result=paste0(GF,&quot;-&quot;,GA)) %&gt;% 
+  select(Opponent=OppTeam,date=gameDate,venue,result)%&gt;%
+                         DT::datatable(class=&#39;compact stripe hover row-border order-column&#39;,rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))</code></pre>
+<div id="htmlwidget-6509d5a52fa7ceebff88" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6509d5a52fa7ceebff88">{"x":{"filter":"none","data":[["Man. City","Liverpool","Chelsea","Arsenal","Tottenham H","Liverpool","Chelsea","Man. City","Arsenal","Tottenham H"],["2016-09-10","2016-10-17","2016-10-23","2016-11-19","2016-12-11","2017-01-15","2017-04-16","2017-04-27","2017-05-07","2017-05-14"],["H","A","A","H","H","H","H","A","A","A"],["1-2","0-0","0-4","1-1","1-0","1-1","2-0","0-0","0-2","1-2"]],"container":"<table class=\"compact stripe hover row-border order-column\">\n  <thead>\n    <tr>\n      <th>Opponent<\/th>\n      <th>date<\/th>\n      <th>venue<\/th>\n      <th>result<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"paging":false,"searching":false,"info":false,"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row"}},"evals":[],"jsHooks":[]}</script>
+<!-- <iframe seamless src="../mini1/index.html" width="50%" height="300"></iframe> -->
+<hr />
+<p>The chart below shows results for each year. Hover points for team and use the filter created using the crosstalk package to identify just one team The points are jittered to account for situation where two teams have same number of points</p>
+<pre class="r"><code>sd &lt;- SharedData$new(data)
+
+
+
+
+fs &lt;- filter_select(
+id = &quot;team&quot;,
+label = &quot;Select Team&quot;,
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap &lt;- fs
+
+attr(fs_nobootstrap, &quot;html_dependencies&quot;) &lt;- Filter(
+  function(dep) {dep$name != &quot;bootstrap&quot;},
+  attr(fs_nobootstrap, &quot;html_dependencies&quot;)
+)
+
+
+
+
+myChart &lt;- sd %&gt;% 
+  plot_ly(x=~jitter(points),y=~season,color=~as.factor(pos), height=700) %&gt;% 
+  add_markers(hoverinfo=&quot;text&quot;,
+              text=~paste0(team,
+                           &quot;&lt;br&gt;Pos: &quot;,pos,
+                           &quot;&lt;br&gt;Pts: &quot;,points)) %&gt;% 
+  layout(title=&quot;Performance against other top 6 teams by season&quot;,
+         xaxis=list(title=&quot;Points Accrued&quot;),
+         yaxis=list(title=&quot;&quot;)) %&gt;%
+  config(displayModeBar = F,showLink = F)
+
+
+## combine the selector and chart
+
+ 
+  tagList(
+  fs_nobootstrap,
+  br(),
+   myChart
+)</code></pre>
+<div id="team" class="form-group crosstalk-input-select crosstalk-input">
+<label class="control-label" for="team">Select Team</label>
+<div>
+<select></select>
+<script type="application/json" data-for="team">{
+  "items": {
+    "value": ["Arsenal", "Aston Villa", "Blackburn", "Bolton", "Chelsea", "Everton", "Ipswich T", "Leeds U", "Leicester C", "Liverpool", "Man. City", "Man. Utd.", "Newcastle U", "Norwich C", "Nottm Forest", "QPR", "Southampton", "Tottenham H", "West Ham U", "Wimbledon"],
+    "label": ["Arsenal", "Aston Villa", "Blackburn", "Bolton", "Chelsea", "Everton", "Ipswich T", "Leeds U", "Leicester C", "Liverpool", "Man. City", "Man. Utd.", "Newcastle U", "Norwich C", "Nottm Forest", "QPR", "Southampton", "Tottenham H", "West Ham U", "Wimbledon"]
+  },
+  "map": {
+    "Arsenal": ["8", "22", "29", "31", "37", "45", "50", "56", "64", "67", "75", "83", "86", "92", "98", "108", "111", "117", "126", "130", "136", "139", "150"],
+    "Aston Villa": ["3", "24", "30", "41", "47", "72", "95", "101", "107"],
+    "Blackburn": ["2", "7", "15", "35", "62", "82"],
+    "Bolton": ["76"],
+    "Chelsea": ["28", "36", "40", "46", "52", "57", "63", "69", "73", "79", "87", "94", "100", "104", "113", "118", "121", "127", "134", "146"],
+    "Everton": ["23", "77", "89", "96", "102", "124", "131"],
+    "Ipswich T": ["54"],
+    "Leeds U": ["12", "14", "34", "38", "48", "49", "60"],
+    "Leicester C": ["143"],
+    "Liverpool": ["4", "13", "19", "26", "32", "44", "53", "55", "66", "70", "78", "81", "88", "93", "97", "110", "129", "137", "145"],
+    "Man. City": ["105", "114", "115", "122", "128", "135", "144", "148"],
+    "Man. Utd.": ["1", "9", "16", "20", "27", "33", "39", "43", "51", "59", "61", "68", "74", "80", "85", "91", "99", "103", "109", "116", "123", "133", "141", "149"],
+    "Newcastle U": ["11", "18", "21", "25", "58", "65", "71", "120"],
+    "Norwich C": ["5"],
+    "Nottm Forest": ["17"],
+    "QPR": ["6"],
+    "Southampton": ["142"],
+    "Tottenham H": ["84", "90", "106", "112", "119", "125", "132", "138", "140", "147"],
+    "West Ham U": ["42"],
+    "Wimbledon": ["10"]
+  },
+  "group": ["SharedData6509d5a5"]
+}</script>
+</div>
+</div>
+<br/>
+<div id="5e501ca133a3" style="width:100%;height:700px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="5e501ca133a3">{"x":{"visdat":{"5e501b2236b":["function () ","plotlyVisDat"]},"cur_data":"5e501b2236b","attrs":{"5e501b2236b":{"x":{},"y":{},"color":{},"alpha":1,"sizes":[10,100],"type":"scatter","mode":"markers","hoverinfo":"text","text":{}}},"layout":{"height":700,"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Performance against other top 6 teams by season","xaxis":{"domain":[0,1],"title":"Points Accrued"},"yaxis":{"domain":[0,1],"title":"","type":"category","categoryorder":"array","categoryarray":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"]},"dragmode":"zoom","hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false,"displayModeBar":false,"showLink":false},"data":[{"x":[18.8749270230532,16.0923273123801,16.8626741128042,17.9679492924362,16.1766232219525,19.0226410218514,19.9216531720944,22.8721249773167,16.8373633614741,19.8408576995134,23.0696522473358,24.1914501868188,24.183272942435,23.8253973338753,20.0864047647454,25.1857056993991,22.0685833884403,19.1614411699586,17.1150784422643,23.9302203975618,20.1688882204704,22.828791770339,18.189137236122,16.0212976544164,19.9095110396855],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["Man. Utd.<br>Pos: 1<br>Pts: 19","Blackburn<br>Pos: 1<br>Pts: 16","Liverpool<br>Pos: 1<br>Pts: 17","Liverpool<br>Pos: 1<br>Pts: 18","Newcastle U<br>Pos: 1<br>Pts: 16","Arsenal<br>Pos: 1<br>Pts: 19","Arsenal<br>Pos: 1<br>Pts: 20","Man. Utd.<br>Pos: 1<br>Pts: 23","Leeds U<br>Pos: 1<br>Pts: 17","Liverpool<br>Pos: 1<br>Pts: 20","Man. Utd.<br>Pos: 1<br>Pts: 23","Arsenal<br>Pos: 1<br>Pts: 24","Chelsea<br>Pos: 1<br>Pts: 24","Chelsea<br>Pos: 1<br>Pts: 24","Man. Utd.<br>Pos: 1<br>Pts: 20","Man. Utd.<br>Pos: 1<br>Pts: 25","Liverpool<br>Pos: 1<br>Pts: 22","Man. Utd.<br>Pos: 1<br>Pts: 19","Man. Utd.<br>Pos: 1<br>Pts: 17","Man. City<br>Pos: 1<br>Pts: 24","Chelsea<br>Pos: 1<br>Pts: 20","Chelsea<br>Pos: 1<br>Pts: 23","Man. Utd.<br>Pos: 1<br>Pts: 18","Arsenal<br>Pos: 1<br>Pts: 16","Liverpool<br>Pos: 1<br>Pts: 20"],"key":["1","7","13","19","25","31","37","43","49","55","61","67","73","79","85","91","97","103","109","115","121","127","133","139","145"],"set":"SharedData6509d5a5","name":"1","marker":{"fillcolor":"rgba(102,194,165,0.5)","color":"rgba(102,194,165,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[18.0618099893443,15.0070598756894,16.0760639643297,17.0604478175752,15.8940397197381,18.0760374825448,14.9249732326716,18.0463836047798,15.1022929992527,18.0981409112923,17.0730453992262,15.922531459108,17.0678377619013,14.9428822087124,15.8556927504018,16.0383949829265,14.1027164949104,18.0216637725011,14.1616305755451,17.0600728101097,14.9328693945892,18.8951489109546,16.8295404379256,15.1529435252771,15.9218423535116],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["Blackburn<br>Pos: 2<br>Pts: 18","Arsenal<br>Pos: 2<br>Pts: 15","Leeds U<br>Pos: 2<br>Pts: 16","Man. Utd.<br>Pos: 2<br>Pts: 17","Liverpool<br>Pos: 2<br>Pts: 16","Liverpool<br>Pos: 2<br>Pts: 18","Leeds U<br>Pos: 2<br>Pts: 15","Liverpool<br>Pos: 2<br>Pts: 18","Arsenal<br>Pos: 2<br>Pts: 15","Arsenal<br>Pos: 2<br>Pts: 18","Blackburn<br>Pos: 2<br>Pts: 17","Man. Utd.<br>Pos: 2<br>Pts: 16","Man. Utd.<br>Pos: 2<br>Pts: 17","Man. Utd.<br>Pos: 2<br>Pts: 15","Arsenal<br>Pos: 2<br>Pts: 16","Arsenal<br>Pos: 2<br>Pts: 16","Arsenal<br>Pos: 2<br>Pts: 14","Chelsea<br>Pos: 2<br>Pts: 18","Liverpool<br>Pos: 2<br>Pts: 14","Man. Utd.<br>Pos: 2<br>Pts: 17","Man. City<br>Pos: 2<br>Pts: 15","Man. City<br>Pos: 2<br>Pts: 19","Chelsea<br>Pos: 2<br>Pts: 17","Tottenham H<br>Pos: 2<br>Pts: 15","Chelsea<br>Pos: 2<br>Pts: 16"],"key":["2","8","14","20","26","32","38","44","50","56","62","68","74","80","86","92","98","104","110","116","122","128","134","140","146"],"set":"SharedData6509d5a5","name":"2","marker":{"fillcolor":"rgba(252,141,98,0.5)","color":"rgba(252,141,98,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[14.1230933237821,13.9051158605143,15.0577123992145,16.0199540998787,15.8413876869716,16.8340458404273,14.8646144413389,17.1126032456756,13.0411131709814,15.1052569592372,10.8139927526005,12.813256471511,12.1796757999808,13.8980753852986,13.8805526969954,13.851126717031,13.0419858538546,13.9914474059828,12.9169973365031,14.0150670279749,13.8756566783413,16.0082759481855,15.0334065956064,14.9926371274516,15.1995377627201],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["Aston Villa<br>Pos: 3<br>Pts: 14","Man. Utd.<br>Pos: 3<br>Pts: 14","Blackburn<br>Pos: 3<br>Pts: 15","Newcastle U<br>Pos: 3<br>Pts: 16","Man. Utd.<br>Pos: 3<br>Pts: 16","Man. Utd.<br>Pos: 3<br>Pts: 17","Man. Utd.<br>Pos: 3<br>Pts: 15","Arsenal<br>Pos: 3<br>Pts: 17","Man. Utd.<br>Pos: 3<br>Pts: 13","Chelsea<br>Pos: 3<br>Pts: 15","Chelsea<br>Pos: 3<br>Pts: 11","Chelsea<br>Pos: 3<br>Pts: 13","Arsenal<br>Pos: 3<br>Pts: 12","Liverpool<br>Pos: 3<br>Pts: 14","Chelsea<br>Pos: 3<br>Pts: 14","Liverpool<br>Pos: 3<br>Pts: 14","Man. Utd.<br>Pos: 3<br>Pts: 13","Man. City<br>Pos: 3<br>Pts: 14","Arsenal<br>Pos: 3<br>Pts: 13","Arsenal<br>Pos: 3<br>Pts: 14","Man. Utd.<br>Pos: 3<br>Pts: 14","Liverpool<br>Pos: 3<br>Pts: 16","Man. City<br>Pos: 3<br>Pts: 15","Man. Utd.<br>Pos: 3<br>Pts: 15","Tottenham H<br>Pos: 3<br>Pts: 15"],"key":["3","9","15","21","27","33","39","45","51","57","63","69","75","81","87","93","99","105","111","117","123","129","135","141","147"],"set":"SharedData6509d5a5","name":"3","marker":{"fillcolor":"rgba(141,160,203,0.5)","color":"rgba(141,160,203,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[13.167792695947,12.9365945566446,15.0160854015499,13.9033254183829,12.8338170180097,13.9485519684851,14.0107935173437,12.8187532138079,12.9545272909105,13.1598961149342,11.1423670564778,11.9525643940084,11.8946291241795,13.1612926082686,13.0836715729907,12.95383173218,12.0150080390275,13.8427800646052,12.8132211018354,10.179195803497,13.1170776514336,12.1221500949003,11.0710455498658,14.1398833904415,9.85055568050593],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["Liverpool<br>Pos: 4<br>Pts: 13","Wimbledon<br>Pos: 4<br>Pts: 13","Man. Utd.<br>Pos: 4<br>Pts: 15","Arsenal<br>Pos: 4<br>Pts: 14","Chelsea<br>Pos: 4<br>Pts: 13","Leeds U<br>Pos: 4<br>Pts: 14","Chelsea<br>Pos: 4<br>Pts: 14","Chelsea<br>Pos: 4<br>Pts: 13","Chelsea<br>Pos: 4<br>Pts: 13","Newcastle U<br>Pos: 4<br>Pts: 13","Arsenal<br>Pos: 4<br>Pts: 11","Liverpool<br>Pos: 4<br>Pts: 12","Bolton<br>Pos: 4<br>Pts: 12","Blackburn<br>Pos: 4<br>Pts: 13","Liverpool<br>Pos: 4<br>Pts: 13","Chelsea<br>Pos: 4<br>Pts: 13","Chelsea<br>Pos: 4<br>Pts: 12","Tottenham H<br>Pos: 4<br>Pts: 14","Tottenham H<br>Pos: 4<br>Pts: 13","Chelsea<br>Pos: 4<br>Pts: 10","Everton<br>Pos: 4<br>Pts: 13","Arsenal<br>Pos: 4<br>Pts: 12","Arsenal<br>Pos: 4<br>Pts: 11","Southampton<br>Pos: 4<br>Pts: 14","Man. City<br>Pos: 4<br>Pts: 10"],"key":["4","10","16","22","28","34","40","46","52","58","64","70","76","82","88","94","100","106","112","118","124","130","136","142","148"],"set":"SharedData6509d5a5","name":"4","marker":{"fillcolor":"rgba(231,138,195,0.5)","color":"rgba(231,138,195,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[13.1992724816315,11.1852979204617,9.05320349028334,9.99726476473734,8.94923599679023,10.8549060360529,7.07253875425085,10.0718656319194,10.8575462742709,9.91342132715508,11.0633890382946,8.88533127382398,10.116313133575,8.90442071836442,11.8078280647285,10.0639676818624,10.064121493604,10.954754631035,13.1923830149695,8.94246001197025,11.8743618390523,9.01916700005531,10.8503532886505,13.9279843377881,9.87206751331687],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["Norwich C<br>Pos: 5<br>Pts: 13","Newcastle U<br>Pos: 5<br>Pts: 11","Nottm Forest<br>Pos: 5<br>Pts: 9","Everton<br>Pos: 5<br>Pts: 10","Arsenal<br>Pos: 5<br>Pts: 9","Blackburn<br>Pos: 5<br>Pts: 11","Aston Villa<br>Pos: 5<br>Pts: 7","Aston Villa<br>Pos: 5<br>Pts: 10","Liverpool<br>Pos: 5<br>Pts: 11","Man. Utd.<br>Pos: 5<br>Pts: 10","Newcastle U<br>Pos: 5<br>Pts: 11","Newcastle U<br>Pos: 5<br>Pts: 9","Everton<br>Pos: 5<br>Pts: 10","Arsenal<br>Pos: 5<br>Pts: 9","Everton<br>Pos: 5<br>Pts: 12","Aston Villa<br>Pos: 5<br>Pts: 10","Aston Villa<br>Pos: 5<br>Pts: 10","Aston Villa<br>Pos: 5<br>Pts: 11","Chelsea<br>Pos: 5<br>Pts: 13","Tottenham H<br>Pos: 5<br>Pts: 9","Tottenham H<br>Pos: 5<br>Pts: 12","Everton<br>Pos: 5<br>Pts: 9","Liverpool<br>Pos: 5<br>Pts: 11","Leicester C<br>Pos: 5<br>Pts: 14","Man. Utd.<br>Pos: 5<br>Pts: 10"],"key":["5","11","17","23","29","35","41","47","53","59","65","71","77","83","89","95","101","107","113","119","125","131","137","143","149"],"set":"SharedData6509d5a5","name":"5","marker":{"fillcolor":"rgba(166,216,84,0.5)","color":"rgba(166,216,84,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null},{"x":[7.01278545102105,10.0231154297479,8.1445032867603,8.93626631926745,8.94324381528422,4.98996214047074,7.08616759134456,2.89730049241334,9.94209889760241,6.89692790396512,7.80566043946892,5.88300241148099,8.90898343846202,7.84364804374054,7.08335390035063,2.09051674995571,6.04783251369372,8.06873208098114,12.0310718034394,9.13424972184002,7.07608344135806,4.9758351771161,7.89927131598815,6.07261094562709,9.02229747837409],"y":["1992/93","1993/94","1994/95","1995/96","1996/97","1997/98","1998/99","1999/00","2000/01","2001/02","2002/03","2003/04","2004/05","2005/06","2006/07","2007/08","2008/09","2009/10","2010/11","2011/12","2012/13","2013/14","2014/15","2015/16","2016/17"],"type":"scatter","mode":"markers","hoverinfo":"text","text":["QPR<br>Pos: 6<br>Pts: 7","Leeds U<br>Pos: 6<br>Pts: 10","Newcastle U<br>Pos: 6<br>Pts: 8","Aston Villa<br>Pos: 6<br>Pts: 9","Aston Villa<br>Pos: 6<br>Pts: 9","Chelsea<br>Pos: 6<br>Pts: 5","West Ham U<br>Pos: 6<br>Pts: 7","Leeds U<br>Pos: 6<br>Pts: 3","Ipswich T<br>Pos: 6<br>Pts: 10","Leeds U<br>Pos: 6<br>Pts: 7","Liverpool<br>Pos: 6<br>Pts: 8","Aston Villa<br>Pos: 6<br>Pts: 6","Liverpool<br>Pos: 6<br>Pts: 9","Tottenham H<br>Pos: 6<br>Pts: 8","Tottenham H<br>Pos: 6<br>Pts: 7","Everton<br>Pos: 6<br>Pts: 2","Everton<br>Pos: 6<br>Pts: 6","Arsenal<br>Pos: 6<br>Pts: 8","Man. City<br>Pos: 6<br>Pts: 12","Newcastle U<br>Pos: 6<br>Pts: 9","Arsenal<br>Pos: 6<br>Pts: 7","Tottenham H<br>Pos: 6<br>Pts: 5","Tottenham H<br>Pos: 6<br>Pts: 8","Man. City<br>Pos: 6<br>Pts: 6","Arsenal<br>Pos: 6<br>Pts: 9"],"key":["6","12","18","24","30","36","42","48","54","60","66","72","78","84","90","96","102","108","114","120","126","132","138","144","150"],"set":"SharedData6509d5a5","name":"6","marker":{"fillcolor":"rgba(255,217,47,0.5)","color":"rgba(255,217,47,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","_isNestedKey":false,"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"ctGroups":["SharedData6509d5a5"]},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<p>Just to reinforce how disappointing this season has been - at least as far as the league is concerned - Manchester United’s points total of 10 is the joint worst they have ever registered in the PL with 2001/2. That year, they actually lost 6 of 10 againts their closest rivals. In that season, 36 yr old Laurent Blanc was a mainstay of their defence and Juan Veron patrolled the midfield</p>

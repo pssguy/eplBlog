@@ -1,0 +1,224 @@
+---
+title: Mini tables 
+author: Andrew Clark
+date: '2017-05-25'
+tags:
+  - plotly
+  - crosstalk
+slug: miniTables
+---
+
+Every year there is talk of how a team near the top of the table only won because they beat the teams around them or failed to prosper because they couldn't get enough points off the teams below them (Liverpool, in particular, being a case in point the this season)    
+
+
+  Let's have a look at that for the history of the Premier League as far as the top teams go. This year, there have been, realistically, six teams vying for the top four places which guarantees entry into the following year's, exclusive, Champions League. I will, thus, concentrate on how the 'Top Sixes' have fared against each other over the 25 years of the Premier League
+  
+Let's load the libraries and data required. The latter has been personally accumulated over many years but similar data can also be obtained from **James Curley's** [engsoccerdata package](https://github.com/jalapic/engsoccerdata)
+  
+  
+```{r setup, message=FALSE, warning=FALSE}
+
+library(DT)
+library(knitr)
+library(plotly)
+library(crosstalk)
+library(htmltools)
+library(tidyverse)
+
+
+
+standings <- readRDS("data/standings.rds")
+
+glimpse(standings)
+
+
+```
+
+The 'standings' data.frame has a row for each team for each round so, 
+firstly, I need to construct a subset  restricted to end-of-season data for the top six each year, retaining just the team, season, final position and points (3 for win, 1 for tie/draw) fields  
+
+```{r topteams, message=FALSE, warning=FALSE}
+
+  topSixes <- standings %>% 
+    group_by(season) %>% 
+     filter(tmYrGameOrder==max(tmYrGameOrder)&final_Pos<=6) %>% 
+  select(team,season,final_Pos,cumPts)
+
+# test for specific season
+(topSixes %>% 
+  filter(season=="2015/16"))
+
+```
+As you may recall, last year Leicester convincingly won the title and Arsenal did their perennial - up until then at least - eclipsing of local rivals, Spurs
+
+
+We now want to construct a minitable for the encounters between these clubs. It usually pays to look at one season first and then extend to all years, using the mapping functions from the purrr package (part of the tidyverse package loaded above)
+
+```{r oneSeason, message=FALSE, warning=FALSE}
+
+# top teams for 2016/17
+oppsOneYear <- topSixes %>% 
+    filter(season=="2016/17") %>% 
+    .$team
+
+
+#function to create results for club
+  make_OneYeartable <- function(x) {
+   
+    temp <- standings %>% 
+      filter(season=="2016/17"&team==x&OppTeam %in% oppsOneYear) %>% 
+      summarize(totPoints=sum(points),totGF=sum(GF),totGA=sum(GA),totGD=totGF-totGA)
+    
+    cbind(team=x,temp)
+    
+  }
+ 
+  ## apply the function to each of the six teams. Use map_df as we want a data.frame as outcome
+  dataOneYear <-map_df(oppsOneYear, make_OneYeartable)
+
+  
+dataOneYear
+
+```
+
+Arsenal's relative failure against the top clubs cost them a place in the Champions League as they finished just one point shy of fourth place
+
+OK, now we can look at applying the process to all seasons. This requires use of the map2_df() function
+
+```{r allSeasons, message=FALSE, warning=FALSE}
+
+make_table <- function(x,y) {
+    
+  # need to create a separate top 6 for each season
+    opps <- topSixes %>% 
+      filter(season==x) %>% 
+      .$team
+    
+    temp <- standings %>% 
+      filter(season==x&team==y&OppTeam %in% opps) %>%  #10 games
+      summarize(totPoints=sum(points),totGF=sum(GF),totGA=sum(GA),totGD=totGF-totGA)
+    
+    # add both season and team to the data
+    cbind(season=x,team=y,temp)
+    
+  } 
+  
+# use  map2 is specialised to iterate over two arguments
+  data <-map2_df(topSixes$season,topSixes$team, make_table) 
+  
+  # add back in the relevant full table data (still needs bit of work)
+  
+  data <- data %>% 
+    left_join(topSixes) %>% 
+    # create minitable position
+    arrange(desc(totPoints),desc(totGD),desc(totGF),team) %>% 
+    group_by(season) %>% 
+    mutate(pos=row_number()) %>% 
+    ungroup() %>% 
+    mutate(other_pts=cumPts-totPoints) %>% 
+  select(season,team,pos,points=totPoints,GD=totGD,other_pts,all_pos=final_Pos,all_pts=cumPts) %>% 
+    arrange(season,pos)
+  
+ 
+  head(data)
+  
+  
+
+```
+
+In 1992/93, Year One of the Premier League, Blackburn and Liverpool (sound familiar) suffered by not taking advantage of lesser teams
+
+
+---
+
+One piece of trivia for this season is that Manchester United have only managed one goal away from home against others in the top six and that was a consolation goal in the last of them, against Spurs 
+
+```{r manUnited, message=FALSE, warning=FALSE}
+
+
+teams <- topSixes %>% 
+  filter(season=="2016/17") %>% 
+  .$team
+
+# mini1 <- standings %>%
+#   filter(team=="Man. Utd." & season=="2016/17" & OppTeam %in% teams) %>% 
+#   arrange(gameDate) %>% 
+#   mutate(result=paste0(GF,"-",GA)) %>% 
+#   select(Opponent=OppTeam,date=gameDate,venue,result) %>%
+#                          DT::datatable(width=400,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+# 
+# 
+# ## not working as in other files?? - though is in system
+# #htmlwidgets::saveWidget(mini1, file = "mini1.html", selfcontained = TRUE)
+
+ standings %>%
+  filter(team=="Man. Utd." & season=="2016/17" & OppTeam %in% teams) %>% 
+  arrange(gameDate) %>% 
+  mutate(result=paste0(GF,"-",GA)) %>% 
+  select(Opponent=OppTeam,date=gameDate,venue,result)%>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+```
+
+<!-- <iframe seamless src="../mini1/index.html" width="50%" height="300"></iframe> -->
+
+
+---
+
+The chart below shows results for each year. Hover points for team and use the filter created using the crosstalk package to identify just one team
+The points are jittered to account for situation where two teams have same number of points
+
+
+```{r overTime, message=FALSE, warning=FALSE}
+
+
+
+sd <- SharedData$new(data)
+
+
+
+
+fs <- filter_select(
+id = "team",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+
+
+myChart <- sd %>% 
+  plot_ly(x=~jitter(points),y=~season,color=~as.factor(pos), height=700) %>% 
+  add_markers(hoverinfo="text",
+              text=~paste0(team,
+                           "<br>Pos: ",pos,
+                           "<br>Pts: ",points)) %>% 
+  layout(title="Performance against other top 6 teams by season",
+         xaxis=list(title="Points Accrued"),
+         yaxis=list(title="")) %>%
+  config(displayModeBar = F,showLink = F)
+
+
+## combine the selector and chart
+
+ 
+  tagList(
+  fs_nobootstrap,
+  br(),
+   myChart
+)
+
+```
+
+Just to reinforce how disappointing this season has been - at least as far as the league is concerned - Manchester United's points total of 10 is the joint worst they have ever registered in the PL with 2001/2. That year, they actually lost 6 of 10 againts their closest rivals. In that season, 36 yr old Laurent Blanc was a mainstay of their defence and Juan Veron patrolled the midfield

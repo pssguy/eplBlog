@@ -1,0 +1,22 @@
+---
+title: Welcome to the new soccer blog
+author: Andrew Clark
+date: '2017-05-15'
+slug: welcome
+categories: []
+tags: []
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+Some of you may be familiar with the [mytinyshinys site](http://www.mytinyshinys.com)
+
+i have decided to create a separate blog which will concentrate predominantly on the English Premier League, which is currently just completing its 25th season
+
+The blog will include code and may help those interested in the exploratory process I go through in creating apps and charts for tweets
+
+I also maintain a comprehensive shiny [interactive website](http://www.premiersoccerstats.com) covering teams and players throughout the history of the league
+
+For those of you interested in creating a similar styled blog, please refer to *Yihui Xie & Amber Thomas's* [detailed documentation](https://bookdown.org/yihui/blogdown/) and a useful blog post by [Ed Borasky](https://www.znmeb.mobi/2017/05/12/getting-started-with-blogdown/) on setting up a similar-themed site
