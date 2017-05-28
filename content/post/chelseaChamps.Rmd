@@ -272,7 +272,20 @@ Interestingly, Leicester - last year's champions als figure highly. Much more in
 
 ```{r signings}
 
+new <- playerClub %>% 
+  filter(JOINED>"2016-05-15") %>% 
+  select(PLAYERID,TEAMID) %>% 
+  left_join(teamCodes, by="TEAMID") # this wont include Moses
 
+
+playerGame %>% 
+  filter(season=="2016/17") %>% 
+  right_join(new) %>% 
+  group_by(TEAMNAME) %>% 
+  #filter(TEAMNAME=="Liverpool") %>% 
+  select(TEAMNAME,mins) %>% 
+  summarize(totMins=sum(mins,na.rm=TRUE)) %>% # why any NAs
+  arrange(desc(totMins))
 
 
 
@@ -306,5 +319,40 @@ The data is a bit imprecise but sales of Oscar, Salah, Djilobodji, Marin and Bam
 
 
 ## Player bounce back
+
+look at specials line1774 and adapt (points per minute)
+hazrd costa pedro willian fabregas matic 
+```{r bounceback}
+
+ids <- c("PEDRO","WILLIA","MATICN","SOLERF","HAZARDE","COSTAD")
+
+playerGame %>% 
+  filter(TEAMNAME=="Chelsea"&PLAYERID %in% ids) %>% 
+  group_by(name,PLAYERID,season) %>% 
+  summarize(gls=sum(Gls,na.rm=TRUE),ass=sum(Assists,na.rm=TRUE),totMins=sum(mins,na.rm=TRUE)) %>% 
+  mutate(ppg=90*(gls+ass)/totMins) %>% 
+  filter(season>"2013/14") %>% 
+  plot_ly(x=~season,y=~ppg) %>% 
+  add_markers(color=I("black"), name="") %>% ## need to sort and put in tips
+  add_lines(color=~name)
+
+
+```
+
+Evey single player performed at a higher level than the previous seasonand most better than in the previous chamionship season of 2014/15 (in which Pedro did not feature). Hazard was deservedly tiped as a favourite for player of year and jsut lost out to fellow Blue defensive midfielder Kante and Fabregas second highest attacking contribution  for players who have appeared in 500 or more minutes in a season and the best for a midfielder
+
+
+```{r}
+
+playerGame %>% 
+  filter(PLAYERID !="OWNGOAL") %>% 
+  group_by(name,PLAYERID,season) %>% 
+  summarize(gls=sum(Gls,na.rm=TRUE),ass=sum(Assists,na.rm=TRUE),totMins=sum(mins,na.rm=TRUE)) %>% 
+  mutate(ppg=round(90*(gls+ass)/totMins,2)) %>% 
+  filter(totMins>499) %>% 
+  arrange(desc(ppg)) %>% 
+  ungroup() %>% 
+  select(name,season,ppg,totMins)
+```
 
 Mourinho clearly had major issues with some of his star players
