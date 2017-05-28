@@ -1,7 +1,7 @@
 ---
 title: Mini tables 
 author: Andrew Clark
-date: '2017-05-25'
+date: '2017-05-24'
 tags:
   - plotly
   - crosstalk
@@ -140,16 +140,7 @@ teams <- topSixes %>%
   filter(season=="2016/17") %>% 
   .$team
 
-# mini1 <- standings %>%
-#   filter(team=="Man. Utd." & season=="2016/17" & OppTeam %in% teams) %>% 
-#   arrange(gameDate) %>% 
-#   mutate(result=paste0(GF,"-",GA)) %>% 
-#   select(Opponent=OppTeam,date=gameDate,venue,result) %>%
-#                          DT::datatable(width=400,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
-# 
-# 
-# ## not working as in other files?? - though is in system
-# #htmlwidgets::saveWidget(mini1, file = "mini1.html", selfcontained = TRUE)
+
 
  standings %>%
   filter(team=="Man. Utd." & season=="2016/17" & OppTeam %in% teams) %>% 

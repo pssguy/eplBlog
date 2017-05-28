@@ -1,0 +1,164 @@
+---
+title: Plus-Minus
+author: Andrew Clark
+date: '2017-05-26'
+categories:
+  - Bournemouth
+tags:
+  - purrr
+  - plotly
+  - ggplot2
+  - ggrepel
+  - ggthemes
+slug: plusMinus
+---
+
+In some sports, especially the NBA, the concept of how your team does whilst you are on the flor, pitch ice is very common
+
+It is not so relevant to the Premier League, but is still of interest in helping determine which players have had the most impact on their team's performances. 
+
+One standout in the 2016/17 season was Crystal Palace's loan signing of Sakho from Liverpool. In the eight games he started the team averaged 2 points per game. In the other 30. 0.8ppg
+
+Let's load the libraries and data required
+
+```{r, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(plotly)
+library(ggplot2)
+library(ggrepel)
+library(ggthemes)
+library(crosstalk)
+library(htmltools)
+
+playerGame <- readRDS("data/playerGame.rds")
+standings <- readRDS("data/standings.rds")
+
+```
+
+Bournemouth had an extremely successful season in 2016/17 finishing ninth with an average points per game of 1.21. However, high-profile, loan signing, Jack Wilshere, and record soigning, Jordan Ibe, had issues
+
+Let's take a look at Wilshere and extend from there. The playerGame data.frame has data on whether a player started in a specific game and the standings includes the result. The common 'MATCHID' field is sufficient to join them 
+
+```{r, warning=FALSE, message=FALSE}
+outcome <-playerGame %>% 
+    filter(PLAYERID=="WILSHEJ"&START>0&season=="2016/17"&TEAMNAME=="Bournemouth") %>% 
+    left_join(standings) %>% 
+    select(gameDate,res,name) 
+
+head(outcome)
+```
+
+Each Win is worth 3 points and a Draw/Tie, 1. We can easily obtain the average return for games Wilshere starts in
+
+```{r, warning=FALSE, message=FALSE}
+
+
+outcome %>% 
+    mutate(ppg=ifelse(res=="Win",3,ifelse(res=="Draw",1,0))) %>% 
+    summarize(games=n(),av_ppg=round(mean(ppg),2))
+
+
+```
+
+So a point-per-game. Applied over the season, that would have had Bournemouth in 17th position, just avoiding relegation
+
+Let's now create a function that can be applied to all Bournemouth players for the year
+
+```{r, warning=FALSE, message=FALSE}
+
+
+# Create vector of the ids of all the players starting at least one league game for the club
+pl <- playerGame %>% 
+  filter(START>0&season=="2016/17"&TEAMNAME=="Bournemouth") %>% 
+  .$PLAYERID %>% 
+  unique()
+
+print(pl)
+
+# create a function based on code above
+ppg <- function(x) {
+  
+  outcome <-playerGame %>% 
+    filter(PLAYERID==x&START>0&season=="2016/17"&TEAMNAME=="Bournemouth") %>% 
+    left_join(standings) %>% 
+    select(gameDate,res,name) #27 could also look as starter
+
+  player<- unique(outcome$name)
+
+outcome %>% 
+    mutate(ppg=ifelse(res=="Win",3,ifelse(res=="Draw",1,0))) %>% 
+    summarize(games=n(),av_ppg=round(mean(ppg),2)) %>% cbind(player)
+ 
+  
+}
+
+# create a data.frame using the map_df function from the purrr package (part of the tidyverse)
+dataOneYear <-map_df(pl, ppg)
+
+dataOneYear %>%
+DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+```
+
+Let's chart the results
+
+```{r, message=FALSE, warning=FALSE}
+
+# Needed to order players by starting appearances
+levels <- dataOneYear %>% 
+  arrange(games) %>% 
+  .$player
+
+
+line <- weighted.mean(dataOneYear$av_ppg,dataOneYear$games)
+
+ dataOneYear %>% 
+  mutate(name=factor(player, levels = levels)) %>% 
+  plot_ly(x=~av_ppg,y=~name,width=700, height= 450) %>% 
+  add_markers(color = I("blue"),name="Player ppg",
+              hoverinfo="text",
+              text=~paste0(name,"<br>Starts:",games,
+                           "<br>ppg: ",av_ppg)) %>% 
+ add_lines(name="Team Average",
+               x = rep(line, nrow(dataOneYear)), 
+               y = dataOneYear$name)  %>% 
+   layout(hovermode = "closest",  
+         title = "Average points per PL game started<br> Ordered by Starts - Hover for Info",
+         xaxis = list( title = "Points per Game"),
+         yaxis = list(title = ""),
+         margin = list(l = 130)
+  ) %>% 
+  config(displayModeBar = F,showLink = F)
+
+
+
+```
+
+
+As you can see Jordan Ibe matched Wilshere's uninspiring performance, though to be fair to the latter several of his better performances came when used as a sub. In terms, of games played to points accrued, Steve Cook stands out and he may be the Bournemouth player who will be commanding the most interest from bigger clubs in the upcoming transfer window. You can also see why they would like to sihn Ake on a permanent basis
+
+Here's another way of looking at that - this time  the more commomly used ggplot2 package, along with the useful ggrepel package that separates text and the economist theme
+
+```{r, warning=FALSE, message=FALSE}
+
+ p <-dataOneYear %>% 
+   ggplot(aes(games, av_ppg, label=player)) 
+ 
+  p <- p +
+  geom_text_repel(size=3.3) + theme_economist() + scale_colour_economist() +
+    ylab("Av points per game") +
+   xlab("Games as Starter")
+    
+p
+
+```
+
+Further work in this area would be to extend this so that charts for any team in any season could be created. This would effectively offer 50 times the output and is probably best served via a shiny app. I'll keep you posted
+
+
+
+
+
+
+

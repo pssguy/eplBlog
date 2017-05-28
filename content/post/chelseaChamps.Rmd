@@ -1,0 +1,310 @@
+---
+title: Why Chelsea won the League - In 4 charts
+author: Andrew Clark
+date: '2017-05-27'
+slug: chelseaChamps
+categories: []
+tags:
+  - plotly
+  - purrr
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+So Chelsea are league champions again and back in the Champions league - quite a turn around from 10th position last year. It wasn't the once in a lifetime performance (OK twice if you wee alive when Nottingham forest won in 1977/78) that Leicester served up but they were clearly behind both Manchester clubs in the pre-season betting
+
+
+Load up libraries and data required
+
+```{r setup, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(plotly)
+library(DT)
+
+playerGame <- readRDS("data/playerGame.rds")
+playerClub <- readRDS("data/playerClub.rds")
+teamCodes <- readRDS("data/teamCodes.rds")
+```
+
+## Repeat
+
+With a new manager,in Conte, it probably helps if the core of the team is unchaged from the year before, even if they had underperformed. Let's look at the share of minutes available this season played by players who had appeared the year before
+
+```{r repeaters, warning=FALSE, message=FALSE}
+
+# Last year's players
+lastyear <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea"& mins>0&season=="2015/16") %>% 
+  select(name,PLAYERID) %>% 
+  .$PLAYERID %>% 
+  unique()
+
+# Toatal minutes available - this will be 37620 at year end but this code can be amended for part years
+totMins <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea"& mins>0&season=="2015/16") %>% 
+  summarize(allMins=sum(mins)) %>% 
+  .$allMins 
+
+# This year equivqlent
+oldMins <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea"& mins>0&season=="2016/17"&PLAYERID %in% lastyear) %>% 
+  summarize(allMins=sum(mins)) %>% 
+  .$allMins %>% 
+  head(1)
+
+# Calculate and print 
+pc <- round(100*oldMins/totMins,0) #69%
+
+paste0(pc,"%")
+
+```
+
+OK let's generalize this to all teams that appeared both seasons
+
+```{r}
+
+#last season
+ly <-playerGame %>% 
+  filter(season=="2015/16") %>% 
+  select(TEAMNAME) %>% 
+  unique() %>% 
+  .$TEAMNAME
+
+#this season
+ty <-playerGame %>% 
+  filter(season=="2016/17") %>% 
+  select(TEAMNAME) %>% 
+  unique() %>% 
+  .$TEAMNAME
+
+#both seasons
+teams <- intersect(ly,ty)
+
+## create a function based on earlier code
+
+
+player_repeat <- function(x) {
+  
+  lastyear <-playerGame %>% 
+  filter(TEAMNAME==x& mins>0&season=="2015/16") %>% 
+  select(name,PLAYERID) %>% 
+  .$PLAYERID %>% 
+  unique()
+
+
+totMins <-playerGame %>% 
+  filter(TEAMNAME==x& mins>0&season=="2015/16") %>% 
+  summarize(allMins=sum(mins)) %>% 
+  .$allMins 
+
+
+oldMins <-playerGame %>% 
+  filter(TEAMNAME==x& mins>0&season=="2016/17"&PLAYERID %in% lastyear) %>% 
+  summarize(allMins=sum(mins)) %>% 
+  .$allMins %>% 
+  head(1)
+
+# print(oldMins)
+# print(totMins)
+
+round(100*oldMins/totMins,0) 
+  
+}
+
+df <- data.frame(pc=map_dbl(teams,player_repeat)) %>% cbind(teams) %>% 
+      arrange(desc(pc)) %>%
+  select(team=teams,pc) %>% 
+      DT::datatable(width=200,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+      
+df      
+
+```
+
+
+Spurs had a good 2015/16 and built on the same team to produce their best ever premier league finish. Leicester, predictably, tried the rinse and repeat and had some underwhelming signings in Slimani and Musa. At the other end - Sunderland were always flailing to find a team that could produce a point an Palace had a busy (and succesful) January window
+
+Chelsea were, in fact, at the bottom end. Let's just look at individual minutes
+
+```{r}
+
+lastyear <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea" & mins>0&season=="2015/16") %>% 
+  select(name,PLAYERID) %>% 
+  .$PLAYERID %>% 
+  unique()
+
+thisyear <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea" & mins>0&season=="2015/16") %>% 
+  select(name,PLAYERID) %>% 
+  .$PLAYERID %>% 
+  unique()
+
+
+  
+lastyear <-playerGame %>% 
+  filter(TEAMNAME=="Chelsea" & mins>0&season=="2015/16") %>% 
+  group_by(name,PLAYERID) %>% 
+  summarize(mins_2015=sum(mins))
+  
+
+playerGame %>% 
+  filter(TEAMNAME=="Chelsea" & mins>0&season=="2016/17") %>% 
+  group_by(name,PLAYERID) %>% 
+  summarize(mins_2016=sum(mins)) %>% 
+  full_join(lastyear) %>% 
+   replace_na(list(mins_2015 = 0, mins_2016 = 0)) %>% 
+  mutate(change=mins_2016-mins_2015) %>% 
+  arrange(desc(change)) %>% 
+  select(name, `2016`=mins_2016,`2015`=mins_2015,change)%>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+
+  
+
+```
+
+Instructive in several ways (probably should be lead table)
+
+ * Importance of recruits
+ * Less injuries to key players (need to check)
+ * Investment money from sales of peripheral players oscar(60mill) Ramires(left year before) dj salah marin even got 6mill for Bamford
+ * Phasing out of older players -  Mikel, Terry, Azpilicueta
+ 
+ 11 players 2000 minutes or more only 2 between 1000-2000 fabregas and Willian succesfully transitioned into subs role - though the former may not be happy. Both came on as sub more often than satrted
+
+
+```{r 2000mins}
+
+
+playerGame %>% 
+  filter(season=="2016/17") %>% 
+  group_by(PLAYERID,TEAMNAME) %>% 
+  summarize(totMins=sum(mins)) %>% 
+  filter(totMins>1999) %>% 
+  group_by(TEAMNAME) %>% 
+  tally() %>% 
+  arrange(desc(n))
+  
+
+
+```
+
+
+## Players accounting for % of minutes
+
+slightly diff way of looking cumulative mins (37620 in all)
+
+```{r}
+
+playerGame %>% 
+  filter(season=="2016/17") %>% 
+  group_by(PLAYERID,TEAMNAME) %>% 
+  summarize(totMins=sum(mins)) %>% 
+   filter(totMins>0) %>% 
+  group_by(TEAMNAME) %>% 
+  arrange(desc(totMins)) %>% 
+  mutate(cumpc=100*cumsum(totMins)/37620,count=row_number()) %>% 
+  plot_ly(x=~count,y=~cumpc,color=~TEAMNAME) %>% 
+  add_lines() %>% 
+  layout(title="Cumulative Share 0f 2016/17 EPL minutes by number of Players in Club",
+         xaxis=list(title="Cumulative %"),
+         yaxis=list(title="Player Count"))
+
+
+```
+
+If you zoom in at the 10-15 player range, it highlights the difference. The most commonly used 11 players accounted for more than 85.4%. next is WBA with less than 81% with Hull bringing up the rear at 62.6%. Toggle on the legend to add/remove clubs for easier viewing
+
+```{r}
+
+chelsea <- playerGame %>% 
+  filter(season=="2016/17"&TEAMNAME=="Chelsea") %>% 
+  group_by(PLAYERID,TEAMNAME) %>% 
+  summarize(totMins=sum(mins)) %>% 
+   filter(totMins>0) %>% 
+  group_by(TEAMNAME) %>% 
+  arrange(desc(totMins)) %>% 
+  mutate(cumpc=100*cumsum(totMins)/37620,count=row_number())
+
+
+
+df <- playerGame %>% 
+  filter(season>="1995/96") %>% 
+  group_by(PLAYERID,TEAMNAME,season) %>% 
+  summarize(totMins=sum(mins)) %>% 
+  filter(totMins>0) %>% 
+  group_by(TEAMNAME,season) %>% 
+  arrange(desc(totMins)) %>% 
+  mutate(cumpc=100*cumsum(totMins)/37620,count=row_number())
+
+df  %>% 
+  plot_ly(x=~count,y=~cumpc) %>% 
+  add_lines(color=I('lightgrey'), name="All Team/Seasons") %>% 
+  add_lines(data=chelsea,x=~count,y=~cumpc,color=I('blue'), name="Chelsea 2016/17") %>% 
+  layout(title="Cumulative Share 0f EPL minutes by number of Players in Club by season",
+         xaxis=list(title="Cumulative %"),
+         yaxis=list(title="Player Count")) %>%  config(displayModeBar = F,showLink = F)
+
+
+```
+
+So Chelsea are right up there.
+
+The table below shows for each team/season combination 
+
+```{r}
+
+df %>% 
+  filter(count==11) %>% 
+  arrange(desc(cumpc)) %>% 
+  mutate(pc=round(cumpc,1)) %>% 
+  select(team=TEAMNAME, season,`%`=pc)
+
+```
+
+Interestingly, Leicester - last year's champions als figure highly. Much more information can be found at [premiersoccerstats.com](www.premiersoccerstast.com)
+
+## New signings
+
+```{r signings}
+
+
+
+
+
+
+```
+
+## Fee out
+
+```{r sales}
+
+playerClub %>% 
+  filter(LEFT>"2016-05-15"&LEFT<"2017-05-15") %>% 
+ 
+  group_by(TEAMID) %>% 
+ 
+  summarize(Income=round(sum(FEEOUT,na.rm=TRUE)/1000,0)) %>% 
+  left_join(teamCodes, by="TEAMID") %>% 
+  filter(TEAMNAME %in% ty) %>% 
+  arrange(desc(Income)) %>% 
+  select(team=TEAMNAME,Income)
+
+```
+
+The data is a bit imprecise but sales of Oscar, Salah, Djilobodji, Marin and Bamford (the latter four who mustered all of 8 starts between them) vaulted Chelsea to the top of the list
+
+##  Games played
+
+
+## Injuries accruing
+
+
+
+## Player bounce back
+
+Mourinho clearly had major issues with some of his star players
