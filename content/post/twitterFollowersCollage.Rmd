@@ -1,0 +1,183 @@
+---
+title: Twitter Followers Collage
+author: Andrew Clark
+date: '2017-03-20'
+slug: twitterFollowersCollage
+categories:
+  - entertainment
+tags:
+  - rtweet
+  - purrr
+  - magick
+description: ''
+featured: ''
+featuredalt: ''
+featuredpath: ''
+linktitle: ''
+banner: "banners/twitterFollowersCollage.PNG"
+---
+
+A relatively new, but extremely welcome, additon to the R blogosphere is [Maëlle Salmon](https://twitter.com/ma_salmon)    
+
+She recently posted [Faces of #rstats Twitter](http://www.masalmon.eu/2017/03/19/facesofr/),  which describes how to get a collage of 50x50px images of tweeters with 'rstats' in their profile    
+
+Here is the end-product    
+
+
+![](/img/twitterCollage.jpg) 
+
+There are around 450 images, which happens to match my current number of followers so I thought I would adapt her code accordingly    
+
+I have set the code to eval=FALSE to obviate a yet-to-be-resolved error when I remove a file
+
+
+
+```{r setup, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(eval=FALSE, echo=TRUE, error=FALSE, message= FALSE, warning=FALSE)
+
+library(rtweet)
+library(magick)
+library(gmp)
+library(tidyverse)
+
+```
+
+I use the rtweet package to get my followers and obtain their basic information.  You can, of course, substitute yours or any other screenname. The limit is 75000 but that is no concern for this exercise
+
+```{r rtweet}
+
+# First I get a list of my followers
+followers <- get_followers(user="pssguy")
+nrow(followers) #451 at time of writing
+
+# Then get some details
+followers_df <-lookup_users(users=followers) 
+nrow(followers_df) #443
+
+names(followers_df)
+followers_df$profile_image_url[1]
+
+# write to file 
+write_csv(followers_df,"followers.csv")
+
+```
+
+There is a small drop-off in the return. You will note(if you run the code) that there is a column, "profile_image_url", which links to a user's image
+
+---
+
+I now need to create a file to save the images to it, utilizing the magick package
+
+
+```{r harvetsImages}
+
+## retrieve followers_df file at March 2017
+followers_df <- read_csv("followers.csv")
+
+# destination file
+dir.create("followerImages")  # in content/post
+
+# function to retrieve,scale and write images
+# 
+save_image <- function(df){
+  image <- try(image_read(df$profile_image_url), silent = TRUE) 
+  if(class(image)[1] != "try-error"){
+    image %>%
+      image_scale("50x50") %>%
+      image_write(paste0("followerImages/", df$screen_name,".jpg"))
+  }
+}
+
+# just check all those that have images
+followers_df <- followers_df %>% 
+  filter(!is.na(profile_image_url)) # still 443
+
+# create a list so that purrr package  walk() function can be used 
+followers_list <- split(followers_df, 1:nrow(followers_df))
+
+walk(followers_list, save_image)
+
+#The images are safely in desired folder within less than 3 minutes
+ f <- list.files("followerImages")
+ length(f) #443  
+
+```
+
+The desired output is a reasonable looking rectangle of all the images. Obviously 443 is going to give issues so we need to do some more work to find an acceptable solution by removing, duplicating or adding dummy images. The choice is yours but here is my thought-process
+
+
+```{r create_rectangle }
+
+# splits into primes and rearranges randomly so that like images do not
+# all appear to gether
+files <- dir("followerImages/", full.names = TRUE)
+files <- sample(files, length(files))
+gmp::factorize(length(files)) #443
+
+## 443 is a prime so let us look +/- 1
+
+factorize(444) #[1] 2  2  3  37
+factorize(442) #[1] 2  13 17
+
+# the latter option looks preferable - id we don't mind hurting somebodies feelings
+
+no_rows <- 26
+no_cols <- 17
+
+```
+
+Initially, I chose a random file to exclude but the resultant collage appeared to have a set of very similar images which
+I tracked down to one which was a jpg of 228KB (all others were less than 10) that appeared to be a collection of images. It seemed the obvious one to exclude.    
+
+Sorry, Basil 
+
+
+
+```{r collage}
+
+# remove my unwanted file
+file.remove("followerImages/Basil_James.jpg")
+
+# just a check
+f <- list.files("followerImages")
+ length(f) #442
+
+
+# reset the files information   
+files <- dir("followerImages/", full.names = TRUE)
+files <- sample(files, length(files))
+
+
+
+# create a directory to hold the 17 column images each made up of 26 individual ones
+dir.create("cols")
+
+make_column <- function(i, files, no_rows){
+  image_read(files[(i*no_rows+1):((i+1)*no_rows)]) %>%
+  image_append(stack = TRUE) %>%
+    image_write(paste0("cols/", i, ".jpg"))
+}  
+
+
+
+walk(0:(no_cols-1), make_column, files = files,
+    no_rows = no_rows)
+
+
+
+image_read(dir("cols/", full.names = TRUE)) %>%
+image_append(stack = FALSE) %>%
+  image_write("collage.jpg")  # in the content/post file
+
+## you may then want to delete the interim directories
+unlink("cols", recursive = TRUE, force = FALSE)
+unlink("followerImages", recursive = TRUE, force = FALSE)
+
+```
+
+
+So now we have the final image available for viewing. Feel free to join the list!
+
+
+![](/img/followersCollage.jpg) 
+

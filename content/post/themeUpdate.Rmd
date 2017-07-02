@@ -1,0 +1,21 @@
+---
+title: Theme Update
+author: Andrew Clark
+date: '2017-05-29'
+slug: welcome
+categories: []
+tags: []
+banner: "banners/themeUpdate.png"
+description: ''
+images: []
+menu: ''
+---
+
+Yow will have noticed a new look to the site, now based on the Hugo Icarus theme
+
+The major reason for introducing this is that the previous theme I used was unable to render certain htmlwidgets I wanted to use to illustrate my code. The code may also be a bit more legible
+
+For those of you interested in creating a similar styled blog, please refer to *Yihui Xie & Amber Thomas's* [detailed documentation](https://bookdown.org/yihui/blogdown/) and a useful blog post by [Ed Borasky](https://www.znmeb.mobi/2017/05/12/getting-started-with-blogdown/) on setting up a similar-themed site
+
+I am also planning to separate posts into more than one blog so expect that soon football/soccer related items will have their own
+arena 

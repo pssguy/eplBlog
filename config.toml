@@ -1,6 +1,6 @@
 baseurl = "/"  # need to test - might want to deploy on #netlify
 languageCode = "en-us" # might want to change
-title = "Interactive Apps for the English Premier League"
+title = "Interactive Apps for the Modern World"
 # Enable comments by entering your Disqus shortname
 #disqusShortname = "spf13" Ed Borasky recommends against - setting to "" apparantly does this
 disqusShortname = ""
@@ -57,7 +57,7 @@ theme = "hugo-icarus-theme"
 
 # Enter a link for the follow button on the left
 [params.profile]
-    follow_button = "http://www.premiersoccerstats.com" # see also data/l10n.toml
+    follow_button = "https://twitter.com/pssGuy" # see also data/l10n.toml
 
 
 [social]

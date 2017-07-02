@@ -1,0 +1,359 @@
+---
+title: Plotly functions
+author: Andrew Clark
+date: '2017-04-20'
+draft: true
+slug: plotlyFunctions
+categories:
+  - soccer
+  - sports
+  - packages
+tags:
+  - plotly
+  - crosstalk
+description: ''
+featured: ''
+featuredalt: ''
+featuredpath: ''
+linktitle: ''
+banner: "banners/plotlyFunctions.PNG"
+---
+
+Amongst interactive chart options for R, plotly (aided by its wrapper function for ggplot2) is the pre-eminent, interactive chart 
+
+![](img/cranPlots.png)
+
+ 
+
+Carson Sievert has been the driving force behind development of the package and he recently held a [webinar](https://www.crowdcast.io/e/plotly-for-R/register) to supplement the excellent under development [book](https://cpsievert.github.io/plotly_book/)
+
+Here I am focusing on a couple of functions to aid highlighting and provide animation using some English soccer data
+
+
+
+## Goal Scoring in the Premier League
+
+ Firstly, the add_fun() function to easily highlight specific lines. The equivalent coverage from his book can be found [here](https://cpsievert.github.io/plotly_book/a-case-study-of-housing-sales-in-texas.html)
+
+Manchester United won 13 of the first 21 Premier League titles but have struggled over the past four seasons in spite of
+spending a shedload of cash on transfer fees and salaries. This chart highlights their continuing struggle to score goals
+
+---
+
+First load libraries and import one dataset which tracks each teams' league position by round of competition
+
+```{r setup, warning=FALSE, message=FALSE}
+
+library(plotly)
+library(tidyverse)
+library(crosstalk)
+library(htmltools)
+
+#load and display dataset
+standings <- readRDS("data/standings.rds")
+glimpse(standings)
+
+```
+
+The fields Of interest are team, season, tmYrGameOrder (the number of games played) and cumGF (the cumulative number of Goals scored).    
+
+ With 25 lines to show, it is probably inappropriate to apply a color to each season, although plotly offers the option to toggle lines on/off by clicking the legend. Let's just start with a a barebones example which, on hovering,  shows the x and y axis information
+
+```{r basic, warning=FALSE, message=FALSE}
+
+# Limit to one team and group dataset for subsequent highlighting
+allYears <- standings %>% 
+  filter(team=="Man. Utd.") %>% 
+  group_by(season) 
+
+# create and display line chart
+p <-allYears %>% 
+  plot_ly(x=~tmYrGameOrder,y=~cumGF) %>% 
+  add_lines(color=I('lightgrey'))
+
+
+p
+
+
+
+```
+
+---
+
+I would to enhance this initial plot in three respects
+
+* Highlight specific seasons
+* Improve tooltip to show hovered season
+* Tidy up look of chart
+
+Of these, the one of major new interest is the first where a function can be created and applied. I wish to highlight the latest two years to compare the impact of new manager Mourinho and a bunch of new players with the turgid football under the previous top dog, van Gaal 
+
+```{r add_functions, warning=FALSE, message=FALSE}
+
+# function with one variable, season and enhanced tooltip
+
+layer_season <- function(plot, name) {
+  plot %>% filter(season == name) %>% add_lines(name = name,
+                                                hoverinfo="text",
+                                                text=~paste0(season,
+                                                             "<br>Pl: ",tmYrGameOrder,
+                                                             "<br>Gls: ",cumGF))
+}
+
+# Set title font characteristics
+t <- list(
+  family = "sans serif",
+  size = 18,
+  color = 'red')
+
+## plot all years
+p <-allYears %>% 
+  plot_ly(x=~tmYrGameOrder,y=~cumGF) %>% 
+  add_lines(color=I('lightgrey'), name="EPL Seasons",
+            hoverinfo="text",
+            text=~paste0(season,
+                         "<br>Pl: ",tmYrGameOrder,
+                         "<br>Gls: ",cumGF)) %>% 
+## highlight last two years  
+  add_fun(layer_season,"2015/16") %>% 
+  add_fun(layer_season,"2016/17") %>% 
+## Improve layout  
+  layout(hovermode="closest",
+    title="Man. Utd. Cumulative Goals-For by Game by PL Season",
+    titlefont=t,
+         xaxis=list(title="Games Played"),
+         yaxis=list(title="Goals Scored")) %>% 
+   config(displayModeBar = F,showLink = F)
+p
+
+```
+
+So an improvement over last year but at the time of writing (after 31 games) still the worst output bar last season    
+ _N.B. As I update the standings file this will change_
+
+---
+
+
+I have previously touched on the [sharedData option](https://www.mytinyshinys.com/post/badDrivers_538/) and this can easily be adapted so that we can look at any of the 47 teams that have graced the Premier League, to date
+
+Just press the down-button in the select box and choose a team
+
+```{r sharedData, warning=FALSE, message=FALSE}
+
+
+# Exclude filter for individual team
+allTeamYears <- standings %>% 
+  group_by(season,team) 
+
+
+
+sd <- SharedData$new(allTeamYears)
+
+
+fs <- filter_select(
+id = "team",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+ 
+ ## plot all years
+ myChart  <-sd %>% 
+  plot_ly(x=~tmYrGameOrder,y=~cumGF) %>% 
+  add_lines(color=I('lightgrey'), name="EPL Seasons",
+            hoverinfo="text",
+            text=~paste0(season,
+                         "<br>Pl: ",tmYrGameOrder,
+                         "<br>Gls: ",cumGF)) %>% 
+# highlight current season if team is in PL
+   add_fun(layer_season,"2016/17") %>% 
+## Improve layout  
+  layout(hovermode="closest",
+    title="Cumulative Goals-For by Game by PL Season",
+    titlefont=t,
+         xaxis=list(title="Games Played"),
+         yaxis=list(title="Goals Scored")) %>% 
+   config(displayModeBar = F,showLink = F)
+
+
+
+## combine the selector and chart
+
+ 
+  tagList(
+  fs_nobootstrap,
+  br(),
+   myChart
+)
+
+
+
+
+
+```
+
+
+
+## Animation
+
+One of the enduring (and endearing if you are a Gooner) features of the the EPL is that although the two North London rivals, Arsenal and Tottenham Hotspur, havebeen two of the six ever-presents of the division, the former have almost always come out on top.     
+ In the earlier part of this year, it appeared as though it would be the same old-same old but Spurs have motored ahead in recent weeks. This appeared to be a good option to apply the [animation features](https://cpsievert.github.io/plotly_book/key-frame-animations.html) of plotly
+ 
+ Carson responded swiftly to a [github request](https://github.com/ropensci/plotly/issues/957) for cumulative animation
+
+
+
+```{r final, warning=FALSE, message=FALSE}
+
+# function to add cumulative line
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+# example teams - could be any
+teams <- c("Arsenal","Tottenham H")
+
+# add function to base data
+df <- standings %>% 
+  filter(season=="2016/17"&team %in% teams) %>% 
+  accumulate_by(~tmYrGameOrder)
+
+# static plot
+base <- df %>% 
+  plot_ly(x=~tmYrGameOrder,y=~cumPts,
+          hoverinfo="text",
+          text=~paste0(team," ",GF,"-",GA," ",OppTeam,"<br>",gameDate,
+                       "<br>PL:",tmYrGameOrder," Pts:",cumPts," Pos:",position)) %>% 
+   config(displayModeBar = F,showLink = F) %>% 
+  layout(
+    xaxis=list(title="Games Played"),
+   yaxis=list(title="Points Accrued")
+  )
+
+#frame, ids = ~team)
+
+# add animation options
+base %>%
+   add_lines(color = ~team, frame = ~frame, ids = ~team) %>%
+  animation_opts(500, easing = "linear",mode='immediate') %>%
+  animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom", font = list(color="red"), bgcolor="yellow"
+  ) %>%
+  animation_slider(
+    currentvalue = list(prefix = "Game ")
+  ) 
+
+```
+
+Just press buton to see how teams have progressed over the season and hover for more details    
+ 
+Enhancements would include option to select other teams and seasons 
+
+---
+Not on page - appears to work fine with 2 inputs given that they are grouped. However, probably not appropriate
+where one factor e.g. seasons selectable depends on first e.g. team - though no error ias shown just blank
+
+```{r sharedData2, warning=FALSE, message=FALSE}
+
+
+# Exclude filter for individual team
+allTeamYears <- standings %>% 
+  group_by(season,team) 
+
+
+
+sd <- SharedData$new(allTeamYears)
+
+
+fs_1 <- filter_select(
+id = "team",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_1_nobootstrap <- fs_1
+
+attr(fs_1_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_1_nobootstrap, "html_dependencies")
+)
+
+fs_2 <- filter_select(
+id = "season",
+label = "Select Season",
+sharedData = sd,
+group =  ~ season,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_2_nobootstrap <- fs_2
+
+attr(fs_2_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_2_nobootstrap, "html_dependencies")
+)
+
+
+ 
+ ## plot all years
+ myChart  <-sd %>% 
+  plot_ly(x=~tmYrGameOrder,y=~cumGF) %>% 
+  add_lines(color=I('lightgrey'), name="EPL Seasons",
+            hoverinfo="text",
+            text=~paste0(season,
+                         "<br>Pl: ",tmYrGameOrder,
+                         "<br>Gls: ",cumGF)) %>% 
+# highlight current season if team is in PL
+   add_fun(layer_season,"2016/17") %>% 
+## Improve layout  
+  layout(hovermode="closest",
+    title="Cumulative Goals-For by Game by PL Season",
+    titlefont=t,
+         xaxis=list(title="Games Played"),
+         yaxis=list(title="Goals Scored")) %>% 
+   config(displayModeBar = F,showLink = F)
+
+
+
+## combine the selector and chart
+
+ 
+  tagList(
+  fs_1_nobootstrap,
+  br(),
+  fs_2_nobootstrap,
+  br(),
+   myChart
+)
+
+
+
+
+
+```

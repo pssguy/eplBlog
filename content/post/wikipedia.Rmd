@@ -1,0 +1,118 @@
+---
+title: "Wikipedia Page Views"
+author: "Andrew Clark"
+date: 2017-02-09
+categories: ["retreads", "packages","flexdashboard"]
+banner: "banners/wikipedia.PNG"
+---
+
+This is the first in a category of retreads where I look again at past work which could do with some loving care. This might be as they are broken, could do with some updating or be usefully enhanced
+
+
+
+One of my first shiny projects was using the [wikipediatrend package](https://github.com/petermeissner/wikipediatrend) to monitor daily page views on Wikipedia. Plotted in ggvis - which at the time seemed to be the future of interactive charts - it was also set up so that specific days could be clicked and links to articles in the Guardian newspaper were made available via the [GuardianR package](https://github.com/cran/GuardianR)
+
+![](/img/moFarah.png)
+
+Since it was written, Wikipedia have released an [API](https://blog.wikimedia.org/2015/12/14/pageview-data-easily-accessible/) and [Oliver Keyes](https://ironholds.org/) has created the [pageviews package](https://github.com/Ironholds/pageviews)     
+
+Data is only available from mid 2015 but the response is way faster than before and there are additional features available which I will be coming back to at a later date 
+
+Initially, I have broadly recreated the original app as a [flexdashboard](https://mytinyshinys.shinyapps.io/wikipedia/) where you can obtain daily page view data for any of the more than 5 million articles on the English wikipedia.     
+
+Here, I use a fixed input and some snipped images. The actual dashboard is an interactive shiny app     
+
+First we load the required packages (some are not essential for the code in the blog)
+
+```{r setup, warning= FALSE ,message = FALSE}
+
+library(flexdashboard)
+library(pageviews)
+library(DT)
+library(plotly)
+library(stringr)
+library(GuardianR)
+library(httr)
+library(rvest)
+library(XML)
+library(selectr)
+library(feather)
+library(tidyverse)
+
+
+
+```
+
+
+### Nothing in his life became him like the leaving it
+
+2016 was a bad year for music fans with several of the biggest names dying
+
+
+
+```{r pageviews}
+
+# Prince has to be distinguished as shown in Wikipedia page
+comps <- c("George Michael","Glenn Frey","Prince (musician)","David Bowie","Leonard Cohen")
+
+## set current date in format required for function
+today <- paste0(str_replace_all(Sys.Date(),"-",""),"00")
+
+# collect daily data from when records are available
+comp_pageviews <- article_pageviews(article = comps,
+                                     start = "2015010100", end = today)
+
+glimpse(comp_pageviews)
+
+```
+
+The almost 3000 rows (at time of article) are retrieved almost instantaneously
+
+Lets first summarize the data into a tabular form
+
+
+
+```{r, message=FALSE, warning=FALSE}
+
+
+comp_pageviews %>% 
+  group_by(article) %>% 
+  summarise(tot=sum(views),max=max(views),min=min(views),median=round(median(views),0),toppc=round(100*max/tot),maxdate=as.Date(date[which(views==max(views))]))%>%
+  arrange(desc(median)) %>% 
+                         DT::datatable(width=700,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+
+```
+
+
+
+So David Bowie and Prince stand apart with George Michael also separating himself in terms of interest from the other two stars. The peak day ranged between a 20-40% of total for individual artist (this will obviously decline over time)
+
+
+ Lets look at a chart to see if anything else pops out. As the range in pageviews is immense, I have implemented it using a log scale. Hover the chart(on the actual site) for individual daily views
+ 
+```{r chart}
+
+comp_pageviews %>% 
+  plot_ly(x=~date, y=~log10(views), color=~article) %>% 
+  add_lines( text=~paste0("Views: ",views)) %>% 
+  layout(
+    title="Daily Views of article(s) on English Wikipedia<br> (Hover for details)",
+    xaxis=list(title=""),
+    yaxis=list(title="Views (log10)")
+  )
+
+
+```
+
+
+
+ The peaks clearly stand out for each artist but there other high points which might be worth looking at using the GuardianR package. Also, relatively high interest in Prince was maintained for longer after his death than it was for Bowie's explaining why his total was higher but median lower. There was a general increase at end of 2016 when the media often cover celebrities who died during 2016
+ 
+ ---
+ 
+ The aforementioned [flexdashboard site](https://mytinyshinys.shinyapps.io/wikipedia/) also includes the links to Guardian articles and the wikipedia sidebar card information
+ 
+ ![](/img/wikiSite.png)
+ 

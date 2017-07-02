@@ -1,0 +1,58 @@
+---
+title: "Cranlogs Dashboard"
+author: "Andrew Clark"
+date: 2016-11-27
+categories: ["flexdashboard","packages"] 
+---
+
+# CRAN packages
+
+
+I mentioned in an earlier post that I like to keep track of new and updated packages 
+
+On average, a new package is provided to  CRAN every 5 hours and updates are even more numerous
+
+CRAN provides an [availablity table](https://cran.r-project.org/web/packages/available_packages_by_name.html) and 
+there is also the informative [CRANberries site](http://dirk.eddelbuettel.com/cranberries/) plus twitter announcements but it is still hard to  keep track of all the new developments
+
+
+So I created a [dashboard](https://mytinyshinys.shinyapps.io/cranlogsFlexDB/) which is updated daily and provides a taster of the new. Because it has interactive inputs (e.g. selection of package name ) using shiny runtime, it takes somewhat longer to run than if there were htmlwidget inputs available
+
+
+  ![](/img/cranLogs.png)
+
+
+Here is an example of one of the outputs comparing downloads of a selection of interactive packages over time. It is a large file so is limited to the selected packages
+
+
+```{r, message=FALSE, warning = FALSE}
+
+library(feather)
+library(plotly)
+library(tidyverse)
+
+# The choices can be amended in the actual app
+choices <-
+c("rbokeh", "ggvis", "plotly", "iplots", "rggobi", "googlevis")
+# Pre prepared limited data of above choices
+df <- read_feather("data/selectCranLogs.feather")
+
+
+df %>%
+filter(package %in% choices) %>%
+plot_ly(x = ~ date,
+y = ~ count) %>%
+add_markers(color = ~ package) %>%
+layout(
+title = "Daily Downloads from CRAN",
+xaxis = list(title = ""),
+yaxis = list(title = "Count")
+) %>%
+config(displayModeBar = F, showLink = F)
+
+
+```
+
+Needs work!
+
+However, it does show that the intensive work on the plotly package - covered in a [book](https://cpsievert.github.io/plotly_book/) by the author of the package, Carson Sievert - has contributed to its popularity which spiked at the end of the period with a new release

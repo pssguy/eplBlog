@@ -1,0 +1,154 @@
+---
+title: Ages by England & Wales constituency
+author: Andrew Clark
+date: '2017-05-29'
+draft: true
+slug: constituencyAge
+categories:
+  - packages
+tags:
+  - purrr
+description: ''
+featured: ''
+featuredalt: ''
+featuredpath: ''
+linktitle: ''
+---
+
+There is aer a lot of opportunities for data visualizations in journalism and R is beginning to get a toehold in this arena
+
+I recently came across a post from the [R for journalists](http://rforjournalists.com/2017/05/28/practice-with-for-loops-calculating-mean-ages/) page and decided to reprocess it using tidyverse packages and add a plot and map
+
+The article uses some [GB office of National Statistics data]( https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/parliamentaryconstituencymidyearpopulationestimates) to calculate the estimated mean age of the population of each of the England and Wales parliamentary constituencies
+
+
+Let's load all the libraries required and the downloaded data. With a little bit of inspection, the correct parameters can be applied to produce a data.frame
+
+```{r setup, warning=FALSE,message=FALSE}
+
+library(tidyverse)
+library(plotly)
+
+library(leaflet)
+library(sf)
+library(htmlwidgets)
+library(DT)
+
+library(hansard)
+library(mnis)
+library(parlitools)
+
+library(readxl)
+
+ages <- read_excel("data/constituencyAges.xls", sheet=2, skip=2)
+
+
+ages
+
+```
+
+So we have an untidy, wide data.frame  with most of the columns representing an age range. For instance, Aldershot had an estimated 1509 children between under 1 year in mid-2015
+
+We can  use th gather() function from the tidyr package (part of the tidyverse) to get a row for each age/constituency combination.     
+
+We can dispense with the all ages for this purpose( Note the requirement for a backtick as the column includes a space) 
+ but want to retain the other two columns
+
+```{r}
+
+
+ages_gather <- ages %>% 
+  select(-`All Ages`) %>% 
+  gather(age,count,-c(PCON11CD,PCON11NM))
+
+glimpse(ages_gather)
+
+```
+
+We want to get a weighted mean age for every constuency. That will require amending the age column from a charactr to an integer and adding 0.5 - on the reasonable assumption that the average age is half of the range - and then using dplyr to calculate the values
+
+```{r}
+
+meanAges <- ages_gather %>% 
+  mutate(age=as.integer(age)+0.5) %>% 
+  group_by(PCON11CD,PCON11NM) %>% 
+  summarize(wtdMean=round(weighted.mean(age,count),1)) %>% 
+  ungroup()
+
+meanAges %>%
+  select(Constituency=PCON11NM,`Av. Age`=wtdMean) %>% 
+                         DT::datatable(width=400,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+  
+
+```
+
+We now have a searchable, sortable table
+
+The mean age of Aldershot is 38.6. This is 0.5 higher than the original article but I'm assuming he did not add the aforementioned 0.5. He has the same lowest age - Birmingham Ladywood. Christchurch , which happens to be a favourite retirement area, where my mother happened to die, is the oldest
+
+---
+
+A histogram will provide a swift look at the distribution
+
+```{r}
+
+meanAges %>% 
+  plot_ly(x=~wtdMean) %>% 
+  layout(title="Histogram of mean ages by UK constituency, 2015",
+  xaxis=list(title="Average Age"),
+  yaxis=list(title="Number of constituencies")) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+A, more-or-less, normal distribution but with an age-range greater than I would have guessed going into this exercise
+
+---
+
+Ok lets look at mapping the data. One interesting method on constructing a hexagon-based electoral cartogram is in a [post by ??] (https://robwhickman.github.io/2017/05/16/uk-general-election-hexagram-part-1/) but I have gone with the parlitools package from Evan Odell, whose hansard package I have previously utilized in a couple of earlier posts
+
+The code is basically a copy from his vignette but plugging in the age data
+
+```{r map, warning=FALSE,message=FALSE, fig.height=7}
+
+
+west_hex_map <- parlitools::west_hex_map #Base map
+
+# color range
+ pal = colorNumeric("Oranges", meanAges$wtdMean)
+
+ west_mean_ages <- left_join(west_hex_map, meanAges, by = c("gss_code"="PCON11CD")) %>%  #Joining to base map
+                      filter(!is.na(wtdMean)) # rstrict to England and Wales
+ 
+ #create infomatic label
+label_yes <- paste0(
+  "<strong>", west_mean_ages$constituency_name, "</strong>", "</br>",
+  "Av. Age: ", west_mean_ages$wtdMean
+) %>% lapply(htmltools::HTML)
+
+# create map
+leaflet(options=leafletOptions(
+  dragging = FALSE, zoomControl = FALSE, tap = FALSE,
+  minZoom = 6, maxZoom = 6, maxBounds = list(list(2.5,-7.75),list(58.25,50.0)),
+  attributionControl = FALSE),
+  west_mean_ages) %>%
+  addPolygons(
+    color = "grey",
+    weight=0.75,
+    opacity = 0.5,
+    fillOpacity = 1,
+    fillColor = ~pal(wtdMean),
+    label = label_yes) %>%
+  
+  addLegend("topright", pal = pal, values = ~wtdMean,
+    title = "Mean Age",
+    opacity = 1)  %>% 
+  htmlwidgets::onRender(
+    "function(x, y) {
+        var myMap = this;
+        myMap._container.style['background'] = '#fff';
+    }")%>% 
+  mapOptions(zoomToLimits = "first")
+```
+
+
+Hover map for details. This approach neatly highlights that there is a preponderance of younger people living in the middle of the major cities,  e.g. London, Birmingham , Leeds. In contrast, coastal regions attractive to retirees have much higher average ages

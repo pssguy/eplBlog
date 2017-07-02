@@ -1,0 +1,303 @@
+---
+title: First look at Tidycensus
+author: Andrew Clark
+date: '2017-06-30'
+slug: tidycensus
+categories:
+  - packages
+  - maps
+tags:
+  - tidycensus
+  - sf
+  - tigris
+banner: "banners/tidycensus.png"
+description: ''
+images: []
+menu: ''
+---
+
+The whole future of the US census has been coming under scrutiny recently,  but, thankfully, we are getting more tools to scrutinise both its decennial data and that of its sister-source, the American Community service (ACS).    
+ Specifically, [Kyle Walker's](https://walkerke.github.io/) tidycensus and tigris packages
+which return data-frames (including shape-files as list-columns, if required) from the census API and [Edzer Pebesma's](@edzerpebesma) sf, simple features, package
+
+## Setup
+
+Let's first load the required libraries
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+```{r setup}
+
+library(tidycensus) 
+library(tigris)
+library(sf)
+
+#data carpentry
+library(tidyverse)
+library(stringr)
+
+# maps
+library(leaflet)
+
+# tables
+library(DT)
+
+
+
+# plots
+library(plotly)
+```
+
+
+A census API key is required to access the data. I have a hidden key in this post but if you want to do your own analyses, you will want to [obtain one](http://api.census.gov/data/key_signup.html) and probably save in .Renviron so that it will work automatically henceforth   
+
+  For speed of interaction, I have downloaded shapefiles using the ```states()```, ```counties()``` and ```tracts()``` functions and tables which show what variables are available. Check the tigris documentation for details and options
+  
+
+ 
+```{r, echo=FALSE}
+census_api_key("90ed3a1873a3356d6567fcb2af52ccbf68e32b60")
+``` 
+
+```{r necessities}
+#Enter here and uncomment
+#census_api_key("xxxx")
+
+# ensures shapefiles are downloaded by default
+options(tigris_class = "sf")
+#
+#options(tigris_use_cache = TRUE)
+
+# previosly downloaded
+states <- readRDS("data/usCensus/states_sf.rds")
+counties <- readRDS("data/usCensus/counties_sf.rds")
+tracts <- readRDS("data/usCensus/tracts_sf.rds")
+
+censusVars <- readRDS("data/usCensus/censusVars.rds")
+acsVars <- readRDS("data/usCensus/acsVars.rds")
+``` 
+
+Lets show the downloadable tables 
+
+```{r}
+
+censusVars %>%
+   DT::datatable(height=800,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+With a use of the search facility, appropriate table ids (name) foy your area of interest can be ascertained and slotted into functions
+
+---
+
+##  Race Analyses
+
+By way of an example, I am going to look at the distribution of people, at varying geographical levels, defining themselves of mixed-race in the 2010 census.
+
+ From the above table, I can determine which variables I need to download and use the ```get_decennial()``` function to acquire it according to best parameters. I will start by looking at the state level, set the summary_var as total population and add a key to enable-drill down. Although we are mapping, keeping the geometry at FALSE and using the saved files  speeds up the process
+ 
+ 
+ 
+```{r national}
+ 
+ #Here is the full function
+# get_decennial(geography, variables, year = 2010, sumfile = "sf1",
+#   state = NULL, county = NULL, geometry = FALSE, output = "tidy",
+#   keep_geo_vars = FALSE, summary_var = NULL, key = NULL, ...)
+
+# Variables/ this covers individual races and all with 2+ (P0030008) 
+tables <- c("P0030002","P0030003","P0030004","P0030005","P0030006","P0030007","P0030008")
+
+# acquire data and create a share based on total population (P0030001). Add a key for later use?
+us<-get_decennial(geography = "state", variables = tables, year = 2010,
+                    summary_var = "P0030001",  geometry = FALSE ) %>%  
+  mutate(pct = round(100 * (value / summary_value),2))
+
+## add in the geometry list_column (NB dplyr join does not currently work with sf data). geo_join is good alternative
+us_geo <- geo_join(states,us,   by = "GEOID", how = "inner")
+ 
+
+
+## add in the geometry list_column (NB dplyr join does not currently work with sf data)
+us_geo <- geo_join(states,us,   by = "GEOID", how = "inner")
+
+names(us_geo)
+
+# View output
+us %>% 
+  arrange(NAME) %>% 
+DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+The table, sortable, searchable variable data. Just from the front page, you can see that although the proportion of White-only residents(P003002) is similar, the Black/Afro-American designation (P003003) varies markedly, albeit unremarkably
+
+The us_geo data includes the geometry list-column which contains the shape-files for, in this case, each state
+
+---
+
+I now want to map the data. Let's look at the mixed-race category (P0030008). First I want to determine the range so that values are mapped to best effect. I will use plotly to display the distribution
+
+```{r colors}
+
+
+# This method of subsetting retains the output as classes sf and data.frame, unlike dplyr::filter, currently
+mixed_us <- us_geo[us_geo$variable=="P0030008",]
+
+mixed_us %>% 
+  plot_ly(x=~pct) %>% 
+  add_histogram(autobinx=FALSE,xbins=list(start=0,end=30,size=1)) %>% 
+  layout(xaxis=list(title="Percentage of Population of mixed-race"),
+         yaxis=list(title="Count of States"))
+
+
+
+```
+
+Fairly predictable distribution with one extreme outlier, Hawaii, where Hawaiian is defined as a separate race
+
+Let's put this to work and create a leaflet-map. Note the use of the st_transorm() function which converts the co-ordinates to be usable by leaflet. I have chosen a mapping tile which enables city/neighbourhoods to be viewd on zoom
+
+
+```{r us_map}
+
+#One od several alternative approach for binning data for best visualization
+pal <- colorBin(palette = "Reds", 
+                    domain = mixed_us$pct,
+                bins=c(0,2,5,10,30))
+
+# Create pop-up for when state is clicked on display
+popups <- paste0(mixed_us$NAME.y,"<br>Mixed Race: ",round(mixed_us$pct,1),
+                 "% <br>Total Popn: ",mixed_us$summary_value)
+
+# create a map in leaflet 
+mixed_us %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(popup = popups, # base is e.g. Beaver County, Utah
+                stroke = TRUE, weight=2,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(pct)) %>%
+    addLegend("bottomright", 
+              pal = pal, 
+              values = ~ pct,
+              title = "% of Mixed Race",
+              opacity = 0.3)
+
+```
+
+Pan and zoom as required and click on a state for more info
+
+Oklahoma looks worthy of further investigation - so let us map this at county level
+
+```{r counties}
+
+state<-get_decennial(geography = "county", variables = tables, year = 2010, state="OK",
+                    summary_var = "P0030001",  geometry = FALSE ) %>%  
+  mutate(pct = round(100 * (value / summary_value),2))
+
+state_geo <- geo_join(counties,state,   by = "GEOID", how = "inner")
+
+mixed_state <- state_geo[state_geo$variable=="P0030008",]
+
+
+# Another metod of binning the data
+pal <-colorNumeric(palette = "Reds", domain = mixed_state$pct)
+
+
+popups <- paste0(mixed_state$NAME.y,"<br>Mixed Race: ",round(mixed_state$pct,1),
+                 "% <br>Total Popn: ",mixed_state$summary_value)
+
+
+mixed_state %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(popup = popups, # base is e.g. Beaver County, Utah
+                stroke = TRUE, weight=2,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(pct)) %>%
+    addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ pct,
+              title = "% of Mixed Race",
+              opacity = 0.3)
+
+
+```
+
+An interesting tendency for the proportion declining as we head westward, other than a bit of a bounce around the city of Lawton
+
+One more level based on Adair county, which boasts more than 10% residents mixed-race
+
+```{r tracts}
+
+county <-get_decennial(geography = "tract", variables = tables, year = 2010, state="OK",county="Adair",
+                    summary_var = "P0030001",  geometry = FALSE ) %>%  
+  mutate(pct = round(100 * (value / summary_value),2))
+
+county_geo <- geo_join(tracts,county,   by = "GEOID", how = "inner")
+
+mixed_county <- county_geo[county_geo$variable=="P0030008",]
+
+
+# Another metod of binning the data
+pal <-colorNumeric(palette = "Reds", domain = mixed_county$pct)
+
+
+popups <- paste0(mixed_county$NAME.y,"<br>Mixed Race: ",round(mixed_county$pct,1),
+                 "% <br>Total Popn: ",mixed_county$summary_value)
+
+
+mixed_county %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(popup = popups, # base is e.g. Beaver County, Utah
+                stroke = TRUE, weight=2,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(pct)) %>%
+    addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ pct,
+              title = "% of Mixed Race",
+              opacity = 0.3)
+
+
+```
+
+
+The census provides information on mixed races so lets obtain that - confining ourselevs to people declaring themselves as a mix of two races only
+
+
+```{r mixed_race}
+
+mixed_tables <- c("P0080011","P0080012","P0080013","P0080014","P0080015","P0080016","P0080017","P0080018","P0080019","P0080020","P0080021","P0080022","P0080023","P0080024","P0080025")
+
+mixed_county <-get_decennial(geography = "tract", variables = mixed_tables, year = 2010, state="OK",county="Adair",
+                    summary_var = "P0080010",  geometry = FALSE ) %>%  
+  mutate(pct = round(100 * (value / summary_value),2)) %>% 
+  arrange(desc(pct)) 
+
+# some tidying up for presentation
+mixed_county %>% 
+  left_join(censusVars,by=c("variable"="name")) %>% 
+  mutate(category=str_replace(label,"Population of two races: !!","" )) %>% 
+  select(tract=NAME,category,count=value,pct) %>% 
+   DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+```
+
+Overwhelmingly a mix of white and indigenous people (and I'm guessing not Alaskan natives). Indeed, Adair County is named after a family of the Cherokee tribe
+
+---
+
+Hope you found this interesting. There is plenty within the census and - even more so - the ACS to discover and I hope to develop further posts and  a flexdashboard webapp based on these amazlibrary(bloging R packages
+

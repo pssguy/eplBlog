@@ -1,0 +1,442 @@
+---
+title: "Textual Analysis"
+author: "Andrew Clark"
+date: 2017-01-11
+categories: ["notebook"] 
+banner: "banners/textualAnalysis_1.png"
+---
+
+# Great Expectations
+
+Text Mining in R  had quite the boost in 2016. David Robinson's fascinating analysis of Donald Trump's [real and 'official' tweets](http://varianceexplained.org/r/trump-tweets/) got a lot of publicity (something the president-elect was probably all too happy with) and his collaboration with Julia Silge resulted in one of the best books,[Tidy text Mining with R](http://tidytextmining.com/) yet published using the bookdown package  
+
+  Professor Silge also released a couple of R packages 
+  
+  * [tidytext](https://github.com/juliasilge/tidytext) - useful for tidying text for subsequent analyses
+  * [janeaustenr](https://github.com/juliasilge/janeaustenr) - a dataset of Jane Austen's novels    
+  
+   I'm not completely sold on the value of textual analysis for works of fiction, at least at its current stage of development, though I'm prepared to be convinced otherwise. To me, it is the equivalent of perusing the list of ingredients on a packaged good in order to assess its taste. When I want to know whether to read a novel, I'm interested in themes, settings, characters, quality of writing etc. which I doubt this can provide.    
+   
+   Nevertheless, it is now  a lot easier (and fun) to process novels - at least those in the public domain and on Project Gutenberg, thanks again to David Robinson and his [gutenberger package](https://github.com/ropenscilabs/gutenbergr)
+   
+   An interesting comparison to Jane Austen is Charles Dickens. His books are more wide ranging than Austen's and have many memorable characters mixed in with social comment on Victorian England.
+
+---
+
+   First we load the libraries and see what titles are available
+   
+```{r setup, warning = FALSE, message=FALSE}
+ 
+ #load libraries
+ 
+library(tidyverse)
+library(tidytext)
+library(gutenbergr)
+library(plotly)
+library(stringr)
+library(feather)
+library(wordcloud2)
+ 
+```
+ 
+ 
+
+ 
+```{r wrangling_1, warning = FALSE, message=FALSE}
+
+
+dickens <-gutenberg_works(author == "Dickens, Charles")
+glimpse(dickens)
+
+(unique(dickens$gutenberg_bookshelf))
+```
+
+
+So, extremely prolific and wide-ranging. I will probably want to limit this analysis to his novels and will start with one of his most highly-regarded, Great Expectations.     
+
+I probably read the book as a child but definitely remember a BBC series and the excellent [1946 film version](http://www.imdb.com/title/tt0038574/)(not on first-release), which differs somewhat from the novel
+
+We can download it's text, via the gutenberg_id, which takes barely a second. Then ~~plagiarise~~ follow the Tidy text book's code to get it into a 'tidy' format
+
+```{r wrangling_2, warning = FALSE, message=FALSE}
+
+## Needed to add mirror when main site went down it was a raised issue by someone else
+expectations <- gutenberg_download(1400,mirror = "http://mirrors.xmission.com/gutenberg/")
+
+glimpse(expectations)
+
+tidy_expectations <- expectations %>% 
+mutate(linenumber = row_number(),
+         chapter = cumsum(str_detect(text, regex("^chapter [\\divxlc]",
+                                                 ignore_case = TRUE)))) %>%
+  ungroup() %>% 
+  unnest_tokens(word, text) %>% #186,000+
+  # remove most common words of which there are 1149 in total
+  anti_join(stop_words)  #55,000
+tidy_expectations
+
+
+```
+
+We now have a tidy data frame with each row a single word by linenumber/chapter.    
+  Interestingly the word 'expectations' does not first appear until Chapter 18, when the lawyer, Jaggers informs Joe Gargery and Pip that the latter 'will come into a handsome property'
+  
+---
+
+We can now visualize the most common words in a couple of ways. Hover plots for exact numbers
+
+```{r  warning = FALSE, message=FALSE}
+
+word_count <- 
+  tidy_expectations %>%
+  count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n)) 
+
+word_count %>%
+  head(10) %>% 
+  plot_ly(x=~n, y=~word) %>% 
+  layout(title="Most common words (excluding stop-words) in Great Expectations",
+         xaxis=list(title="Total Occurrences"),
+         yaxis=list(title="")
+
+)  %>%
+config(displayModeBar = F, showLink = F)
+
+word_count %>%
+  head(100) %>% 
+  wordcloud2()
+
+```
+
+    
+As is often the case in novels, character names predominate but it is of interest that Joe is so well in the lead. 'expectations' ranks in the low 200's and 'great' is a stop word.
+
+Let's have a look at the occurrence of Joe throughout the story
+
+```{r joe, warning = FALSE, message=FALSE}
+
+tidy_expectations %>%
+  filter(word=="joe") %>% 
+  group_by(chapter) %>% 
+  count(word) %>% 
+  plot_ly(x=~chapter,y=~n) %>% 
+  add_bars(color=I("blue"), alpha=0.5) %>% 
+  layout(title="Occurrences of word 'Joe' by Chapter",
+         yaxis=list(title="Occurrences"),
+         yaxis=list(title="Chapter")
+
+)  %>%
+config(displayModeBar = F, showLink = F)
+
+
+```
+
+As you may recall, or can read [here](http://www.gutenberg.org/files/1400/1400-h/1400-h.htm), Joe is Pip's brother-in-law and surrogate father. He is a strong, positive, influence on Pip as a boy
+Chapter 27 is when Joe visits a mortified Pip in London, which brings out the worst in our 'hero' and Ch 57 is when Joe comforts Pip, who now realizes how badly he has treated a true friend, in his illness 
+
+---
+
+## Sentiment Analysis
+
+We can use the tools of text mining to approach the emotional content of text programmatically. The tidyverse package has three sentiment lexicons for evaluating opinion or emotion in text. Here I will replicate some of the code in the book with the occasional tangent
+
+
+```{r sentiment_1, warning = FALSE, message=FALSE}
+
+# lets look how one of the lexicons classifies words 
+
+nrc <- get_sentiments("nrc")
+unique(nrc$sentiment)
+
+get_sentiments("nrc") %>% 
+  filter(sentiment == "positive")  %>%
+config(displayModeBar = F, showLink = F)
+
+
+
+```
+
+Good to see that 'academic' is positive! However, I will leave positive and negative out at this stage 
+
+Let's look as the other emotions as a percentage of all words in each chapter
+
+```{r sentiment_2, warning = FALSE, message=FALSE}
+
+# first all words 
+
+words_chapter <- tidy_expectations %>%
+   group_by(chapter) %>% 
+  count() %>% 
+  rename(total=n)
+
+# sentiments to exclude
+chuck <- c("negative","positive")
+
+#
+tidy_expectations %>%
+  inner_join(nrc) %>% 
+  filter(!sentiment %in% chuck) %>% 
+  group_by(sentiment,chapter) %>% 
+  count() %>% 
+  inner_join(words_chapter) %>% 
+  mutate(pc=round(100*n/total,1)) %>% 
+  filter(chapter!=0) %>% 
+  plot_ly(x=~chapter,y=~pc,color=~sentiment) %>% 
+  add_bars() %>%
+  layout(barmode = 'stack',
+         title="Great Expectations - % of each Chapter with words of varying emotions ",
+        
+         yaxis=list(title="Percentage"))
+
+
+
+```
+
+Stacked bar-charts are not often the best method of visualization  but just toggle on the legend to remove/add emotions.     For instance, the fear factor peaks in the chapter when Pip has just  attempted to rescue  Miss Havisham from the fire and he determines that Estella is Magwitch's daughter
+
+---
+
+Another use of sentiment analysis is to examine the flow throughout the novel by breaking the word-count into equal chunks. This time using the bing lexicon which just splits words by a binary positive/negative. The Bing lexicon has more negative words so wariness should be applied to a single novel. Any trajectory over time and comparison with other novels would be more robust
+
+```{r  warning =  FALSE, message=FALSE}
+
+tidy_expectations %>%
+  inner_join(get_sentiments("bing")) %>%
+  count( index = linenumber %/% 100, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative) %>% 
+  plot_ly(x=~index,y=~sentiment) %>% 
+  add_bars()
+
+
+```
+
+Even with the caveat above, this is a bit of a downer especially given that apparantly (i.e as referenced in wikipedia) G.K. Chesterton admired the novel's optimism
+
+Here is the tidytext books outcome of the Jane Austen novels 
+
+ <!-- <img src="../../img/austenSentiment.png" alt=""  /> -->
+ 
+ ![](/img/austenSentiment.png)
+ 
+ I guess Dicken's novel is a little grittier than life in upper middle-class country homes
+ 
+ --- 
+ 
+ ## Readability
+ 
+ Julia (I trust I am not being over-familiar) has extended her analysis in a [blog post on readability](http://juliasilge.com/blog/Gobbledygook/). If you want to read more about the technique (and you should) head off there but suffice to say it starts with the premise that useful categories include
+ 
+ * Number of sentences
+ * Number of words with three or more syllables
+ 
+ Let's have a look at sentences first. 
+ 
+```{r, warning = FALSE, message=FALSE}
+
+ # easiest just to download again
+ge <- gutenberg_download(c(1400),mirror = "http://mirrors.xmission.com/gutenberg/",
+                              meta_fields = "title")
+  
+  tidy_ge <- ge %>%
+    mutate(text = iconv(text, to = 'latin1')) %>%
+    nest(-title) %>% 
+    mutate(tidied = map(data, unnest_tokens, 'sentence', 'text', token = 'sentences'))
+  
+  tidy_ge
+  # we are only interested in the tidied column which should be in sentences. Lets check
+  
+  tidy_ge <-tidy_ge %>% 
+    unnest(tidied)
+ 
+  tidy_ge %>% 
+    sample_n(5) %>% 
+    select(sentence)
+# Mine look good
+ 
+ # What is distribution like
+   sentences_ge <- tidy_ge %>%
+    unnest_tokens(word, sentence, drop = FALSE) %>%  
+    unique()   %>% 
+    group_by(sentence) %>% 
+    summarize(length=n())
+   
+   summary(sentences_ge)
+  
+  sentences_ge %>% 
+    plot_ly(x=~length) 
+  
+  # and the longest
+  
+  sentences_ge %>% 
+  arrange(desc(length)) %>% 
+  head(1) %>% 
+  .$sentence
+
+```
+ 
+ 
+ The longest sentence is a reference to the River Thames when they are trying to effect Magwitch's escape
+
+---
+
+Now let's look at syllables. The function is a long one so I used 'echo = FALSE' in the code chunk 
+
+```{r syllable_func, echo = FALSE, warning =  FALSE, message=FALSE}
+
+  count_syllables <- function(ortho) {
+    
+    # Can add words to these lists of 2 syllable and 3 syllable 'exceptions'
+    # Note that final -e is stripped before checking these lists!
+    Specials.2 <- c('every', 'different', 'family', 'girl', 'girls', 'world', 'worlds', 'bein', 'being', 'something', 'mkay', 'mayb')
+    Specials.3 <- c('anyon', 'everyon') # final -e is dropped   
+    
+    # Regular Expression exceptions
+    # SubSyl - remove a syllable from the count for each sub-string match
+    SubSyl <- c('cial',
+                'tia',
+                'cius',
+                'cious',
+                'giu',              # belgium!
+                'ion',
+                'iou',
+                '^every',           # every, but also everything, everybody
+                'sia$',
+                '.ely$',            # absolutely! (but not ely!)
+                '[^szaeiou]es$',    # fates, but not sasses
+                '[^tdaeiou]ed$',    # trapped, but not fated
+                '^ninet',           # nineteen, ninety
+                '^awe'              # awesome
+    )
+    
+    # AddSyl - add a syllable to the count for each sub-string match
+    AddSyl <- c('ia',
+                'rie[rt]',
+                'dien',
+                'ieth',
+                'iu',
+                'io',
+                'ii',
+                'ienc',       # ambience, science, ...
+                'les?$',
+                '[aeiouym][bp]l$',  # -Vble, plus -mble and -Vple
+                '[aeiou]{3}',       # agreeable
+                'ndl(ed)?$',        # handle, handled
+                'mpl(ed)?$',        # trample, trampled
+                '^mc',              # McEnery
+                'ism$',             # -isms
+                '([^aeiouy])\\1l(ed)?$',  # middle twiddle battle bottle, etc.
+                '[^l]lien',         # alien, salient [1]
+                '^coa[dglx].',      # [2]
+                '[^gq]ua[^aeiou]',  # i think this fixes more than it breaks
+                '[sd]nt$',          # couldn't, didn't, hasn't, wasn't,...
+                '\\wshes$',          # add one back for esh (since it's -'d)
+                '\\wches$',          #  and for affricate (witches)
+                '\\wges$',           #  and voiced (ages)
+                '\\wces$',        #  and sibilant 'c's (places)
+                '\\w[aeiouy]ing[s]?$'   # vowels before -ing = hiatus
+    )
+    
+    tot_syls <- 0
+    ortho.l <- tolower(ortho)
+    stripchars <- "[:'\\[\\]]"
+    ortho.cl <- gsub(stripchars, "", ortho.l, perl=T)
+    spacechars <- "[\\W_]" # replace other non-word chars with space
+    ortho.cl <- gsub(spacechars, " ", ortho.cl, perl=T)
+    ortho.vec <- unlist(strsplit(ortho.cl, " ", perl=T))
+    ortho.vec <- ortho.vec[ortho.vec!=""]
+    for (w in ortho.vec) {
+      w <- gsub("e$", "", w, perl=T) # strip final -e
+      syl <- 0
+      # is word in the 2 syllable exception list?
+      if (w %in% Specials.2) {
+        syl <- 2
+        
+        # is word in the 3 syllable exception list?
+      } else if (w %in% Specials.3) {
+        syl <- 3
+        
+        # if not, than check the different parts...
+      } else {
+        for (pat in SubSyl) {
+          if (length(grep(pat, w, perl=T))>=1) 
+            syl <- syl - 1
+        }
+        for (pat in AddSyl) {
+          if (length(grep(pat, w, perl=T))>=1) 
+            syl <- syl + 1
+        }
+        if (nchar(w)==1) {
+          syl <- 1
+        } else {
+          chnk <- unlist(strsplit(w, "[^aeiouy:]+"))
+          chnk <- chnk[chnk!=""]
+          syl <- syl + length(chnk)
+          if (syl==0) syl <- 1
+        }
+      }
+      tot_syls <- tot_syls + syl
+    }
+    tot_syls
+  }
+
+
+
+```  
+
+This is the code which takes an age to run but is available in case you want to render it yourself
+
+```{r syllable_process, warning =  FALSE, message=FALSE}
+# check that function is working correctly
+
+txt <-"at a time and place of our own choosing. Some of it may be explicit and publicized; some of it may not be"
+
+  count_syllables(txt)
+
+# tidy_ge <- tidy_ge %>%
+#     unnest_tokens(word, sentence, drop = FALSE) %>%
+#     rowwise() %>%
+#     mutate(n_syllables = count_syllables(word)) %>%
+#     ungroup()
+ 
+#   write_feather(tidy_ge,"data/tidy_ge.feather")
+
+# loading precompiled file
+tidy_ge <- read_feather("data/tidy_ge.feather")
+  
+# plot the distribution
+  tidy_ge %>% 
+    plot_ly(x=~n_syllables)
+  
+  mean(tidy_ge$n_syllables, na.rm=TRUE)
+  
+  tidy_ge %>% 
+    filter(n_syllables>6) %>% 
+    select(word) %>% 
+    count(word, sort=TRUE)
+ 
+  
+  
+```    
+    
+ The word with the most syllables(8) is irreconcilability whilst 'architectooralooral' is predictably from the mouth of Joe when he is up in London-town trying his best to meet Pip's high-and-mighty standards
+
+---
+
+We can now gauge a readability level for the book
+
+```{r }
+
+left_join(tidy_ge %>%
+                         group_by(title) %>%
+                         summarise(n_sentences = n_distinct(sentence)),
+                       tidy_ge %>% 
+                         group_by(title) %>% 
+                         filter(n_syllables >= 3) %>% 
+                         summarise(n_polysyllables = n())) %>%
+    mutate(SMOG = 1.0430 * sqrt(30 * n_polysyllables/n_sentences) + 3.1291)
+
+
+```
+
+The SMOG (“Simple Measure of Gobbledygook”) value of 9.6 indicates that, for an average reader, around the middle of Grade 9 would be an appropriate starting age. I would imagine that the action could be followed by someone younger but some of the themes such as pride, love (both unrequited and unknown) and ambition make it an interesting read into maturity

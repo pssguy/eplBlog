@@ -1,0 +1,216 @@
+---
+title: RcppRoll package for swift moving averages
+author: Andrew Clark
+date: '2017-05-10'
+categories:
+  - packages
+  - sports
+tags:
+  - crosstalk
+  - htmlwidgets
+  - plotly
+  - RcppRoll
+slug: rcpproll
+banner: "banners/rcpproll.PNG"
+---
+
+[Bob Rudis](https://twitter.com/hrbrmstr) always keeps his pulse on the best packages and recently bemoaned the fact that [Kevin Ushey's](https://twitter.com/kevin_ushey) RcppRoll package which 
+
+    Provides Routines for the efficient computation of windowed mean, median,
+    sum, product, minimum, maximum, standard deviation and variance are provided.
+    
+has not had enough praise
+
+One reason is probably the lack of examples available - even in the vignette
+
+I have therefore done a swift illustration using just one of the functions, roll_sum()
+
+### Best Runs in the Premier league
+
+Tottenham Hotspur recently went on a tear of nine consecutive victories, ended recently by West Ham and thereby pretty well scuppering their remote chances of the league title
+
+
+
+Let's do a quick check to see if the past 10 games remains their most productive in terms of points gained (which, for the uninitated is 3  for a win, 1 for a draw/tie and zero for a loss) since 1992, when the Premier League was formed
+
+_N.B Initial analysis based on data to 4th May 2017 but underlying data is updated periodically_
+
+Here are libraries used
+
+```{r setup, warning=FALSE,message=FALSE}
+
+library(RcppRoll)
+library(plotly)
+library(crosstalk)
+library(purrr)
+library(htmltools)
+library(tidyverse)
+
+
+
+```
+
+
+ I maintain a 'standings' file which contains the raw data required
+
+```{r data, warning=FALSE,message=FALSE}
+
+standings <- readRDS("data/standings.rds")
+
+glimpse(standings)
+
+```
+
+team, points and tmGameOrder are the fields required
+
+We can now select Tottenham's games, use the roll_sum() function to get a rolling total of points secured in ten consecutive games and plot the results in an infoactive chart
+
+```{r Spurs, warning=FALSE,message=FALSE}
+
+# select team and ensure data is in correct order
+tm <- standings %>% 
+    filter(team=="Tottenham H") %>% 
+    arrange(tmGameOrder)
+ 
+   # construct data.frame of results
+   run <- roll_sum(tm$points,n=10)
+   df <- data.frame(points=run,seq=1:length(run))
+  
+   # produce chart
+    df %>% 
+    plot_ly(x=~seq,y=~points) %>% 
+    add_lines()
+
+
+```
+
+As usual with a plotly chart, you can zoom and hover. I have not bothered with producing the best aesthetic!
+
+Although this is the first time they have had a sequence of nine consecutive wins, the fall of 2011 included a run of 11 games with 10 wins and a draw
+
+---
+
+Let's extend this to all teams - the code only takes a couple of seconds to create a 20,000 row data.frame
+
+
+```{r allteams, warning=FALSE,message=FALSE}
+
+# get vector of all 47 teams that have appeared in Premier League history
+teams <- unique(standings$team)
+
+
+
+get_runs <- function(x) {
+    tm <-standings %>% 
+    filter(team==x) %>% 
+    arrange(tmGameOrder)
+ 
+   # construct data.frame of results
+   run <- roll_sum(tm$points,n=10)
+   data.frame(points=run,seq=1:length(run),team=x)
+
+
+}
+
+# apply the above function to all teams
+data <-map_df(teams, get_runs)
+
+glimpse(data)
+
+
+
+```
+
+
+We can now use this data in a couple of ways. Lets use the filter functions from the crosstalk package to select any team. I covered this in a bit more depth [here](https://www.mytinyshinys.com/post/badDrivers_538/)
+
+
+
+
+```{r}
+
+sd <- SharedData$new(data)
+
+fs <- filter_select(
+id = "team1",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+
+  
+   # produce chart
+myChart  <-  sd %>% 
+    plot_ly(x=~seq,y=~points) %>% 
+    add_lines()
+
+
+  tagList(
+  fs_nobootstrap,
+  br(),
+   myChart
+)
+
+```
+
+Currently, the filter_select does not appear to default to a single, selected value - though I believe that is being addressed. Anyways, it is a simple enough matter to select a team
+
+
+---
+
+How about the best 10 game sequence achieved by any of the teams?
+
+```{r}
+
+bestRun <-data %>% 
+  arrange(desc(points)) %>% 
+  group_by(team) %>%
+  slice(1)
+
+
+ # In order to improve data display, the team needs to be changed from a character to a factor and ordered
+ bestRun$team <-  factor(bestRun$team, levels = bestRun $team[order(bestRun$points)])
+
+bestRun %>% 
+  plot_ly(x=~points,y=~team, height=1500) %>% 
+  add_bars(color = I("#f2dfa8"),  width=0.5)  %>% 
+  layout(
+    barmode = "overlay",
+    title = "Best 10 game point tally in Premier League",
+    xaxis = list(title = "Total Points"),
+    yaxis = list(title = ""),
+    margin = list(l = 90)
+  ) %>%
+  config(displayModeBar = F, showLink = F)
+
+
+
+```
+
+
+
+Tottenham, along with Everton, remain one of the two ever-present (25 year) Premier League teams yet to record a double-digit win sequence.
+
+---
+
+That is just a taster. The above methods are easily extendable :-
+
+* Add filters for venue; sequence-length; and opposition
+* Do all league games ever using the [engsoccerdata package](https://github.com/jalapic/engsoccerdata)
+* Other sports
+* Other data e.g financial, climate
+
+Please let me know if you have any code enhancements or create any apps based on this approach

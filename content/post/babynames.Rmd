@@ -1,0 +1,490 @@
+---
+title: Baby Names in the UK and USA
+author: Andrew Clark
+date: '2017-06-20'
+slug: babynames
+categories: []
+tags: []
+description: ''
+images: []
+menu: ''
+banner: "banners/babyNames.PNG"
+---
+
+Lost in the realms of time when reshape2 and ggvis were flavour of the month (i.e 20 months ago), I apparantly created a shiny app built around Hadley Wickham's [babynames data package](https://github.com/hadley/babynames)
+ With the recent release of a [UK equivalent](https://github.com/leeper/ukbabynames) from Thomas Leeper and an intriguing plot on tennis world ranked number ones, I have decided to play around with the data both old and new
+ 
+ ---
+ 
+ First let's load the libraries and check out the data
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+```{r}
+
+library(babynames)
+library(ukbabynames)
+library(tidyverse)
+library(plotly)
+library(htmltools)
+
+uk <- ukbabynames
+us <- babynames
+
+
+glimpse(uk)
+
+glimpse(us)
+
+```
+
+Similar data - although the US figures go much further back in time - recording the number of registered births per annum. There is a minimum limit for names, for privacy purposes, of 3 in the UK and 5 in the US
+
+# Concentration of names
+
+Lets look at the latest year, 2015, and how diverse the names are by tracking the cumulativeshare of each name
+
+```{r 2015}
+
+# combine the 
+uk2015 <- uk %>% 
+  filter(year==2015) %>% 
+  select(-rank) %>% 
+  mutate(country="uk")
+
+us2015 <- us %>% 
+  filter(year==2015) %>% 
+  select(-prop) %>% 
+  mutate(country="us")
+
+df <- bind_rows(uk2015,us2015)
+
+cumData <-df %>% 
+  arrange(desc(n)) %>% 
+  group_by(country,sex) %>% 
+  mutate(prop=n/sum(n),cumprop=round(100*cumsum(prop),2),rank=row_number())
+
+
+cumData %>% 
+  #filter(rank<=100) %>% 
+  group_by(country,sex) %>% 
+  plot_ly(x=~rank,y=~cumprop,color=~country,
+          hoverinfo="text",
+          text=~paste0("Names: ",rank,
+                       "<br>",cumprop,"%")) %>% 
+  add_lines(linetype=~sex) %>% 
+  layout(title="Cumulative distribution of names in UK and US, by gender - 2015<br>(Zoom in for finer detail)",
+         yaxis=list(title="Cumulative %"),
+         xaxis=list(title="Number of Names")) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+  Possibly due to it's greater geographic spread and larger pool, the most popular names acount for less of the total number. Parents restrict their choice of name for boys more in both countries
+
+We can look at how, say, the top 10 names have accounted for all names over the years. The US data will be more interesting here
+
+
+
+
+```{r}
+
+
+us %>% 
+   arrange(desc(n)) %>% 
+  group_by(year,sex) %>% 
+  mutate(prop=n/sum(n),cumprop=round(100*cumsum(prop),2),rank=row_number()) %>% 
+  filter(rank==10) %>% 
+  ungroup() %>% # needed otherwise add_lines does not work
+  plot_ly(x=~year,y=~cumprop, color=~sex) %>% 
+  add_lines() %>% 
+  layout(title="Share of US baby names accounted for by top 10 favourites",
+         xaxis=list(title=""),
+         yaxis=list(title="% share")) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+There has been a general downward trend for both sexes with the top 10 male names accounting for only 8.32% of all - the lowest on record and below the female equivalent for the first time. In 1880, John had an 8.2% share
+
+There have been periods where this decreasing concentration has been reversed and periods of more rapid change. Interstingly, this includes - particularly for girls - the 1950's, normally regarded as a very conservative time
+
+This is an area that could do with some more in-depth analysis. 
+
+---
+
+## Specific names
+
+The increased ethnic diversity can be tracked. Let's look at the occurrence of Mohammed (and variations) in both countries over the timescale of the data
+
+```{r ethnic}
+
+# Main variants
+choice <- c("Mohammed","Mohammad","Mohamed","Mohamad")
+
+
+uk_m <- uk %>% 
+  filter(name %in% choice) %>% 
+  group_by(year) %>% 
+ summarize(count=sum(n,na.rm=TRUE)) %>% 
+  plot_ly(x=~year,y=~count) %>% 
+  layout(
+    title="UK Births registered by name Mohammed (and variants) 1996-2015",
+    xaxis=list(title=""),
+    yaxis=list(title="")
+  ) %>%  config(displayModeBar = F,showLink = F)
+  
+
+us_m <- us %>% 
+  filter(name %in% choice) %>% 
+  group_by(year) %>% 
+ summarize(count=sum(n,na.rm=TRUE)) %>% 
+  plot_ly(x=~year,y=~count) %>% 
+  layout(
+    title="UK Births registered by name Mohammed (and variants) 1880-2015",
+    xaxis=list(title=""),
+    yaxis=list(title="")
+  ) %>%  config(displayModeBar = F,showLink = F)
+  
+
+tagList(
+  uk_m,
+  br(),
+   us_m
+)
+
+```
+
+Well that was a bit of a surprise - although admittedly I am not a UK resident. Is this down to less births to Moslems, more assimilation with use of traditional English names, concern about repercussions of using name..,?     
+
+Th absolute level in the US is much lower and took a big hit after 2001. It will be intersting to see how this pans out under the Trump presidency
+
+ Another area that merits research. Also. I may enhance this section to allow entry of any name
+ 
+----
+ 
+## The Atlantic divide
+
+What kind of correlation is there between the most popular names in the two countries   
+
+Here are four tables, based on 2015 data, which look at the top 10 male and female names in each location and how they rank across the ocean
+
+```{r}
+#example code
+topUKMales <- uk2015 %>% 
+  filter(sex=="M") %>% 
+  arrange(desc(n)) %>% 
+  mutate(uk.rank=row_number()) %>% 
+  slice(1:10)
+
+a<- us2015 %>% 
+  filter(sex=="M") %>% 
+  arrange(desc(n)) %>% 
+  mutate(us.rank=row_number()) %>% 
+   right_join(topUKMales, by="name") %>% 
+  select(`Top UK`=name,`uk rank`=uk.rank,`us rank`=us.rank) %>%
+  DT::datatable(width=200,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+ 
+```
+
+```{r, echo=FALSE} 
+ topUSMales <- us2015 %>% 
+  filter(sex=="M") %>% 
+  arrange(desc(n)) %>% 
+  mutate(us.rank=row_number()) %>% 
+  slice(1:10)
+
+b<- uk2015 %>% 
+  filter(sex=="M") %>% 
+  arrange(desc(n)) %>% 
+  mutate(uk.rank=row_number()) %>% 
+   right_join(topUSMales, by="name") %>% 
+  select(`Top US`=name,`us rank`=us.rank,`uk rank`=uk.rank) %>%
+  DT::datatable(width=200,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+ 
+ topUKFemales <- uk2015 %>% 
+  filter(sex=="F") %>% 
+  arrange(desc(n)) %>% 
+  mutate(uk.rank=row_number()) %>% 
+  slice(1:10)
+
+c<- us2015 %>% 
+  filter(sex=="F") %>% 
+  arrange(desc(n)) %>% 
+  mutate(us.rank=row_number()) %>% 
+   right_join(topUKFemales, by="name") %>% 
+  select(`Top UK`=name,`uk rank`=uk.rank,`us rank`=us.rank) %>%
+  DT::datatable(width=200,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+ 
+ 
+ topUSFemales <- us2015 %>% 
+  filter(sex=="F") %>% 
+  arrange(desc(n)) %>% 
+  mutate(us.rank=row_number()) %>% 
+  slice(1:10)
+
+d<- uk2015 %>% 
+  filter(sex=="F") %>% 
+  arrange(desc(n)) %>% 
+  mutate(uk.rank=row_number()) %>% 
+   right_join(topUSFemales, by="name") %>% 
+  select(`Top US`=name,`us rank`=us.rank,`uk rank`=uk.rank) %>%
+  DT::datatable(width=200,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+```
+
+```{r echo=FALSE}
+tagList(
+  a,
+  b,
+  c,
+  d
+)
+
+```
+
+All of the top 10 US choices, both female and male, make the top 100 in the UK but the reverse is not the case. perhaps because US culture hass more impact than vice-versa. This is particularly the case with 3rd ranked Harry (where there may be a royal component in the UK) and Poppy, 10th in the UK but not cracking the top 1000 in the States
+
+---
+
+## Fashionability UK
+
+The UK package also includes decade rankings of the top 95 names for both boys and girls throughout the last century. We can add the first decade of this century and the decade so far
+
+```{r}
+
+
+
+# check what variables we need for update  
+names(rankings)  
+  
+# calculate and same for most recent two decades
+  
+uk2000 <-  uk %>% 
+    filter(year>=2000&year<=2009) %>% 
+    group_by(name,sex) %>% 
+    summarize(count=sum(n)) %>% 
+    arrange(desc(count)) %>% 
+    ungroup() %>% 
+   group_by(sex) %>% 
+    mutate(rank=row_number(),year=2004) %>% 
+    filter(rank<=95) %>% 
+    select(-count)
+
+uk2010 <-  uk %>% 
+    filter(year>=2010&year<=2015) %>% 
+    group_by(name,sex) %>% 
+    summarize(count=sum(n)) %>% 
+    arrange(desc(count)) %>% 
+    ungroup() %>% 
+   group_by(sex) %>% 
+    mutate(rank=row_number(),year=2014) %>% 
+    filter(rank<=95) %>% 
+    select(-count)
+
+rankingsUK <- bind_rows(rankings,uk2000,uk2010)
+
+## look at those appearing in Top Ten most decades
+
+
+rankingsUK %>%
+  filter(sex=="M"&rank<11) %>%
+  count(name, sort=TRUE)
+
+
+rankingsUK %>%
+  filter(sex=="F"&rank<11) %>%
+  count(name, sort=TRUE)
+
+
+
+```
+
+
+No name placed in the top 10 for each of the twelve decades with James, at ten, the most consistently popular. Margaret and Mary seem pretty dated now
+
+---
+
+Let's look at the top 10 for the first and last decade and see how they have placed over the years
+
+```{r}
+#example code
+oldMales <- rankingsUK %>% 
+  filter(sex=="M"&rank<11&year==1904) %>% 
+  pull(name)
+
+
+newMales <-rankingsUK %>% 
+  filter(sex=="M"&rank<11&year==2014) %>% 
+  pull(name)
+
+allMales <- base::union(oldMales,newMales) # 18 so slight ovelap
+
+
+e <-rankingsUK %>% 
+  filter(name %in% allMales) %>% 
+  plot_ly(x=~year,y=~rank,color=~name,
+          hoverinfo="text",
+          text=~paste0(name,"<br>rank: ",rank)) %>% 
+  add_markers() %>% 
+  add_lines(showlegend=FALSE) %>% 
+  layout(
+    yaxis=list(autorange="reversed"),
+    xaxis=list(title="decade")
+  )
+
+```
+
+```{r, echo=FALSE}
+
+oldFemales <-rankingsUK %>% 
+  filter(sex=="F"&rank<11&year==1904) %>% 
+  pull(name)
+
+
+newFemales <-rankingsUK %>% 
+  filter(sex=="F"&rank<11&year==2014) %>% 
+  pull(name)
+
+allFemales <- base::union(oldFemales,newFemales) # 20 no ovelap
+
+
+f <-rankingsUK %>% 
+  filter(name %in% allFemales) %>% 
+  plot_ly(x=~year,y=~rank,color=~name,
+          hoverinfo="text",
+          text=~paste0(name,"<br>rank: ",rank)) %>% 
+  add_markers() %>% 
+  add_lines(showlegend=FALSE) %>% 
+  layout(
+    yaxis=list(autorange="reversed"),
+    xaxis=list(title="decade")
+  )
+
+
+```
+
+```{r, echo=FALSE}
+
+tagList(
+  e,
+  f
+)
+
+```
+
+
+
+
+ _I have included lines to easier see trends over time but this can be misleading e.g Matthew does not appear during 1920-1950 descades The points reflect the
+actual ranking_
+
+Although none of the girl names appear in the top ten's a century apart, there have been some current favourites e.g Emily and Lily that were relatively popular in Edwardian times before
+going out of fashion for quite a while.
+
+John used to be a perennial favourite - and indeed for centuries past. In 2015, it was ranked 108th
+
+---
+
+## Number Ones in the USA
+
+A recent chart on [No 1 tennis players over history](https://www.swissinfo.ch/eng/who-is-the-best-_the-complete-history-of-every-no--1-tennis-player/42274984?utm_content=buffer369fb&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer) pompted me to look at the equivalent layout for girl and boy names 
+
+```{r}
+names(us)
+
+usRanking_male <- us %>% 
+  filter(sex=="M") %>% 
+  arrange(desc(n)) %>% 
+  group_by(year) %>% 
+  mutate(rank=row_number())
+
+usMaleOnes <- usRanking_male %>% 
+  filter(rank==1) %>% 
+  pull(name) %>% 
+  unique()
+  
+
+nameArrangeM <- 
+  usRanking_male %>%  
+  arrange(year) %>% 
+    filter(name %in% usMaleOnes&rank==1) %>% 
+   group_by(name) %>%
+  slice(1) %>% 
+  arrange(year) %>% 
+  pull(name)
+
+nameArrangeM
+
+
+usRanking_male$nameFactor  <- factor(usRanking_male$name, levels = c("Noah","Jacob","David","Michael","James","Robert","John"))
+
+
+
+g <-usRanking_male %>%  
+  arrange(year) %>% # needed to ensure works
+  filter(name %in% usMaleOnes) %>% 
+  mutate(op=sqrt(1/rank)) %>% 
+  plot_ly(x=~year,y=~nameFactor, height=250,
+          hoverinfo="text",
+          text=~paste0(year,"<br>Rank: ",rank)) %>% 
+  add_markers(marker = list(opacity = ~op)) %>% 
+  layout(title="US Male Babynames which have ever held Annual Top spot<br>Hover for details",
+         xaxis=list(title=""),
+         yaxis=list(title="")
+  )
+
+```
+```{r female, echo=FALSE}
+
+
+usRanking_female <- us %>% 
+  filter(sex=="F") %>% 
+  arrange(desc(n)) %>% 
+  group_by(year) %>% 
+  mutate(rank=row_number())
+
+usFemaleOnes <- usRanking_female %>% 
+  filter(rank==1) %>% 
+  pull(name) %>% 
+  unique()
+
+nameArrange <- 
+  usRanking_female %>%  
+  arrange(year) %>% 
+    filter(name %in% usFemaleOnes&rank==1) %>% 
+   group_by(name) %>%
+  slice(1) %>% 
+  arrange(year) %>% 
+  pull(name)
+
+
+usRanking_female$nameFactor  <- factor(usRanking_female$name, levels = c("Sophia","Isabella","Emma","Emily","Ashley","Jessica","Jennifer","Lisa","Linda","Mary"))
+                
+
+
+h <- usRanking_female %>%  
+  arrange(year) %>% # needed to ensure works
+  filter(name %in% usFemaleOnes) %>% 
+  mutate(op=sqrt(1/rank)) %>% 
+  plot_ly(x=~year,y=~nameFactor, height=350,color=I("green"),symbol=I("bowtie"),
+          hoverinfo="text",
+          text=~paste0(year,"<br>Rank: ",rank)) %>% 
+  add_markers(marker = list(opacity = ~op)) %>% 
+  layout(title="US Female Babynames which have ever held Annual Top spot",
+         xaxis=list(title=""),
+         yaxis=list(title="")
+  ) %>%  config(displayModeBar = F,showLink = F)
+```
+
+```{r, echo=FALSE}
+
+tagList(g,h)
+
+```
+
+Noah has made quite the leap in the past 25 years. Jennifer did not even register before 1916 but was number 1 in 1970 before suffering a pretty precipitous decline
+
+---
+
+There has been quite a bit of work based on the such as estimating how old you are from your name and the use of names that can be used by either gender and it might be interesting to extend those analyses to the UK (or for that matter other countries, if made available) data

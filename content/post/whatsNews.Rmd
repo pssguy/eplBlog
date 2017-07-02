@@ -1,0 +1,161 @@
+---
+title: What's News?
+author: Andrew Clark
+date: '2017-04-02'
+draft: false
+slug: whatsNews
+categories:
+  - notebook
+  - packages
+  - politics
+tags: 
+  - newsflash
+description: ''
+featured: ''
+featuredalt: ''
+featuredpath: ''
+linktitle: ''
+banner: "banners/whatsnews.PNG"
+---
+
+# newsflash package
+
+Polymath, Bob Rudis ([aka hrbrmstr](https://twitter.com/hrbrmstr)) has recently released the [newsflash](https://github.com/hrbrmstr/newsflash) package which is a "set of tools to Work with the Internet Archive and GDELT Television Explorer""    
+
+In a recent [blog post](https://rud.is/b/2017/02/01/exploring-news-coverage-with-newsflash/?utm_content=bufferd52db&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer), based on a [gdelt project creator article](https://www.washingtonpost.com/news/monkey-cage/wp/2017/02/01/how-much-coverage-did-cnn-actually-devote-to-clintons-emails-heres-the-data/?utm_term=.7303cb908ce1), he details the coverage of Hillary Clinton's email server woes, with the, unsurprising, fact that FOX News spent more time on the issue than other broadcasters
+
+---
+
+I will take a slightly different tack by, firstly, looking at some of the major news stories of March in the USA
+
+We just need to load a few packages
+
+
+```{r setup, warning= FALSE ,message = FALSE}
+library(newsflash)
+library(plotly)
+library(tidyverse)
+
+```
+
+Let's just look at four issues that have impinged on President Trump recently
+
+* His Tax Returns
+* The Travel Ban
+* The New Healthcare Bill
+* Wire Tapping Claims
+
+query_tv() is the function that does most of the work. In it, you enter primary_keyword e.g 'Trump' and then context_keywords which are words that appear within four sentences of mention of the keyword. This is obviously a bit hit and miss and limited to 50 characters in length before throwing an error. For the tax returns I chose these words: tax,returns, leak,income,bill. Feel free to amend in adapting the code
+
+There is a maximum of 2,500 results per query. Bob's code explains how to manouvre around this. However, as I am just looking at a seven day period - which also supplies results in 30 minute chunks  - for just the National Networks that does not pose an issue. We do, however, need to ensure the correct time span an use the list_networks() function for this
+
+```{r networks, warning= FALSE ,message = FALSE}
+
+# list networks available and date range of information
+list_networks() %>% 
+  as.tbl() %>% 
+  select(-keyword) %>% 
+  head(10)
+
+
+```
+
+Data from most the major outlets is available within a day or two 
+
+The query returns list of 4 tibbles and for this exercise I will be looking at the timeline
+
+
+```{r retrieval, warning= FALSE ,message = FALSE}
+
+# timespan="custom" is required if you are entering specific dates.  
+#filter_network = "NATIONAL" is the default value required. Each query takes a couple of seconds
+
+tax <- query_tv("trump",context_keywords="tax, returns, leak, income, bill", timespan="custom", 
+                start_date="2017-03-01", end_date="2017-03-31") 
+
+# create a tibble and add a value for an additonal subject field
+tax_df <- tax$timeline %>% 
+  as.tbl() %>% 
+  mutate(subject="tax")
+
+head(tax_df)
+
+```
+
+The result shows the number of times the keywords combo appears on a particular station over the given time spread
+
+We can now do th same process for other subjects, combine and summarize the data
+
+```{r more_retrieval, warning= FALSE ,message = FALSE}
+
+
+
+travel <- query_tv("trump",context_keywords="travel, ban, Muslim, religious, ruling, supreme", timespan="custom",  start_date="2017-03-01", end_date="2017-03-31")
+
+
+travel_df <- travel$timeline %>% 
+  as.tbl() %>% 
+  mutate(subject="travel")
+
+health <- query_tv("trump",context_keywords="healthcare, insurance, budget, affordable", timespan="custom",  start_date="2017-03-01", end_date="2017-03-31")
+
+
+health_df <- health$timeline %>% 
+  as.tbl() %>% 
+  mutate(subject="health")
+
+wiretap <- query_tv("trump",context_keywords="wiretap, tower, surveillance, tweet", timespan="custom",  start_date="2017-03-01", end_date="2017-03-31")
+
+
+wiretap_df <- wiretap$timeline %>% 
+  as.tbl() %>% 
+  mutate(subject="wiretap")
+
+news <- rbind(tax_df,travel_df,health_df,wiretap_df)
+
+```
+
+Let's first look at which of these issues proved of most importance over the month. This has the **HUGE** proviso that the context_keywords are the most appropriate distinct words. There are plots for both hourly and daily data. You may want to zoom in and, in particular, click on the legend to toggle subjects in and out of chart
+
+```{r timeseries_hourly, warning= FALSE ,message = FALSE}
+
+# For some reason although it is supposedly in 30 minute batches only one value shows up per hour?
+news %>% 
+  group_by(date_start, subject) %>% 
+  summarize(count=sum(value)) %>% 
+  ungroup() %>% 
+  plot_ly(x=~date_start,y=~count, color=~subject) %>% 
+  add_lines() %>% 
+  config(displayModeBar = F,showLink = F)
+
+```
+
+
+The daily may be more appropriate
+
+```{r timeseries_daily, warning= FALSE ,message = FALSE}
+# need to create a day
+news %>% 
+  mutate(date=as.Date(date_start)) %>% 
+  group_by(date, subject) %>% 
+  summarize(count=sum(value)) %>% 
+  ungroup() %>% 
+  plot_ly(x=~date,y=~count, color=~subject) %>% 
+  add_bars() %>% 
+  layout(barmode = "stack") %>%
+  config(displayModeBar = F,showLink = F)
+
+```
+
+The daily figures suggest that less political shows/subjects might be covered at the weekend (e.g 11th/12th)
+
+ President Trump's wiretap tweet was originally sent on Mar 4th but investigations on its veracity reverberated throughout this period   
+ 
+ Likewise, the second anticipated executive order for a travel ban was made on the 6th. I am not sure why it seemed to gain more traction on the 10th/11th but received a further boost on the 16th as judges in Hawaii and Maryland  blocked the ban    
+ 
+The tax returns may have been conflated with the federal budget but has clearly been of great importance whilst the health bill gained in traction (at least as far as Trump's association with it) towards the middle of the time period as it's implications sunk in
+
+---
+
+Now let's have a look at how the different broadcasters prioritized coverage ... TBC
+

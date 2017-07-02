@@ -1,0 +1,221 @@
+---
+title: Mapping Eurostat information
+author: Andrew Clark
+date: '2017-07-02'
+slug: eurostat
+categories: []
+tags: []
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+Keeping up with the theme of utilizing official government open data to map via an R package which  will now turn to the [eurostat package](https://github.com/rOpenGov/eurostat/blob/master/README.Rmd) which accesses data - via an API - from the [European Commission](http://ec.europa.eu/eurostat). 
+First released in 2015, there is an article (wuth R code) by its authors in the most recent issue of the [R Journal,9/1](https://journal.r-project.org/archive/2017/RJ-2017-019/RJ-2017-019.pdf) which makes for an interesting read
+
+Howver, by it's very nature, the article is static and given the time-lag in publication (around 9 months),  neither uses the most recently available data nor take advatage of the latest versions  of packages or indeed the availability of new ones.
+
+I have, therefore, adapted their code for this post
+
+As usual, libraries loaded first
+
+```{r, warnings= FALSE, message=FALSE}
+
+# data
+library(eurostat)
+
+# data carpentry
+library(tidyverse)
+library(stringr)
+
+# interactive plots
+library(plotly)
+
+# maps
+library(tigris)
+library(sf)
+library(leaflet)
+
+```
+
+
+## Mapping Disposable income
+
+![](img/eurostatIncome.png)  need to load img correctly may only show when built
+
+
+The previous article had data which seamlessly downloaded shapefiles with in the form of sf list-columns - although for practical purposes I kept geometrys seperate and then merged to data, as required
+
+The Eurostat package does not, currently, provide that functionality but a useful tip in the github issues from [Joona Lehtomäki](@jlehtoma) resolved this. The resolution obtained  (1:10million) is sufficient for this example wothout looking crude
+
+NB the labelling has not worked properly also utf-8 issues (is there something in dplyr that can help now)
+```{r}
+
+#Here we a combination of functions from the sf and eurostat packages to get spatial data 
+res10 <- sf::st_as_sf(eurostat::get_eurostat_geospatial(output_class = "spdf", resolution = 10))
+
+# load table which links regional codes from downloaded data to 
+# Raw data NUTS_2013 from http://ec.europa.eu/eurostat/ramon/nomenclatures/index.cfm?TargetUrl=LST_CLS_DLD&StrNom=NUTS_2013L&StrLanguageCode=EN&StrLayoutCode=HIERARCHIC
+
+#pre-processing
+# areaCodes <- read_csv("data/NUTS_2013.csv")
+# 
+# areaCodes <- areaCodes %>% 
+#   mutate(name=(str_replace(`NUTS LABEL`,"Arr. ",""))) %>% 
+#   mutate(name=(str_replace(name,"Prov. ",""))) %>% 
+#   rename(NUTS_ID=`NUTS CODE`)
+# 
+# write_csv(areaCodes,"data/eurostatAreaCodes.csv")
+
+areaCodes <- read_csv("data/eurostatAreaCodes.csv")
+
+#The datasets now include a common field, NUTS_ID
+intersect(names(res10),names(areaCodes))
+
+```
+
+
+We can view the available tables of content (9333 at time of writing) and then select the code required
+
+```{r}
+toc <- get_eurostat_toc()
+
+toc %>% 
+                 DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+To replicate the original article, enter "disposable income" in the search field. You will see the code used "tgs00026" as one of the options. It provides regional data from 2008-2014, so we can update the original publication from 2011 
+
+```{r}
+data <- get_eurostat("tgs00026", time_format = "raw") #1947x5
+# # convert time column from Date to numeric
+# df$time <- eurotime2num(df$time)
+# # subset time to have data for 2011
+# df <- df[df$time== 2011,]
+
+# convert time column from Date to numeric, select latest year
+df <- data %>% 
+  mutate(time=eurotime2num(time)) %>% 
+  
+  rename(NUTS_ID=geo) %>% 
+      left_join(areaCodes)
+
+df14 <- df %>% 
+filter(time==2014) 
+
+
+# use tigris function to join dataand shapes and just select fields needed for map
+euro_geo <- geo_join(res10,df14,  by="NUTS_ID", how = "inner") %>% 
+  select(name=`NUTS LABEL`,values,geometry)
+
+glimpse(euro_geo)
+
+
+```
+
+Let's first look at the distribution - which can be useful in deciding how to set the bins for color. The eurostat has a useful ```cut_to_classes()``` function which will serve most purposes
+
+```{r}
+
+df14 %>% 
+  plot_ly(x=~values)
+
+
+```
+
+Actually a pretty Normal distribution - though with one outlier (West Inner London)
+
+Now we can set appropriate breaks and colours. I quite like the original colours but have settled for one which might highlight a sequential nature. The map is also in leaflet, which allows zoom and pan. Click on a region for more data
+
+```{r}
+
+pal <- colorBin(palette = "YlOrRd", 
+                    domain = euro_geo$values,
+                bins=c(0,5000,10000,15000,20000,25000,40000))
+
+# Create pop-up for when state is clicked on display
+popups <- str_c(euro_geo$name,'<br>', format(euro_geo$values, big.mark=",")," Euros per Year")
+
+
+
+
+euro_geo %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+   setView(lng=9.6,lat=53.6,zoom=3) %>% 
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(
+      #popup = popups, utf issue (so why not before)
+                stroke = TRUE, weight=1,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(values)) %>%
+    addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ values,
+              title = "Disposable household<br> income in  2014<br> Euros per Year",
+              opacity = 0.3)
+
+```
+
+
+
+So we can see a general broad band of highest income running north-south in Germany Austria and Northern Italy, with lower values as we spread east and west. Capital cities, with part of London being the extreme, tend to higher income but are likely to be associated with greater costs in housing
+
+---
+
+One variation, would be to see the chcnae in regional data over the time-period, recalling that 2008 was at the he
+
+```{r}
+
+
+df0814 <-df %>% 
+  select(NUTS_ID,name,time,values) %>% 
+  filter(time==2008|time==2014) %>% 
+  spread(time,values) %>% 
+  mutate(pc_change=round(100*`2014`/`2008`,1)-100)
+
+df0814 %>% 
+  plot_ly(x=~pc_change)
+
+```
+
+
+```{r map2_output}
+
+euroChange_geo <- geo_join(res10,df0814,  by="NUTS_ID", how = "inner") 
+
+
+pal <- colorBin(palette = "YlOrRd", 
+                    domain = euroChange_geo$values,
+                bins=c(-40,-20,0,20,40,60,80))
+
+# Create pop-up for when state is clicked on display
+popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change,"%<br>",
+                 format(euroChange_geo$`2014`, big.mark=",")," Euros per Year")
+
+#popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change),"%<br>",
+   #              format(euro_geo$`2014`, big.mark=",")," Euros per Year")
+
+
+euroChange_geo %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+   setView(lng=9.6,lat=53.6,zoom=3) %>% 
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(
+      popup = popups, #utf issue (in initial download)
+                stroke = TRUE, weight=1,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(pc_change)) %>%
+    addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ pc_change,
+              title = "% Change in Disposable <br> Household Income 2008-2014",
+              opacity = 0.3)
+```
+
+This covers the period of the financial crisis. As can be seen, East europeans have benfited ober the seven year period, albeit from a low base and Greece, in particular, has suffered

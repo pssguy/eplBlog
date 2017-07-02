@@ -1,0 +1,36 @@
+---
+title: "Spotify - all 20 million tracks"
+author: "Andrew Clark"
+date: 2017-02-27
+categories: ["entertainment","flexdashboard"]
+banner: "banners/spotify.PNG"
+---
+
+I have consistently been interested in assessing music information in R, for example my - somewhat dormant -[charts dashboard](https://mytinyshinys.shinyapps.io/musicChartsFlexDB/)
+
+A recent, excellent, [blog post by RCharlie](http://rcharlie.com/2017-02-16-fitteR-happieR/#comment-3169008481) featuring the Spotify and Genius APIs to determine a 'Gloom Index' for Radiohead tracks piqued my interest. It also incorporates some illuminating code using the purrr package
+
+The Spotify, i.e. musical section of his work returns data swiftly and thus makes a Shiny app feasible allowing the full catalogue of 20 million tracks to be accessed. I extend it to a few different outputs, particularly the ability to link to youtube videos of chosen tracks and lyrics, courtesy of Google Lyrics.   
+
+I have created a [flexdashboard](https://mytinyshinys.shinyapps.io/spotifyFlexDB/). Here is an example for Penny Lane by The Beatles
+
+![](/img/pennyLane.png) 
+
+---
+
+Just running through the process that results in the image
+
+1. Enter artist name
+2. Select one or more from the selection provided
+3. De-select any albums that do not interest you. Wait a few seconds for output
+4. Search, sort table and hover over chart for more info on various music metrics
+5. Select a point on the chart and click to view youtube video (expandable to full screen) and lyric. This can be a bit hit and miss. Penny Lane, unsurprisingly, was a hit
+6. Tell your friends
+
+ The code is viewable on the site (click icon in top-right corner). Much of it is a complete steal from RCharlie and mine could definitely do with some enhancements.    
+ 
+ *Please note that if you plan to use the code do obtain your own [client authorization](https://developer.spotify.com/web-api/authorization-guide/)*
+ 
+
+---
+

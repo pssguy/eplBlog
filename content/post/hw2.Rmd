@@ -1,0 +1,21 @@
+---
+title: "Welcome to my World"
+author: "Andrew Clark"
+date: 2016-11-16
+#categories: ["general"] 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+ It's been a while...
+
+... since I had a blog up and running
+
+However, RStudio's Yihui Xie continues to extend [R Markdown](http://rmarkdown.rstudio.com/) into new areas and his latest package,  [blogdown](https://github.com/rstudio/blogdown), integrates well with [Hugo](https://gohugo.io/), a static website engine to display code easily.   
+ The product is in beta and I'm just learning it so expect some glitches
+
+ 
+R markdown can be displayed in many different formats so this is a natural extension to work I do on notebooks, flexdashboards and books.  The aim is to provide updates of  my work in R, specifically Shiny and R markdown, and will make extensive use of htmlwidgets to provide charts and tables in a fast, interactive experience
+

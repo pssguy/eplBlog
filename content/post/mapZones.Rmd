@@ -1,0 +1,166 @@
+---
+title: Get me to the church on time
+author: Andrew Clark
+date: '2017-06-26'
+categories:
+  - flexdashboard
+  - maps
+tags:
+  - rmapzen
+slug: get-me-to-the-church-on-time
+banner: "banners/rmapzen.png"
+---
+
+2017 seems to  be the 'Year of the Map'. The [simple features, sf package](https://github.com/edzer/sfr) is and will continue to have a great impact and the recent release of [leaflet.extras](https://github.com/bhaskarvk/leaflet.extras) adds some glitz to the leaflet package
+
+Added to this list can be [rmapzen](https://github.com/tarakc02/rmapzen) which is a client for the [Mapzen](https://mapzen.com/) API.
+
+Author, Tarak Shah has provided an [introduction](https://tarakc02.github.io/rmapzen/) to his work-to-date and I have leant on that heavily in this post to create contour maps.These guage what geographic area is in range of a specific location given a time period and mode of transport. When time permits, I hope to extend this to a flexdashboard
+
+Let me just go through some of the code I plan to use. If you want to create your own project you will need to get an [API key](https://mapzen.com/dashboard) and set it in the environment. The number of free calls per month will only be of concern if you develop a commercial product
+
+
+```{r, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+# Uncomment and enter own key first time through
+#devtools::install_github("tarakc02/rmapzen")
+#Sys.setenv(MAPZEN_KEY = "mapzen-xxxxxx")
+
+```
+
+
+```{r, warning=FALSE, message=FALSE, echo= FALSE}
+
+MAPZEN_KEY = "mapzen-AUyw1mk"
+```
+
+
+First load required libraries.
+
+```{r setup}
+library(rmapzen) 
+library(tidyverse)
+library(leaflet)
+library(ggmap)
+library(knitr)
+
+```
+
+
+The basic concept is that you have a location and a mode of transport and want to see what ground you can cover in a specified time
+
+Being extremely parochial, I will take my neighbourhood in North Vancouver and biking (a common activity I should definitely partake in more often). Alternatives include car, walking and transit. Let's look at it over 15, 30 and 60 minute time-scales.    
+
+rmapzen has it's own geocoding function but it does not appear as accurate as the ggmap equivalent. I also do not care for the default oranges for the maps and have used a different set of tiles than in the aforementioned tutorial
+
+```{r location}
+
+lv <- geocode("Lynn Valley, North Vancouver,BC, Canada")
+kable(lv)
+
+```
+
+The lon/lat is all that is required for future processing
+
+---
+
+Let's have a quick look at the options available transportwise
+
+```{r transport}
+
+str(mz_costing_options)
+
+```
+
+That's quite the set - covered in more detail in the [mapzen documentation](https://mapzen.com/documentation/mobility/turn-by-turn/api-reference/#costing-models).    
+ In a quest for accuracy, I will put in a low cycling speed (rates are in kph) and an aversion to hills - of which there are plenty in the area
+
+```{r}
+
+isos <- mz_isochrone(
+    lv,
+    costing_model = mz_costing$bicycle(mz_costing_options$bicycle$cycling_speed(12),mz_costing_options$bicycle$use_hills(0.1)),
+    contours = mz_contours(c(15, 30,60), colors <- c("ff0000", "0019ff", "000000"))
+   
+)
+
+leaflet(as_sp(isos)) %>%
+    addProviderTiles("Esri.WorldStreetMap") %>%
+    addPolygons(color = ~paste0("#", color), weight = 1) %>%
+    addLegend(colors = ~paste0("#", color), 
+              labels = ~paste(contour, "minutes"),
+              title = "Cycling times from home") %>% 
+  addMarkers(
+        data = lv, 
+        lat = ~lat, 
+        lng = ~lon,
+        popup = "Starting Point")
+```
+
+_Not sure to sort opacity so that map contours fit legend. Also marker should probably be different colour_
+
+So within an hour I can, theoretically, transport myself either to  the expensive West Vancouver area or the easterly, beautiful Deep Cove. Going up the mountain is more problematic than heading over the water to Vancouver East
+
+
+---
+
+It is also possible to search various sources (accesible via mz_sources) for specific objects or venues e.g lakes, garages. It does appear a bit limited in scope currently as when I searched for churches in my area only two were located although we are actually teeming with them
+
+This may be due to varying data by region. Here is a map which shows both churches and  McDonalds within 15 minutes drive of the center of Flint, Michigan
+
+```{r mcdonalds, message=FALSE, warning=FALSE}
+
+flint <- geocode("Flint, MI")
+
+drivable <- mz_isochrone(
+    flint,
+    costing_model = mz_costing$auto(),
+    contours = mz_contours(15)
+)
+
+mickeyD <- mz_search(
+    "McDonalds", # can only be one character vector
+    boundary.rect = mz_bbox(drivable), 
+    layers = mz_layers$venue, 
+    size = 50
+)
+
+churches <- mz_search(
+    "church", # can only be one character vector
+    boundary.rect = mz_bbox(drivable), 
+    layers = mz_layers$venue, 
+    size = 50
+)
+
+
+leaflet(as_sp(drivable),
+        options=leafletOptions(
+  minZoom = 11, maxZoom = 11)) %>%
+    addProviderTiles("Esri.WorldStreetMap") %>%
+    addPolygons(color = "#ffffff", weight = 1) %>%
+    addMarkers(
+        data = flint, 
+        lat = ~lat, 
+        lng = ~lon,
+        popup = "Home") %>%
+    addCircleMarkers(
+        data = as_sp(mickeyD), 
+        weight = 1,
+        radius = 7,
+        opacity = 1,
+        popup = ~name,
+        color = "#ff0000") %>% 
+    addCircleMarkers(
+        data = as_sp(churches), 
+        weight = 1,
+        radius = 7,
+        opacity = 1,
+        popup = ~name,
+        color = "#ffff00")
+
+
+```
+
+So there is a taster, with more coverage of the API planned by Tarak     
+
+ I'll keep you posted if and when I come up with an interactive app

@@ -1,0 +1,217 @@
+---
+title: UK 2015 Election Mapped
+author: Andrew Clark
+date: '2017-03-29'
+slug: uk2015election
+categories:
+  - packages
+  - politics
+tags:
+  - hansard
+  - sf
+  - leaflet
+  - purrr
+description: ''
+featured: ''
+featuredalt: ''
+featuredpath: ''
+linktitle: ''
+banner: "banners/uk2015Election.PNG"
+---
+
+Just providing a quick update to the [previous post](https://www.mytinyshinys.com/post/hansard_2/). Since that was done a few weeks ago, Evan Odell has been doing some great work on enhancing his Hansard package details of which you can view [here](https://github.com/EvanOdell/hansard/blob/master/NEWS.md).
+
+<!-- In addition he has [Members' Names Information Service API](https://github.com/EvanOdell/mnis) -->
+
+I plan to do some more work on this incredible resource in the future but for now am just looking at some mapping. This entails using the sf package for the first time - one which the experts are saying is going to have big impact on R development and a spot more purrr (which is part of the tidyverse environment)
+
+First we will download the packages
+
+```{r setup, warning=FALSE, message=FALSE}
+
+library(hansard)
+library(sf)
+library(leaflet)
+library(stringr)
+library(tidyverse)
+
+```
+
+
+The hansard package provides information on constituency data including names, results and a geometry code which can be linked to shapefiles
+
+The [UK Data Support](https://borders.ukdataservice.ac.uk/) provide many boundary maps, including simplified Parliamentary constituencies  for England.
+
+Although only a simplified geometry was required it still takes a few seconds to download. 
+
+If you wish to  extend this analysis to cover Scotland and Wales constituencies, you will need to download [Boundary-Lines from the Ordnance Survey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html) but this is at a much more detailed level and not appropriate for swift rendering. For those interested, it may be possible to create your versions using [mapshaper](http://www.mapshaper.org/)
+
+```{r, data_carpentry, message=FALSE, warning = FALSE}
+
+# These are functions to get data. I have previously saved them to local files
+#constituencies <- constituencies()
+#electionResults <- election_results()
+
+constituencies <- read_csv("hansardData/constituencies.csv")
+glimpse(constituencies)
+electionResults <- read_csv("hansardData/electionResults.csv")
+glimpse(electionResults)
+
+
+#constituencies$label_value and electionResults$constituency_label_value are equivalent
+
+## Add a couple of columns to show margin of victory as a %
+
+election.2015 <- electionResults %>% 
+  filter(election_label_value=="2015 General Election")  %>%  
+  left_join(constituencies,by=c("constituency_label_value"="label_value")) %>% 
+  mutate(victory_pc=round(100*majority/turnout,1))
+
+# and just show the party winning
+election.2015$party <- election.2015$result_of_election %>% 
+  map(str_split, pattern = " ") %>% 
+  map_chr(c(1,1))
+
+# load the simplified England data using the sf package
+fname <- "hansardData/england_parl_2011_gen_clipped.shp" 
+boundaries <- st_read(fname)
+       
+
+glimpse(boundaries)  
+# boundaries$code and election.2015$gss_code can be used to join data and shapes
+  
+
+```
+
+election.2015 provides information on the result and also has a geometry gss_code  which has a counterpart in the boundaries, 'code'. We can now join the two datasets and create maps, using the leaflet package, after a projection transformation.  
+
+
+
+ I have created a couple of maps. The first shows each constituency colour-coded by party and if there was change in party control. For those not familiar with the UK system:-
+ 
+* Con: Conservative
+* Green: Green party
+* Lab: Labour
+* LD: Liberal Democrats
+* Spk: Speaker of House (unopposed)
+* UKIP: UK Independence Party
+
+The map takes a few seconds to render
+
+```{r map_results, warning=FALSE, message=FALSE}
+
+# First transform(using an sf function) for use in leaflet. An informative error occurs otherwise
+boundaries.leaflet <- st_transform(boundaries,'+proj=longlat +datum=WGS84')
+
+# Join data
+england.leaflet <- 
+  boundaries.leaflet %>% 
+  left_join(election.2015,by=c("code"="gss_code"))
+
+
+# change to factors so colorFactor from the leaflet package can be used
+england.leaflet$result_of_election <- as.factor(england.leaflet$result_of_election)
+
+# Determine the number of distinct colours to show and determine appropriate colours
+levels(england.leaflet$result_of_election) #8
+
+
+
+# select colors from http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+mycols <- c("blue","deepskyblue","darkolivegreen1","firebrick1","lightpink","lightgoldenrod1","black","mediumpurple")
+
+
+
+factpal <- colorFactor(mycols, england.leaflet$result_of_election)
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>%s Majority %s",
+  england.leaflet$name,england.leaflet$result_of_election,england.leaflet$majority
+) %>% lapply(htmltools::HTML)
+
+
+## still takes few secs
+england.leaflet %>% 
+  leaflet(width =  500) %>% 
+  addTiles() %>% 
+  addPolygons(weight=1,
+              fillOpacity = 1,
+              dashArray = "3",
+              fillColor=~factpal(result_of_election),
+              label=labels,            
+              labelOptions=labelOptions(direction="left")) %>%
+  addLegend("bottomright", pal = factpal, values = ~result_of_election,
+    title = "Results",
+    opacity = 1
+  )
+```
+* 
+
+Zoom and hover for more information. 
+
+The Conservatives won an overall majority on the back of a commitment to hold a referendum on whether the UK should remain in the EU. Thos spectacularly back-fired on Prime Minister, David Cameron leading to his resignationa and the recent initiation of the exit procedure
+
+---
+
+One more map (which could do with some enhancement) uses the opacity of the fillColor to represent the level of majority in each seat. The code is broadly the same as above apart from this additional factor
+
+
+```{r map_margins, warning=FALSE, message=FALSE}
+
+# This time we do not need to know whether the constituency changed hands
+england.leaflet$party <- as.factor(england.leaflet$party)
+levels(england.leaflet$party) #6
+
+mycols <- c("blue","darkolivegreen1","firebrick1","orange","black","mediumpurple")
+factpal <- colorFactor(mycols, england.leaflet$party)
+
+## add a value to reflect majority
+england.leaflet$opacity <- england.leaflet$victory_pc/100
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>%s Majority %s%% ",
+  england.leaflet$name,england.leaflet$party,england.leaflet$victory_pc
+) %>% lapply(htmltools::HTML)
+
+
+england.leaflet %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addPolygons(weight=1,
+              fillOpacity = ~opacity,
+              dashArray = "3",
+              fillColor=~factpal(party),
+              label=labels,
+              labelOptions=labelOptions(direction="left"))  %>%
+  addLegend("bottomright", pal = factpal, values = ~party,
+           
+    title = "Party",
+    opacity = 0.5
+  )
+
+
+
+```
+
+
+I plan to do quite a bit more with the hansard package in the future, probably entailing more mapping.    
+
+Any comments appreciated
+
+
+```{r tmap, echo=FALSE }
+
+## when serve_site
+# Quitting from lines 203-210 (uk2015election.Rmd) 
+# Error in as(shp, "Spatial") : 
+#   no method or default for coercing "sf" to "Spatial"
+# 
+# library(tmap)
+# qtm(england.leaflet, fill='result_of_election', fill.title="Results")
+
+## produces a basic static map - colors would need to be changed
+# for more details
+
+```
+

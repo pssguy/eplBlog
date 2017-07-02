@@ -1,0 +1,30 @@
+---
+title: "Introducing Books"
+author: "Andrew Clark"
+date: 2016-11-23
+categories: ["books"] 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+# Bookdown
+
+[bookdown](https://github.com/rstudio/bookdown) is an R package using RMarkdown making it relatively easy to createa book available in multiple outputs. It is extensively documented in the book, [bookdown: Authoring Books and Technical Documents with R Markdown](https://bookdown.org/yihui/bookdown/)
+
+To quote its author, Yihui Xie,
+
+> It should be technically easy to write a book, visually pleasant to view the book, fun to interact with the book, convenient to navigate through the book, straightforward for readers to contribute or leave feedback to the book author(s), and more importantly, authors should not always be distracted by typesetting details.
+
+---
+
+## My Output
+
+I have several 'books' under varying stages of development and will be reporting here on significant updates 
+
+My first attempt was [useR2016 Conference Videos](https://bookdown.org/aclark/useR2016videos/) which is basically a video repository of a selection of talks at the summer conference and the ability - via a clickable data table - to see any presentation given
+
+
+
+ ![](/img/user2016.png)
