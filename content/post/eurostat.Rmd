@@ -159,7 +159,7 @@ euro_geo %>%
     addLegend("bottomleft", 
               pal = pal, 
               values = ~ values,
-              title = "Disposable household<br> income in  2014<br> Euros per Year",
+              title = "Disposable household<br> income in  2014<br> Euros per annum",
               opacity = 0.3)
 
 ```
@@ -174,9 +174,8 @@ One variation, would be to see the chcnae in regional data over the time-period,
 
 ```{r}
 
-
-df0814 <-df %>% 
-  select(NUTS_ID,name,time,values) %>% 
+# select extremes of year range, spread data.frame and calc pc change
+df0814 <- df_code %>% 
   filter(time==2008|time==2014) %>% 
   spread(time,values) %>% 
   mutate(pc_change=round(100*`2014`/`2008`,1)-100)
@@ -184,24 +183,24 @@ df0814 <-df %>%
 df0814 %>% 
   plot_ly(x=~pc_change)
 
+
+
+
 ```
 
 
 ```{r map2_output}
 
-euroChange_geo <- geo_join(res10,df0814,  by="NUTS_ID", how = "inner") 
+euroChange_geo <- geo_join(res10,df0814,  by_sp="NUTS_ID",by_df="geo_code", how = "inner") 
 
 
 pal <- colorBin(palette = "YlOrRd", 
                     domain = euroChange_geo$values,
                 bins=c(-40,-20,0,20,40,60,80))
 
-# Create pop-up for when state is clicked on display
-popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change,"%<br>",
+# Create pop-up for when ergion is clicked on display
+popups <- str_c(euroChange_geo$geo,'<br>Change:', euroChange_geo$pc_change,"%<br>",
                  format(euroChange_geo$`2014`, big.mark=",")," Euros per Year")
-
-#popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change),"%<br>",
-   #              format(euro_geo$`2014`, big.mark=",")," Euros per Year")
 
 
 euroChange_geo %>%
@@ -234,25 +233,23 @@ This example indicates the number of people killed in road accidents by year by 
 
 
 
-```{r}
-countries <- c("UK", "SK", "FR", "PL", "ES", "PT")
-t1 <- get_eurostat("tsdtr420", filters = list(geo = countries))
-pop <- get_eurostat("nama_10r_3popgdp", filters = list(geo = countries))
-## no geographic restriction
+```{r, warning=FALSE, message=FALSE}
+
 
 t1 <- get_eurostat("tsdtr420")
 pop <- get_eurostat("nama_10r_3popgdp")
 
-names(t1)
-names(pop)
+t1 <- label_eurostat(t1)
+pop <- label_eurostat(pop, code="geo")
+
 
 
 t1 <- t1 %>% 
   select(geo,time,values)
-#limit pop values to country only. Need to change from factor
 
+#limit pop values to country only. Need to change from factor
 country_pop <- pop %>% 
-  filter(nchar(as.character(geo))==2)  %>% 
+  filter(nchar(as.character(geo_code))==2)  %>% 
   rename(pop=values)
 
 # get rate per 100,000
@@ -262,10 +259,13 @@ df <- t1 %>%
   mutate(rate=100*values/pop,year=str_sub(time,1,4))
 
 
+
+# Selection of countries from R Journal example
 countries <- c("UK", "SK", "FR", "PL", "ES", "PT")
+
 df %>% 
   group_by(geo) %>% 
-  filter(geo %in% countries) %>% 
+  filter(geo_code %in% countries) %>% 
   plot_ly(x=~year,y=~rate,color=~geo) %>% 
   add_lines() %>% 
   layout(title="Rate of Road Accidents in selected EU countries<br> 2000-2015",
@@ -274,13 +274,6 @@ df %>%
          ) %>%  config(displayModeBar = F,showLink = F)
 
 
-
-# ggplot(t1, aes(x = time, y = values, color = geo, group = geo, shape = geo)) +
-# geom_point(size = 4) + geom_line() + theme_bw() +
-# ggtitle("Road accidents") + xlab("Year") + ylab("Victims (n)") +
-# theme(legend.position = "none") +
-# ggrepel::geom_label_repel(data = t1 %>% group_by(geo) %>% na.omit() %>%
-# filter(time %in% c(min(time), max(time))), aes(fill = geo, label = geo), color = "white")
 ```
 
 This is an area where there has been pretty steady improvement over many years as cars have better safety features, roads are improved and restriction on drink/drug consumption and invocation of seat-belt usage has been enforced. No country now has a death rate in excess of 10 per 100,000 population
@@ -288,29 +281,22 @@ This is an area where there has been pretty steady improvement over many years a
 
 I have restricted the countries to those selected for R Journal article. Showing all at once would be a bit confusing though plotly offers the option to toggle lines on or off by clicking on the legend. Just remove the ```filter(geo %in% countries) %>% ``` line to take effect. However, a map may be of interest
 
-```{r}
+```{r,warning=FALSE, message=FALSE}
 
-
-table(df$year)
-
+# Latest data - a couple of countries have no data
 df15 <- df %>% 
   filter(year=="2015")
 
-accidents_geo <- geo_join(res10,df15,  by_sp="NUTS_ID", by_df="geo", how = "inner") 
+accidents_geo <- geo_join(res10,df15,  by_sp="NUTS_ID", by_df="geo_code", how = "inner") 
 
-# lets try the cut_to_classes(). There are several different binnin styles as shown in documentation
-
-#accidents_geo$class <- cut_to_classes(accidents_geo$rate, n=5, style="jenks",decimals=1)
-
-pal <- colorBin(accidents_geo$class)
 
 pal <- colorBin(palette = "YlOrRd", 
                     domain = accidents_geo$rate,
                 bins=c(0,2,4,6,8,10))
 
-# Create pop-up for when state is clicked on display
-popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change,"%<br>",
-                 format(euroChange_geo$`2014`, big.mark=",")," Euros per Year")
+
+
+popups <- str_c(accidents_geo$geo,"<br>Rate: ",round(accidents_geo$rate,1)," per 100,000")
 
 
 accidents_geo %>%
@@ -319,7 +305,7 @@ accidents_geo %>%
    setView(lng=9.6,lat=53.6,zoom=3) %>% 
       addProviderTiles(provider = "CartoDB.Positron") %>%
     addPolygons(
-      #popup = popups, #utf issue (in initial download)
+      popup = popups, 
                 stroke = TRUE, weight=1,
                 smoothFactor = 0,
                 fillOpacity = 0.3,
