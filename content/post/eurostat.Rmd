@@ -42,7 +42,8 @@ library(leaflet)
 
 ## Mapping Disposable income
 
-![](img/eurostatIncome.png)  need to load img correctly may only show when built
+![](img/eurostatIncome.png)  
+need to load img correctly may only show when built
 
 
 The previous article had data which seamlessly downloaded shapefiles with in the form of sf list-columns - although for practical purposes I kept geometrys seperate and then merged to data, as required
@@ -50,7 +51,7 @@ The previous article had data which seamlessly downloaded shapefiles with in the
 The Eurostat package does not, currently, provide that functionality but a useful tip in the github issues from [Joona Lehtomäki](@jlehtoma) resolved this. The resolution obtained  (1:10million) is sufficient for this example wothout looking crude
 
 NB the labelling has not worked properly also utf-8 issues (is there something in dplyr that can help now)
-```{r}
+```{r warning=FALSE.message=FALSE}
 
 #Here we a combination of functions from the sf and eurostat packages to get spatial data 
 res10 <- sf::st_as_sf(eurostat::get_eurostat_geospatial(output_class = "spdf", resolution = 10))
@@ -89,28 +90,30 @@ toc %>%
 To replicate the original article, enter "disposable income" in the search field. You will see the code used "tgs00026" as one of the options. It provides regional data from 2008-2014, so we can update the original publication from 2011 
 
 ```{r}
+
 data <- get_eurostat("tgs00026", time_format = "raw") #1947x5
-# # convert time column from Date to numeric
-# df$time <- eurotime2num(df$time)
-# # subset time to have data for 2011
-# df <- df[df$time== 2011,]
+
 
 # convert time column from Date to numeric, select latest year
 df <- data %>% 
-  mutate(time=eurotime2num(time)) %>% 
-  
-  rename(NUTS_ID=geo) %>% 
-      left_join(areaCodes)
+  mutate(time=eurotime2num(time)) #[1] "unit"    "na_item" "geo"     "time"    "values" 
 
-df14 <- df %>% 
+# Label the variables more meaningfully BUT retaion geo code (as geo_code) for joining to shapefile
+df_code <- label_eurostat(df, code = "geo") 
+
+# select most recent year
+df14 <- df_code %>% 
 filter(time==2014) 
 
 
 # use tigris function to join dataand shapes and just select fields needed for map
-euro_geo <- geo_join(res10,df14,  by="NUTS_ID", how = "inner") %>% 
-  select(name=`NUTS LABEL`,values,geometry)
+euro_geo <- geo_join(res10,df14,  by_sp="NUTS_ID",by_df="geo_code", how = "inner")
 
 glimpse(euro_geo)
+
+
+
+
 
 
 ```
@@ -135,8 +138,9 @@ pal <- colorBin(palette = "YlOrRd",
                     domain = euro_geo$values,
                 bins=c(0,5000,10000,15000,20000,25000,40000))
 
+
 # Create pop-up for when state is clicked on display
-popups <- str_c(euro_geo$name,'<br>', format(euro_geo$values, big.mark=",")," Euros per Year")
+popups <- str_c(euro_geo$geo,'<br>', format(euro_geo$values, big.mark=",")," Euros per Year")
 
 
 
@@ -147,7 +151,7 @@ euro_geo %>%
    setView(lng=9.6,lat=53.6,zoom=3) %>% 
       addProviderTiles(provider = "CartoDB.Positron") %>%
     addPolygons(
-      #popup = popups, utf issue (so why not before)
+      popup = popups, #utf issue (so why not before)
                 stroke = TRUE, weight=1,
                 smoothFactor = 0,
                 fillOpacity = 0.3,
@@ -219,3 +223,257 @@ euroChange_geo %>%
 ```
 
 This covers the period of the financial crisis. As can be seen, East europeans have benfited ober the seven year period, albeit from a low base and Greece, in particular, has suffered
+
+---
+
+## Road Accidents
+
+This example indicates the number of people killed in road accidents by year by country
+
+![](img/eurostatAccidents.png)  
+
+
+
+```{r}
+countries <- c("UK", "SK", "FR", "PL", "ES", "PT")
+t1 <- get_eurostat("tsdtr420", filters = list(geo = countries))
+pop <- get_eurostat("nama_10r_3popgdp", filters = list(geo = countries))
+## no geographic restriction
+
+t1 <- get_eurostat("tsdtr420")
+pop <- get_eurostat("nama_10r_3popgdp")
+
+names(t1)
+names(pop)
+
+
+t1 <- t1 %>% 
+  select(geo,time,values)
+#limit pop values to country only. Need to change from factor
+
+country_pop <- pop %>% 
+  filter(nchar(as.character(geo))==2)  %>% 
+  rename(pop=values)
+
+# get rate per 100,000
+df <- t1 %>% 
+  left_join(country_pop) %>% 
+  filter(!is.na(pop)) %>% 
+  mutate(rate=100*values/pop,year=str_sub(time,1,4))
+
+
+countries <- c("UK", "SK", "FR", "PL", "ES", "PT")
+df %>% 
+  group_by(geo) %>% 
+  filter(geo %in% countries) %>% 
+  plot_ly(x=~year,y=~rate,color=~geo) %>% 
+  add_lines() %>% 
+  layout(title="Rate of Road Accidents in selected EU countries<br> 2000-2015",
+         xaxis=list(title=""),
+         yaxis=list(title="Rate per 100,000")
+         ) %>%  config(displayModeBar = F,showLink = F)
+
+
+
+# ggplot(t1, aes(x = time, y = values, color = geo, group = geo, shape = geo)) +
+# geom_point(size = 4) + geom_line() + theme_bw() +
+# ggtitle("Road accidents") + xlab("Year") + ylab("Victims (n)") +
+# theme(legend.position = "none") +
+# ggrepel::geom_label_repel(data = t1 %>% group_by(geo) %>% na.omit() %>%
+# filter(time %in% c(min(time), max(time))), aes(fill = geo, label = geo), color = "white")
+```
+
+This is an area where there has been pretty steady improvement over many years as cars have better safety features, roads are improved and restriction on drink/drug consumption and invocation of seat-belt usage has been enforced. No country now has a death rate in excess of 10 per 100,000 population
+
+
+I have restricted the countries to those selected for R Journal article. Showing all at once would be a bit confusing though plotly offers the option to toggle lines on or off by clicking on the legend. Just remove the ```filter(geo %in% countries) %>% ``` line to take effect. However, a map may be of interest
+
+```{r}
+
+
+table(df$year)
+
+df15 <- df %>% 
+  filter(year=="2015")
+
+accidents_geo <- geo_join(res10,df15,  by_sp="NUTS_ID", by_df="geo", how = "inner") 
+
+# lets try the cut_to_classes(). There are several different binnin styles as shown in documentation
+
+#accidents_geo$class <- cut_to_classes(accidents_geo$rate, n=5, style="jenks",decimals=1)
+
+pal <- colorBin(accidents_geo$class)
+
+pal <- colorBin(palette = "YlOrRd", 
+                    domain = accidents_geo$rate,
+                bins=c(0,2,4,6,8,10))
+
+# Create pop-up for when state is clicked on display
+popups <- str_c(euroChange_geo$name,'<br>Change:', euroChange_geo$pc_change,"%<br>",
+                 format(euroChange_geo$`2014`, big.mark=",")," Euros per Year")
+
+
+accidents_geo %>%
+    st_transform(crs = "+init=epsg:4326") %>%
+    leaflet(width = "100%") %>%
+   setView(lng=9.6,lat=53.6,zoom=3) %>% 
+      addProviderTiles(provider = "CartoDB.Positron") %>%
+    addPolygons(
+      #popup = popups, #utf issue (in initial download)
+                stroke = TRUE, weight=1,
+                smoothFactor = 0,
+                fillOpacity = 0.3,
+                color = ~ pal(rate)) %>%
+    addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ rate,
+              title = "Road Accidents 2015<br>Deaths per 100,000 popn",
+              opacity = 0.3)
+
+```
+
+Although rates have come down there is quite the disparity by countries. A lot more data on population density and distance travelled by vehicles by country would be needed to be built into any model, but one interesting point is that Belgium's rate is roughly three times that of its neighbour, the Netherlands
+
+---
+
+## Obesity
+
+![](img/eurostatObesity.png)  
+
+A lesss satisfactory situation is that regarding the change in weight and its effect on health issues e.g. diabetes
+This data is soleley 2008
+
+Although there is some controversy over the BMI as an indicator
+
+```{r, echo = FALSE}
+
+
+tmp1 <- get_eurostat("hlth_ehis_de1", time_format = "raw")
+
+
+
+
+tmp1 %>%
+dplyr::filter(isced97 == "TOTAL" ,
+sex != "T", age != "TOTAL", geo == "PL") %>%
+mutate(BMI = factor(bmi,
+levels=c("LT18P5","18P5-25","25-30","GE30"),
+labels=c("<18.5", "18.5-25", "25-30",">30"))) %>%
+arrange(BMI) %>%
+ggplot(aes(y = values, x = age, fill = BMI)) + geom_bar(stat = "identity") +
+facet_wrap(~sex) + coord_flip() +
+theme(legend.position = "top") +
+ggtitle("Body mass index (BMI) by sex and age") +
+xlab("% of population") + scale_fill_brewer(type = "div")
+
+
+
+
+```
+
+Looks like more uptodate 2014
+
+```{r}
+
+bmi08 <- get_eurostat("hlth_ehis_de1", time_format = "raw")
+
+bmi14 <- get_eurostat("hlth_ehis_bm1e", time_format = "raw") # this sums by ed by country not by age
+# not comparable
+
+names(bmi08)
+
+names(bmi14)
+
+tots <- bmi14 %>% 
+  filter(geo=="EU28"&isced11=="TOTAL") #down to 300
+
+names(tots)
+
+tots %>% 
+  filter(sex=="F"&age=="Y15-19") %>% 
+  plot_ly(x=~bmi,y=~values) %>% 
+  add_bars()
+
+## need to get this right
+tots %>% 
+  group_by(age,bmi) %>% 
+  filter(sex=="F") %>% 
+  plot_ly(x=~bmi,y=~values) %>% 
+  add_bars()
+
+
+```
+
+
+---
+
+## Renewable energy
+
+what %
+how much pp
+are biofuels eg https://en.wikipedia.org/wiki/List_of_power_stations_in_France 
+# do aranking pp for each country
+# plotly equiv #https://plot.ly/r/ternary-plots/
+
+```{r, echo = FALSE}
+
+# All sources of renewable energy are to be grouped into three sets
+dict <- c("Solid biofuels (excluding charcoal)" = "Biofuels",
+"Biogasoline" = "Biofuels",
+"Other liquid biofuels" = "Biofuels",
+"Biodiesels" = "Biofuels",
+"Biogas" = "Biofuels",
+"Hydro power" = "Hydro power",
+"Tide, Wave and Ocean" = "Hydro power",
+"Solar thermal" = "Wind, solar, waste and Other",
+"Geothermal Energy" = "Wind, solar, waste and Other",
+"Solar photovoltaic" = "Wind, solar, waste and Other",
+"Municipal waste (renewable)" = "Wind, solar, waste and Other",
+"Wind power" = "Wind, solar, waste and Other",
+"Bio jet kerosene" = "Wind, solar, waste and Other")
+
+# Some cleaning of the data is required
+#energy3_noLabels <- get_eurostat("ten00081") codes rather than labels
+
+
+energy3 <- get_eurostat("ten00081") %>%
+label_eurostat(dat) %>%
+filter(time == "2013-01-01",
+product != "Renewable energies") %>%
+mutate(nproduct = dict[as.character(product)], # just three categories
+geo = gsub(geo, pattern=" \\(.*", replacement="")) %>%
+select(nproduct, geo, values) %>%
+group_by(nproduct, geo) %>%
+summarise(svalue = sum(values)) %>%
+group_by(geo) %>%
+mutate(tvalue = sum(svalue), svalue = svalue/sum(svalue)) %>%
+filter(tvalue > 1000) %>%
+spread(nproduct, svalue)
+
+# Triangle plot
+positions <- plotrix::triax.plot(as.matrix(energy3[, c(3,5,4)]),
+show.grid = TRUE, label.points = FALSE, point.labels = energy3$geo,
+col.axis = "gray50", col.grid = "gray90",
+pch = 19, cex.axis = 1.1, cex.ticks = 0.7, col = "grey50")
+ind <- which(energy3$geo %in% c("Norway", "Iceland","Denmark","Estonia", "Turkey", "Italy", "Finland"))
+df <- data.frame(positions$xypos, geo = energy3$geo)
+points(df$x[ind], df$y[ind], cex = 2, col = "red", pch = 19)
+text(df$x[ind], df$y[ind], df$geo[ind], adj = c(0.5,-1), cex = 1.5)
+
+
+```
+
+```{r, echo=FALSE, eval=FALSE,warnings=FALSE,message=FALSE}
+ lp <- get_eurostat("nama_aux_lp") #[1] "indic_na" "unit"     "geo"      "time"     "values" 
+   lpl <- label_eurostat(lp) # same names but now have labels rather than codes
+   str(lpl)
+   lpl_order <- label_eurostat(lp, eu_order = TRUE)
+   lpl_code <- label_eurostat(lp, code = "unit") # retains code but now as unit_code
+#    label_eurostat_vars(names(lp))
+#    [1] "National accounts indicator"                                                         
+# [2] "Unit of measure"                                                                     
+# [3] "Geopolitical entity (reporting)"                                                     
+# [4] "Period of time (a=annual, q=quarterly, m=monthly, d=daily, c=cumulated from January)"
+   label_eurostat_tables("nama_aux_lp") # makes call to get name associated with code
+```
+
