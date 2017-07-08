@@ -1,0 +1,199 @@
+---
+title: Mean center of the United States population
+author: Andrew Clark
+date: '2017-07-07'
+slug: meanCenter
+categories:
+  - maps
+tags:
+  - tidycensus
+  - sf
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+One of the perennial fun facts that the US census bureau produces the [Mean center of the United States population] (https://en.wikipedia.org/wiki/Mean_center_of_the_United_States_population#cite_ref-zakrewsky_10-0)
+
+This has been calculated since 1790 and has moved significantly west and- to a lesser amount west - over the years from Kent Conty Maryland to
+Texas County, missouri
+
+![](img/meanUSCensus.png)
+![](img/usCenter1910.jpg)
+
+I thought I would use the tidycensus packages to broadly replicate this but also look at race differences - so I will
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+```{r setup}
+library(tidyverse)
+library(tidycensus) 
+
+
+library(leaflet)
+library(stringr)
+library(sf)
+library(tigris)
+
+library(feather) 
+
+# recall census key - get your own with census_api_key() function - see documentation
+Sys.getenv("CENSUS_API_KEY")
+
+tracts <- readRDS("data/usCensus/tracts_sf.rds")
+```
+
+
+
+
+```{r, echo=FALSE}
+# have now put into .Renviron but not working currently
+#census_api_key("90ed3a1873a3356d6567fcb2af52ccbf68e32b60")
+
+#Your API key has been stored in your .Renviron and can be accessed by Sys.getenv("CENSUS_API_KEY")
+```
+
+
+Now lets download the information we require - I'm actully using the same race-related tables as in a previous post, but others could be used if more pertinent. It takes just under a minute to download 500,000+ rows
+
+```{r}
+
+# the function needs a parameter with a vector of states. We need them all
+st <- c(datasets::state.abb) # excludes Dc
+st <- c(st,"DC")
+
+tables <- c("P0030002","P0030003","P0030004","P0030005","P0030006","P0030007","P0030008")
+
+# previously accessed and saved data
+# us_tract_pop_2010<-get_decennial(geography = "tract", variables = tables, 
+#                                  summary_var = "P0030001", state = st, geometry = FALSE)  ###511399
+# 
+# write_feather(us_tract_pop_2010,"data/usCensus/us_tract_pop_2010.feather")
+us_tract_pop_2010 <- read_feather("data/usCensus/us_tract_pop_2010.feather")
+
+## add the geometry for each tract
+
+#us_tract_pop_2010 <- geo_join(tracts,us_tract_pop_2010,by="GEOID", how = "inner")
+glimpse(us_tract_pop_2010)
+
+```
+
+We now need to apply the population in each tract, with the assumption that the population is at the geographical cente of each tract. We can use an sf function st_centroid() to sitch the geometry from a MULTIPOLYGON to a latitude and longitude
+
+```{r}
+
+x <- st_centroid(tracts)
+
+tracts_df <- tracts
+st_geometry(tracts_df) <- NULL
+
+
+latlon <- do.call(rbind, unclass(st_geometry(x))) %>%
+            as.tibble() %>% 
+            rename(lat=V1,lon=V2)
+
+tracts_df <-  cbind(tracts_df,latlon)
+glimpse(tracts_df)
+
+```
+
+You will see the warning that may have some impact. However, this is not a strict academic exercise
+
+We now need to apply the lat lon data weighted by population of each tract to get an overall for the 50 states+DC
+
+```{r}
+
+tract_info <- us_tract_pop_2010 %>% 
+  select(GEOID,NAME,pop=summary_value) %>% 
+  left_join(tracts_df,by="GEOID")
+
+midpoint_tract_all <-tract_info %>% 
+  summarize(meanlat=weighted.mean(lat,pop,na.rm=TRUE),meanlon=weighted.mean(lon,pop,na.rm=TRUE))
+
+midpoint_tract_all 
+
+```
+
+This comapares with the official -92.173096 and 37.517534
+Let's map them and gauge the difference
+
+```{r}
+
+
+leaflet(data = midpoint_tract_all) %>%
+  addTiles() %>%
+  setView(-92.08842	,37.51626	,zoom = 12) %>% 
+addMarkers(
+        -92.08842, 37.51626,
+         popup = "calculated"
+        ) %>% 
+    addMarkers(
+        -92.173096,37.517534,
+         popup = "official"
+        )
+
+library(geosphere)
+distm(c(-92.08842, 37.51626), c(-92.173096, 37.517534), fun = distHaversine)
+```
+
+So pretty close. Going to the block level (of which there are over 11million would be more precise but excessively time-consuming
+)
+
+---
+
+## Race differences
+
+We have already downloaded tables by race - where  those have stipulated a single race only
+If you go to previous post you can see from table the labels. Many of the some other race alone will be ethnically Hispanic, apparantly
+
+![](img/raceOptions.png)
+
+Lets see how these vary within the country
+
+```{r}
+
+# 
+ids <- c("P0030002","P0030003","P0030004","P0030005","P0030006","P0030007")
+labels <- c("White","Black of African American","American indian or Alaskan Native","Asian","Pacific Islander","Other Race")
+
+race_df <- as_data_frame(list(id=tables,category=labels))
+
+
+## amend previous code to a function but replace summary_value with value
+get_latlon <- function(id) {
+ 
+tract_info <- us_tract_pop_2010 %>% 
+  filter(variable==id) %>% 
+  select(GEOID,NAME,pop=value) %>% 
+  left_join(tracts_df,by="GEOID")
+
+
+
+midpoint_tract_all <-tract_info %>% 
+  summarize(meanlat=weighted.mean(lat,pop,na.rm=TRUE),meanlon=weighted.mean(lon,pop,na.rm=TRUE))
+
+}
+
+
+data <-map_df(ids, get_latlon)
+# Add the census labels
+data <- bind_cols(data,category=labels)
+
+# Map - with labels showing
+data %>% 
+  leaflet() %>% 
+   addTiles() %>% 
+  setView(-103, 35, 4) %>% 
+  addMarkers(lng = ~meanlat, lat=~meanlon,
+             label=~category,
+             labelOptions=labelOptions(noHide = T, direction = "right",
+                                       textOnly = TRUE,
+                                       style=list("color"="blue")))
+
+
+```
+
+As for the National average, the 'White' mean is also in Missouri as the 'Black' eastward pull is offset by the other categories
