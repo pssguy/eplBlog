@@ -172,7 +172,7 @@ tract_info <- us_tract_pop_2010 %>%
 
 
 
-midpoint_tract_all <-tract_info %>% 
+tract_info %>% 
   summarize(meanlat=weighted.mean(lat,pop,na.rm=TRUE),meanlon=weighted.mean(lon,pop,na.rm=TRUE))
 
 }
@@ -197,3 +197,28 @@ data %>%
 ```
 
 As for the National average, the 'White' mean is also in Missouri as the 'Black' eastward pull is offset by the other categories
+
+On average, people who designate themselves as 'Native Hawaiin and other Pacific islanders  alone' live in the water. Here is the breakdown by state. Most Hawaiins designate themselves as mixed race but their extreme distance from mainland USA cuases this impact
+
+```{r}
+
+
+us_tract_pop_2010 %>% 
+  filter(variable=="P0030006") %>% 
+  mutate(stateID = str_sub(GEOID,1,2)) %>% 
+  group_by(stateID) %>% 
+  tally() %>% 
+  rename(pop=n) %>% 
+  arrange(desc(pop)) %>% 
+  mutate(cumPop=cumsum(pop),pct=round(100*cumPop/max(cumPop),0)) %>% 
+  left_join(tracts_df,by=c("stateID"="state_code")) %>% 
+  select(state=state_name,pop,cum_pct=pct) %>%
+  unique() %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+  
+
+
+
+
+```
+
