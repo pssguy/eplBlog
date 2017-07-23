@@ -1,0 +1,121 @@
+---
+title: Automated congratulatory tweet to Twitter Friends
+author: Andrew Clark
+date: '2017-07-23'
+slug: automatedTweets
+categories:
+  - community
+tags:
+  - rtweet
+  - dataCompareR
+  - glue
+  - purrr
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+On the front page premiersoccerstats site, I have a milestones table which highlights when players have reached certain levels in the Premier League e.g. 100 Appearances
+
+This requires comparing two datasets and highlighting differences in the variable of interest. To this end, I use the daff package which was the subject of a talk at the recent useR 2017 conference
+
+Coincidentally, an alternative package dataCompareR has just been released by Rob Noble-Eddy and others
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+library(vembedr)
+```
+
+_As an aside I can't help but seeing Rob leading a band called Eddy and the Rob-Nobs performing something like this_
+
+```{r eddie, echo=FALSE}
+
+embed_youtube("weQ4oNk7Pqc", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) %>%
+    use_start_time("1m02s")
+
+
+```
+
+---
+
+OK. Back to real-life
+
+One project I have had on the back-burner (yep it's been there since this phrase was fashionable) is from the dataset of the tweeters that I am following. send  a congratulatory tweet whenever one of them reaches a certain number of followers e.g 1000
+
+This can be broken down into a few stages. The packages I will rely on (other than the assumed tidyverse) are also listed
+
+ 1. Acquire my 'friends' (rtweet)
+ 2. Find out how many followers my friends have at a point in time, df.a (rtweet)
+ 3. Find out how many followers they have at a later point in time,df.b (rtweet)
+ 4. Compare df.a with df.b and filter to important milestones (dataCompareR)
+ 5. Craft and issue relevant tweet messages (glue, rtweet, purrr)
+ 6. Automate process on say, daily, basis
+ 
+ I have covered rtweet and purrr before e.g []() though I am using new functions but dataCompareR and glue are new 
+ 
+ ___
+ 
+ Load libraries
+ 
+```{r setup}
+
+library(tidyverse)
+library(plotly)
+
+
+library(rtweet)
+library(dataCompareR)
+library(glue)
+
+```
+
+If you want to try this for yourself, you will need to obtain an OAuth and preferably store for future use. [Instructions here]()
+
+First step is to use an rtweet function to garner those I am following. This takes the form of a data_set with a series of user_id's It changes rarely (and probably could do with some fine-tuning) but the data only takes a few seconds to return so there is no need to save the results in a local file unless you have significantly more than my ,at the time of writing, 166.
+
+I then need to get a summary of their data (which includes the number of followers they each have) This takes around 20 seconds - so reprise the video whilst waiting - and uses the map_df(), purrr function and the lookup_users() from rtweet
+
+I have added a plot for interest
+
+
+```{r friends}
+
+friends <- get_friends(users, page = "-1", parse = TRUE, token = NULL) #default parameters
+
+# now create a function which gets the summary data 
+friendsSummary <- map_df(friends$user_id, function(x) lookup_users(x))
+
+names(friendsSummary)
+
+hadley <- friendsSummary %>% 
+          filter(screen_name=="hadleywickham")
+
+friendsSummary %>% 
+  plot_ly() %>% 
+  add_markers(x=~log10(friends_count),
+          y=~log10(followers_count),
+          hoverinfo="text", name="All Following",
+          text=~paste0("Name:", name,
+                       "<br>Followers:",followers_count,
+                       "<br>Following:",friends_count)
+          
+          ) %>% 
+  add_markers(data=hadley,x=~log10(friends_count),
+          y=~log10(followers_count), color=I("red"),
+          hoverinfo="text",name="Hadley Wickham",
+          text=~paste0("Name:", name,
+                       "<br>Followers:",followers_count,
+                       "<br>Following:",friends_count)
+          
+          
+          ) %>%  
+ 
+ config(displayModeBar = F,showLink = F)
+  
+
+```
+
+Hadley Wickham is the 'biggest name' in the R community I follow. Those with more adherents tend to be organizations
