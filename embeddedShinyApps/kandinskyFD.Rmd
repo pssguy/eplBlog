@@ -1,0 +1,92 @@
+---
+title: "kandinsky FD"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny       
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+
+```{r setup, include=FALSE}
+
+
+library(tidyverse)
+library(Lahman)
+library(kandinsky)
+library(glue)
+
+# Font will only work if font installed (by default windows10)
+windowsFonts(xkcd=windowsFont("xkcd"))
+
+## construct batters select
+
+players <- Master %>% 
+      left_join(Batting) %>% 
+      filter(H>0)  %>% 
+  mutate(deathYear=ifelse(is.na(deathYear)," ",deathYear)) %>% 
+  mutate(playerName=glue("{nameFirst} {nameLast} ({birthYear}-{deathYear})")) %>% 
+   mutate(signature=glue("{nameFirst} {nameLast}")) %>%
+    select(playerID,playerName,signature) %>% 
+  group_by(playerID) %>% 
+ slice(2) #10299 # ensures at least 2 seasons which is needed to create plot
+
+
+playerChoice <- players$playerID
+names(playerChoice) <- players$playerName
+
+# Raw data (selection of variables - anything will do)
+df <-   Batting %>% 
+          left_join(Master) %>% 
+          filter(H>0)  %>%
+          select(H,R,HR,RBI,SB,playerID)
+```
+
+
+
+```{r}
+
+selectInput("id","Choose or type in player",choices=playerChoice, selectize=TRUE, selected="troutmi01")
+
+
+ 
+
+ output$plot <- renderImage({
+    # A temp file to save the output. It will be deleted after renderImage
+    # sends it, because deleteFile=TRUE.
+    outfile <- tempfile(fileext='.png')
+    
+    # signature
+    sig <- players %>% 
+       filter(playerID==input$id) %>% 
+      pull(signature)
+    
+    # # Generate a png
+     png(outfile, width=600, height=400)
+     
+      pic <- df %>% 
+      filter(playerID==input$id) %>% 
+       select(-playerID) 
+    # basic Image   
+    kandinsky(pic)
+    #Add Signature - bottom right
+    grid.text(sig, x=0.8, y=0.1, rot=0,
+          gp=gpar(fontsize=20, col="black",fontfamily="xkcd"))
+     
+     dev.off()
+     
+    # pic <- NULL didnt help
+
+    # Return a list
+    list(src = outfile,
+         alt = "This is alternate text")
+  }, deleteFile = TRUE)
+
+plotOutput("plot")
+```
+
+ 
