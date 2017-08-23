@@ -1,0 +1,231 @@
+---
+title: EPL 2017/18
+author: Andrew Clark
+date: '2017-08-10'
+categories:
+  - eplWeekly
+  - soccer
+  - sports
+slug: epl2018
+banner: banners/epl_1.PNG
+---
+
+With the new Premier League season kicking off, I plan to produce plenty of posts over the coming months
+
+I have yet to organize it all but the idea is to present tables and charts without embedded code. Hopefully, I will get around to publishing
+it on Github    
+
+So let's start of with a couple of different areas of interest
+
+## 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r startup, message=FALSE, warning=FALSE}
+
+
+library(DBI)
+library(odbc)
+library(dplyr)
+library(dbplyr)
+library(tidyverse)
+library(DT)
+library(plotly)
+library(purrr)
+library(engsoccerdata)
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+teamGames <- readRDS("data/soccer/teamGames.rds")
+positions <- read_csv("data/soccer/positionSeqs.csv")
+
+```
+
+## Starting survivors
+
+220 keen players will start the season - but how often does the Game one starting lineup reflect who plays most for the team throughout the season?  Injuries, late-transfers and a change of manager can all have major impact on the season    
+
+I ran this poll for people to have a guess
+
+```{r twitter_poll}
+library(blogdown) 
+shortcode("tweet", "895658529347915777")
+```
+
+Turns out the answer was five, less than 1%. I would certainly have pegged it higher
+
+Let's plot the results. This will take about 30 seconds to run
+
+```{r histogram}
+
+firstGames <- teamGames %>% 
+   ungroup() %>%
+  filter(season<="2016/17"&tmYrGameOrder==1) %>% 
+  pull(TEAMMATCHID)
+
+firstStarters <- playerGame  %>% 
+filter(season<="2016/17") %>%
+  filter(TEAMMATCHID %in% firstGames&START>0) %>%  #5561  should be 5566
+  select(name,PLAYERID,TEAMNAME,season,TEAMMATCHID)
+
+mostMins <- playerGame %>% 
+  group_by(season,TEAMNAME,PLAYERID,name) %>% 
+  mutate(st=ifelse(START>0,1,0)) %>% 
+  summarize(totMins=sum(mins,na.rm=0),Starts=sum(st)) %>% 
+  group_by(season,TEAMNAME) %>% 
+  arrange(desc(totMins)) %>% 
+  mutate(rank=row_number()) #15837 (as inc non-starters)
+
+topElevenMinsSeason <- mostMins %>% 
+  filter(rank<=11) #5566 (as should be)
+
+tmYrs <- teamGames %>% 
+  ungroup() %>% 
+  select(team=TEAMNAME,season) %>% 
+  unique()
+
+
+myFun <- function(tm,yr) {
+  
+  a <- firstStarters %>% 
+    filter(TEAMNAME==tm&season==yr) %>% 
+    pull(name)
+  
+  b <- topElevenMinsSeason  %>% 
+    filter(TEAMNAME==tm&season==yr) %>% 
+    pull(name)
+  
+  diff<- setdiff(a,b)
+  #print(diff)
+  count= length(diff)
+  
+  temp <- data.frame(count=count,tm=tm,yr=yr,stringsAsFactors = FALSE)
+  
+}
+
+df <- map2_df(tmYrs$team,tmYrs$season,myFun)
+
+df %>% 
+  plot_ly(x=~count)
+
+```
+
+Here are the 'Start as you mean to go on' examples
+
+```{r steady}
+
+constants <-df %>% 
+  filter(count==0)  %>% 
+  select(TEAMNAME=tm,season=yr)
+
+firstStarters %>% 
+  inner_join(constants) %>% 
+  inner_join(mostMins) %>% 
+  arrange(season,TEAMNAME,rank) %>% 
+  select(name,season,TEAMNAME,mins_rank=rank,Starts) %>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE,lengthMenu=c(11,55)))
+
+
+
+```
+
+Note that Arsenal feature twice and that none of the occurrences happened in this century
+
+At the other end of the scale...
+
+```{r}
+
+constants <-df %>% 
+  filter(count==8)  %>% 
+  select(TEAMNAME=tm,season=yr)
+
+firstStarters %>% 
+  inner_join(constants) %>% 
+  inner_join(mostMins) %>% 
+  arrange(season,TEAMNAME,rank) %>% 
+  select(name,season,TEAMNAME,mins_rank=rank,Starts) %>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE,lengthMenu=c(11,55)))
+
+
+```
+
+Manchester City 2008/9 
+
+Amazingly, six of the team only managed another 12 starts between them after the opening day 4-2 defeat to Aston Villa. Mark Hughes was the new manager that season and ended up spending more than 70 milllion (a large sum in those days) in the summer transfer window
+
+---
+
+## Promoted clubs
+
+This season is particularly interesting as two newbies to the Premier League appear, Brighton and Huddersfield. The latter have the unique achievement of being the ONLY club ever in English League history - going back to 1888 - to have been promoted with a negative goal difference!
+
+So how do promoted clubs fare in their probably season-long struggle to avoid relegation
+
+```{r promotion}
+
+promoted <- positions %>% 
+  select(team,Season,tier) %>% 
+  arrange(desc(Season)) %>% 
+  group_by(team) %>% 
+  mutate(prevYearTier=lead(tier)) %>% 
+  filter(prevYearTier>tier&tier==1&Season>1991) #74 only 2 in 1995 when reducing 22 to 20
+
+
+myFun <- function(yr,tm) {
+ELSE <- TRUE
+
+results <- england %>% # england is from engsoccerdata
+  arrange(Date) %>% 
+  filter(Season==2016&(home==tm|visitor==tm)) %>% 
+  head(1) %>% 
+  mutate(res=case_when(
+    home==tm&goaldif>0 ~"win",
+    visitor==tm&goaldif<0 ~"win",
+    home==tm&goaldif<0 ~"loss",
+    visitor==tm&goaldif>0 ~"loss",
+    ELSE ~ "draw"
+  ))
+}
+
+promotedFun <- function(yr,tm) {
+ELSE <- TRUE
+
+ england %>% 
+  arrange(Date) %>% 
+  filter(Season==yr&(home==tm|visitor==tm)) %>% 
+  head(1) %>% 
+  mutate(res=case_when(
+    home==tm&goaldif>0 ~"win",
+    visitor==tm&goaldif<0 ~"win",
+    home==tm&goaldif<0 ~"loss",
+    visitor==tm&goaldif>0 ~"loss",
+    ELSE ~ "draw"
+  ))
+}
+
+
+
+firstGames <- map2_df(promoted$Season,promoted$team,promotedFun)
+
+# firstGames %>% 
+#   group_by(res) %>% 
+#   tally()
+
+firstGames %>% 
+  select(season=Season,home,away=visitor,score=FT,result=res) %>% 
+     DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+Turns out that 55% of encounters end in a loss for promoted teams with an average return of 0.96 points per game, equivalent to 36-37 points over the season and definitley flirting with relegation
+
+Over the past four seasons only one promoted team has prevailed with Hull's shock win last year over Champion's Leicester City
+
+---
+
+Plenty more data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

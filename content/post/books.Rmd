@@ -3,6 +3,7 @@ title: "Introducing Books"
 author: "Andrew Clark"
 date: 2016-11-23
 categories: ["books"] 
+banner: "banners/introducing-books.png"
 ---
 
 ```{r setup, include=FALSE}

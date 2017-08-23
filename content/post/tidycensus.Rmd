@@ -88,7 +88,7 @@ censusVars %>%
 
 ```
 
-With a use of the search facility, appropriate table ids (name) foy your area of interest can be ascertained and slotted into functions
+With a use of the search facility, appropriate table ids (name) for your area of interest can be ascertained and slotted into functions
 
 ---
 

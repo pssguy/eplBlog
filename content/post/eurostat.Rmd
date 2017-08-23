@@ -1,24 +1,30 @@
 ---
-title: Mapping Eurostat information
+title: Mapping Eurostat information Part 1
 author: Andrew Clark
-date: '2017-07-02'
+date: '2017-07-11'
 slug: eurostat
 categories: []
 tags: []
-banner: ''
+banner: "banners/eurostat1.PNG"
 description: ''
 images: []
 menu: ''
 ---
 
-Keeping up with the theme of utilizing official government open data to map via an R package which  will now turn to the [eurostat package](https://github.com/rOpenGov/eurostat/blob/master/README.Rmd) which accesses data - via an API - from the [European Commission](http://ec.europa.eu/eurostat). 
-First released in 2015, there is an article (wuth R code) by its authors in the most recent issue of the [R Journal,9/1](https://journal.r-project.org/archive/2017/RJ-2017-019/RJ-2017-019.pdf) which makes for an interesting read
+Keeping up with the theme of utilizing official government open data to map via an R package I will now turn to the [eurostat package](https://github.com/rOpenGov/eurostat/blob/master/README.Rmd) which accesses data - via an API - from the [European Commission](http://ec.europa.eu/eurostat).  
 
-Howver, by it's very nature, the article is static and given the time-lag in publication (around 9 months),  neither uses the most recently available data nor take advatage of the latest versions  of packages or indeed the availability of new ones.
+First released in 2015, there is an article (wuth R code) by its authors in the most recent issue of the [R Journal,9/1](https://journal.r-project.org/archive/2017/RJ-2017-019/RJ-2017-019.pdf) which makes for an interesting read covering a variety of topics
 
-I have, therefore, adapted their code for this post
+However, by it's very nature, the article is static and - given the time-lag in publication (around 9 months) -  neither uses the most recently available data nor takes advantage of the latest versions  of packages or indeed the availability of new ones.
 
-As usual, libraries loaded first
+I have, therefore, adapted some of their code. There is quite a lot to take in, so this post just represents the first part of the analysis
+
+As usual, libraries loaded are first
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
 
 ```{r, warnings= FALSE, message=FALSE}
 
@@ -42,16 +48,16 @@ library(leaflet)
 
 ## Mapping Disposable income
 
-![](img/eurostatIncome.png)  
-need to load img correctly may only show when built
+![](/img/eurostatIncome.png)  
 
 
-The previous article had data which seamlessly downloaded shapefiles with in the form of sf list-columns - although for practical purposes I kept geometrys seperate and then merged to data, as required
 
-The Eurostat package does not, currently, provide that functionality but a useful tip in the github issues from [Joona Lehtomäki](@jlehtoma) resolved this. The resolution obtained  (1:10million) is sufficient for this example wothout looking crude
+An earlier post [First look at tidycensus](https://www.mytinyshinys.com/2017/06/30/tidycensus/) used packages  which seamlessly downloaded shapefiles with data in the form of sf list-columns - although for practical purposes I kept geometries seperate and then merged to data, as required
 
-NB the labelling has not worked properly also utf-8 issues (is there something in dplyr that can help now)
-```{r warning=FALSE.message=FALSE}
+The Eurostat package does not, currently, provide that functionality but a useful tip in the github issues from [Joona Lehtomäki](@jlehtoma) resolved this. The shapefile resolution obtained  (1:10million) is sufficient for this example wothout looking crude but other levels are available
+
+
+```{r warning=FALSE, message=FALSE}
 
 #Here we a combination of functions from the sf and eurostat packages to get spatial data 
 res10 <- sf::st_as_sf(eurostat::get_eurostat_geospatial(output_class = "spdf", resolution = 10))
@@ -83,11 +89,11 @@ We can view the available tables of content (9333 at time of writing) and then s
 toc <- get_eurostat_toc()
 
 toc %>% 
-                 DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+                 DT::datatable(width="100%",class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
 
 ```
 
-To replicate the original article, enter "disposable income" in the search field. You will see the code used "tgs00026" as one of the options. It provides regional data from 2008-2014, so we can update the original publication from 2011 
+To replicate the original article, enter "disposable income" in the search field. You will see the code used "tgs00026" as one of the options. It provides regional data from 2008-2014, so we can update the original publication from 2011 by several years
 
 ```{r}
 
@@ -118,7 +124,7 @@ glimpse(euro_geo)
 
 ```
 
-Let's first look at the distribution - which can be useful in deciding how to set the bins for color. The eurostat has a useful ```cut_to_classes()``` function which will serve most purposes
+Let's first look at the distribution - which can be useful in deciding how to set the bins for colour. Alternatively, the eurostat package has a useful ```cut_to_classes()``` function which may serve most purposes
 
 ```{r}
 
@@ -130,7 +136,7 @@ df14 %>%
 
 Actually a pretty Normal distribution - though with one outlier (West Inner London)
 
-Now we can set appropriate breaks and colours. I quite like the original colours but have settled for one which might highlight a sequential nature. The map is also in leaflet, which allows zoom and pan. Click on a region for more data
+Now we can set appropriate breaks and colours. I quite like the original colours but have settled for one which might highlight a sequential nature.
 
 ```{r}
 
@@ -142,7 +148,7 @@ pal <- colorBin(palette = "YlOrRd",
 # Create pop-up for when state is clicked on display
 popups <- str_c(euro_geo$geo,'<br>', format(euro_geo$values, big.mark=",")," Euros per Year")
 
-
+html_copyright <- "<p>(C) EuroGeographics for the administrative boundaries</p>"
 
 
 euro_geo %>%
@@ -156,21 +162,23 @@ euro_geo %>%
                 smoothFactor = 0,
                 fillOpacity = 0.3,
                 color = ~ pal(values)) %>%
+   addControl(html = html_copyright, position = "bottomleft") %>% 
     addLegend("bottomleft", 
               pal = pal, 
               values = ~ values,
               title = "Disposable household<br> income in  2014<br> Euros per annum",
-              opacity = 0.3)
+              opacity = 0.3) 
 
 ```
 
+ The map uses the leaflet htmlwidget, which allows zoom and pan. Click on a region for more data
 
 
-So we can see a general broad band of highest income running north-south in Germany Austria and Northern Italy, with lower values as we spread east and west. Capital cities, with part of London being the extreme, tend to higher income but are likely to be associated with greater costs in housing
+So we can see a general broad band of highest income running North-South in Germany, Austria and Northern Italy, with lower values as we spread east and west. Capital cities, with part of London being the extreme, tend to higher income but are likely to be associated with greater costs in housing
 
 ---
 
-One variation, would be to see the chcnae in regional data over the time-period, recalling that 2008 was at the he
+One variation, would be to see the change in regional data over the time-period of data available
 
 ```{r}
 
@@ -194,9 +202,12 @@ df0814 %>%
 euroChange_geo <- geo_join(res10,df0814,  by_sp="NUTS_ID",by_df="geo_code", how = "inner") 
 
 
-pal <- colorBin(palette = "YlOrRd", 
+pal <- colorBin(palette = "BrBG", # RdYlBu #BrBG
                     domain = euroChange_geo$values,
                 bins=c(-40,-20,0,20,40,60,80))
+
+#Tranpose turns a list-of-lists "inside-out"; it turns a pair of lists into a list of pairs
+
 
 # Create pop-up for when ergion is clicked on display
 popups <- str_c(euroChange_geo$geo,'<br>Change:', euroChange_geo$pc_change,"%<br>",
@@ -214,22 +225,23 @@ euroChange_geo %>%
                 smoothFactor = 0,
                 fillOpacity = 0.3,
                 color = ~ pal(pc_change)) %>%
+  addControl(html = html_copyright, position = "bottomleft") %>% 
     addLegend("bottomleft", 
               pal = pal, 
               values = ~ pc_change,
-              title = "% Change in Disposable <br> Household Income 2008-2014",
+              title = "% Change in Disposable <br> Household Income <br> 2008-2014",
               opacity = 0.3)
 ```
 
-This covers the period of the financial crisis. As can be seen, East europeans have benfited ober the seven year period, albeit from a low base and Greece, in particular, has suffered
+This covers the period of the financial crisis, which started in 2008. As can be seen, East Europeans have benfited most over the seven year period, albeit from a low base and Greece, in particular, has suffered
 
 ---
 
 ## Road Accidents
 
-This example indicates the number of people killed in road accidents by year by country
+This example indicates the number of people killed in road accidents, by year, by country
 
-![](img/eurostatAccidents.png)  
+![](/img/eurostatAccidents.png)  
 
 
 
@@ -239,9 +251,20 @@ This example indicates the number of people killed in road accidents by year by 
 t1 <- get_eurostat("tsdtr420")
 pop <- get_eurostat("nama_10r_3popgdp")
 
-t1 <- label_eurostat(t1)
-pop <- label_eurostat(pop, code="geo")
+#this is a useful function providing more meaningful labels to columns but having issues with
+# this dataset
+#t1 <- label_eurostat(t1)
+#pop <- label_eurostat(pop, code="geo")
 
+
+
+ lp <- get_eurostat("nama_aux_lp")
+   lpl <- label_eurostat(lp)
+   str(lpl)
+   lpl_order <- label_eurostat(lp, eu_order = TRUE)
+   lpl_code <- label_eurostat(lp, code = "unit")
+   label_eurostat_vars(names(lp))
+   label_eurostat_tables("nama_aux_lp")
 
 
 t1 <- t1 %>% 
@@ -249,7 +272,7 @@ t1 <- t1 %>%
 
 #limit pop values to country only. Need to change from factor
 country_pop <- pop %>% 
-  filter(nchar(as.character(geo_code))==2)  %>% 
+  filter(nchar(as.character(geo))==2)  %>% 
   rename(pop=values)
 
 # get rate per 100,000
@@ -265,7 +288,7 @@ countries <- c("UK", "SK", "FR", "PL", "ES", "PT")
 
 df %>% 
   group_by(geo) %>% 
-  filter(geo_code %in% countries) %>% 
+  filter(geo%in% countries) %>% 
   plot_ly(x=~year,y=~rate,color=~geo) %>% 
   add_lines() %>% 
   layout(title="Rate of Road Accidents in selected EU countries<br> 2000-2015",
@@ -276,10 +299,12 @@ df %>%
 
 ```
 
-This is an area where there has been pretty steady improvement over many years as cars have better safety features, roads are improved and restriction on drink/drug consumption and invocation of seat-belt usage has been enforced. No country now has a death rate in excess of 10 per 100,000 population
+This is an area where there has been pretty steady improvement over many years (e.g UK highest absolute level was in 1966) as cars have better safety features, roads are improved and restriction on drink/drug consumption and invocation of seat-belt usage has been enforced. No country covered by Eurostat now has a death rate in excess of 10 per 100,000 population
 
 
-I have restricted the countries to those selected for R Journal article. Showing all at once would be a bit confusing though plotly offers the option to toggle lines on or off by clicking on the legend. Just remove the ```filter(geo %in% countries) %>% ``` line to take effect. However, a map may be of interest
+I have restricted the countries to those selected for R Journal article. Showing all at once would be a bit confusing though plotly offers the option to toggle lines on or off by clicking on the legend. Just remove the ```filter(geo %in% countries) %>% ``` line to take effect.
+
+Additionally, a map may be of interest
 
 ```{r,warning=FALSE, message=FALSE}
 
@@ -287,7 +312,7 @@ I have restricted the countries to those selected for R Journal article. Showing
 df15 <- df %>% 
   filter(year=="2015")
 
-accidents_geo <- geo_join(res10,df15,  by_sp="NUTS_ID", by_df="geo_code", how = "inner") 
+accidents_geo <- geo_join(res10,df15,  by_sp="NUTS_ID", by_df="geo", how = "inner") 
 
 
 pal <- colorBin(palette = "YlOrRd", 
@@ -296,7 +321,8 @@ pal <- colorBin(palette = "YlOrRd",
 
 
 
-popups <- str_c(accidents_geo$geo,"<br>Rate: ",round(accidents_geo$rate,1)," per 100,000")
+#popups <- str_c(accidents_geo$geo,"<br>Rate: ",round(accidents_geo$rate,1)," per 100,000")
+popups <- str_c(accidents_geo$NUTS_ID,"<br>Rate: ",round(accidents_geo$rate,1)," per 100,000")
 
 
 accidents_geo %>%
@@ -310,6 +336,7 @@ accidents_geo %>%
                 smoothFactor = 0,
                 fillOpacity = 0.3,
                 color = ~ pal(rate)) %>%
+  addControl(html = html_copyright, position = "bottomleft") %>% 
     addLegend("bottomleft", 
               pal = pal, 
               values = ~ rate,
@@ -322,144 +349,23 @@ Although rates have come down there is quite the disparity by countries. A lot m
 
 ---
 
-## Obesity
-
-![](img/eurostatObesity.png)  
-
-A lesss satisfactory situation is that regarding the change in weight and its effect on health issues e.g. diabetes
-This data is soleley 2008
-
-Although there is some controversy over the BMI as an indicator
-
-```{r, echo = FALSE}
-
-
-tmp1 <- get_eurostat("hlth_ehis_de1", time_format = "raw")
-
-
-
-
-tmp1 %>%
-dplyr::filter(isced97 == "TOTAL" ,
-sex != "T", age != "TOTAL", geo == "PL") %>%
-mutate(BMI = factor(bmi,
-levels=c("LT18P5","18P5-25","25-30","GE30"),
-labels=c("<18.5", "18.5-25", "25-30",">30"))) %>%
-arrange(BMI) %>%
-ggplot(aes(y = values, x = age, fill = BMI)) + geom_bar(stat = "identity") +
-facet_wrap(~sex) + coord_flip() +
-theme(legend.position = "top") +
-ggtitle("Body mass index (BMI) by sex and age") +
-xlab("% of population") + scale_fill_brewer(type = "div")
-
-
-
-
-```
-
-Looks like more uptodate 2014
-
-```{r}
-
-bmi08 <- get_eurostat("hlth_ehis_de1", time_format = "raw")
-
-bmi14 <- get_eurostat("hlth_ehis_bm1e", time_format = "raw") # this sums by ed by country not by age
-# not comparable
-
-names(bmi08)
-
-names(bmi14)
-
-tots <- bmi14 %>% 
-  filter(geo=="EU28"&isced11=="TOTAL") #down to 300
-
-names(tots)
-
-tots %>% 
-  filter(sex=="F"&age=="Y15-19") %>% 
-  plot_ly(x=~bmi,y=~values) %>% 
-  add_bars()
-
-## need to get this right
-tots %>% 
-  group_by(age,bmi) %>% 
-  filter(sex=="F") %>% 
-  plot_ly(x=~bmi,y=~values) %>% 
-  add_bars()
-
-
-```
-
+This seems enough for now, but the RJournal coverage includes a few extra examples which I hope to return to
+before too long
 
 ---
-
-## Renewable energy
-
-what %
-how much pp
-are biofuels eg https://en.wikipedia.org/wiki/List_of_power_stations_in_France 
-# do aranking pp for each country
-# plotly equiv #https://plot.ly/r/ternary-plots/
-
-```{r, echo = FALSE}
-
-# All sources of renewable energy are to be grouped into three sets
-dict <- c("Solid biofuels (excluding charcoal)" = "Biofuels",
-"Biogasoline" = "Biofuels",
-"Other liquid biofuels" = "Biofuels",
-"Biodiesels" = "Biofuels",
-"Biogas" = "Biofuels",
-"Hydro power" = "Hydro power",
-"Tide, Wave and Ocean" = "Hydro power",
-"Solar thermal" = "Wind, solar, waste and Other",
-"Geothermal Energy" = "Wind, solar, waste and Other",
-"Solar photovoltaic" = "Wind, solar, waste and Other",
-"Municipal waste (renewable)" = "Wind, solar, waste and Other",
-"Wind power" = "Wind, solar, waste and Other",
-"Bio jet kerosene" = "Wind, solar, waste and Other")
-
-# Some cleaning of the data is required
-#energy3_noLabels <- get_eurostat("ten00081") codes rather than labels
+@article{RJ-2017-019,
+  author = {Leo Lahti and Janne Huovari and Markus Kainu and Przemysław
+          Biecek},
+  title = {{Retrieval and Analysis of Eurostat Open Data with the
+          eurostat Package}},
+  year = {2017},
+  journal = {{The R Journal}},
+  url = {https://journal.r-project.org/archive/2017/RJ-2017-019/index.html},
+  pages = {385--392},
+  volume = {9},
+  number = {1}
+}
 
 
-energy3 <- get_eurostat("ten00081") %>%
-label_eurostat(dat) %>%
-filter(time == "2013-01-01",
-product != "Renewable energies") %>%
-mutate(nproduct = dict[as.character(product)], # just three categories
-geo = gsub(geo, pattern=" \\(.*", replacement="")) %>%
-select(nproduct, geo, values) %>%
-group_by(nproduct, geo) %>%
-summarise(svalue = sum(values)) %>%
-group_by(geo) %>%
-mutate(tvalue = sum(svalue), svalue = svalue/sum(svalue)) %>%
-filter(tvalue > 1000) %>%
-spread(nproduct, svalue)
 
-# Triangle plot
-positions <- plotrix::triax.plot(as.matrix(energy3[, c(3,5,4)]),
-show.grid = TRUE, label.points = FALSE, point.labels = energy3$geo,
-col.axis = "gray50", col.grid = "gray90",
-pch = 19, cex.axis = 1.1, cex.ticks = 0.7, col = "grey50")
-ind <- which(energy3$geo %in% c("Norway", "Iceland","Denmark","Estonia", "Turkey", "Italy", "Finland"))
-df <- data.frame(positions$xypos, geo = energy3$geo)
-points(df$x[ind], df$y[ind], cex = 2, col = "red", pch = 19)
-text(df$x[ind], df$y[ind], df$geo[ind], adj = c(0.5,-1), cex = 1.5)
-
-
-```
-
-```{r, echo=FALSE, eval=FALSE,warnings=FALSE,message=FALSE}
- lp <- get_eurostat("nama_aux_lp") #[1] "indic_na" "unit"     "geo"      "time"     "values" 
-   lpl <- label_eurostat(lp) # same names but now have labels rather than codes
-   str(lpl)
-   lpl_order <- label_eurostat(lp, eu_order = TRUE)
-   lpl_code <- label_eurostat(lp, code = "unit") # retains code but now as unit_code
-#    label_eurostat_vars(names(lp))
-#    [1] "National accounts indicator"                                                         
-# [2] "Unit of measure"                                                                     
-# [3] "Geopolitical entity (reporting)"                                                     
-# [4] "Period of time (a=annual, q=quarterly, m=monthly, d=daily, c=cumulated from January)"
-   label_eurostat_tables("nama_aux_lp") # makes call to get name associated with code
-```
 

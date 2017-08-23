@@ -1,0 +1,50 @@
+---
+title: Useful links for mapping in R
+author: Andrew Clark
+date: '2017-07-09'
+slug: mapl
+categories: []
+tags: []
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+Geography was not my favourite subject as a high-schooler: maybe having a teacher who smoked a pipe in the classroom had somethiing to do with that. In fact, I swiched to Ancient Greek as an option as soon as I could: it was that bad 
+
+However, for some time I have loved early maps and have this one (regrettably not the original) on my wall at home
+
+![](/img/earlyMap.jpg)
+
+
+Recently I have been captivated at how modern ones  can be used for socio-economic analyses with leading publications such as the Economist and 538 regularly producing maps using open data in their articles. The opportunities within R have expanded rapidly over the past year or so and I'm expecting lots of exciting developments in this field
+
+For my own reference - but others might find it helpful - I have put together a few links to sources I find useful
+
+ * Simple features,[sf package](https://edzer.github.io/sfr/articles/sfr.html#sfc-simple-feature-geometry-list-column) from [Edzer Pebesma](https://twitter.com/edzerpebesma?lang=en) who also is a main contribitor to the [r-spatial](r-spatial.org) blog
+ 
+ * [Kyle Walker](https://twitter.com/kyle_e_walker) has done a lot of work to aid downloading shape files and  US census/acs data via his [tigris](https://github.com/walkerke/tigris) and [tidycensus](https://github.com/walkerke/tidycensus) packages. He also has an informative [blog](https://walkerke.github.io/2017/06/comparing-metros/)
+
+ * [Bhaskar Karambelkar](https://twitter.com/bhaskar_vk) has contributed a lot to the RStudio [leaflet](https://rstudio.github.io/leaflet/) and [leaflet.extras](https://bhaskarvk.github.io/leaflet.extras/) packages and ran a very comprehensive [tutorial with slides](https://www.user2017.brussels/uploads/BhaskarKarambelkar.html) at userR!2017. Here is a video of the [three hour tutorial](https://channel9.msdn.com/Events/useR-international-R-User-conferences/useR-International-R-User-2017-Conference/Geospatial-visualization-using-R)
+
+  * On line bookdown book [Geocomputation with R](http://robinlovelace.net/geocompr/) under development by [Robin Lovelace](https://twitter.com/robinlovelace) and [Jakub Nowosad](Jakub Nowosad)
+
+ * Ari Lamstein (https://twitter.com/AriLamstein) author of the [choroplethr package](https://github.com/arilamstein/choroplethr)
+who also runs courses and a relevant [Facebook Group](https://www.arilamstein.com/blog/2016/06/21/new-facebook-group-r-maps-open-data/?utm_source=recurpost)
+
+ * On the interactive front, [Tim Appelhans](https://twitter.com/TimSalabim) is the lead on the [mapview](https://github.com/r-spatial/mapview) and  co-author of [mapedit](https://github.com/r-spatial/mapedit) along with the ubiquitous [Kent Russell](https://twitter.com/timelyportfolio}(https://twitter.com/timelyportfolio) 
+ 
+ * More parochially for me,[bcmaps](https://github.com/bcgov/bcmaps), with [Andy Teucher](https://twitter.com/andyteucher) the driving force, covers my own geographical area
+ 
+ * [tmap](https://github.com/mtennekes/tmap), [plotly](https://plot.ly/r/choropleth-maps/), [ggmap](https://github.com/dkahle/ggmap) and [rmapzen](https://github.com/tarakc02/rmapzen) are other packages which all bring something different to the table
+ 
+ * Other R experts who provide mapping articles in their blogs include [Bob Rudis](https://rud.is/b/) and [Zev Ross](https://www.zevross.com/blog/)
+ 
+ 
+
+I have at some stage, corresponded or met most of the above and, as is practically a given in the R community, they are very helpful and willing to partake of their expertise. But where are the women?!
+
+I anticipate adding to this list in the future so check back whenever you are need a reference and please provide additional suggestions
+
+

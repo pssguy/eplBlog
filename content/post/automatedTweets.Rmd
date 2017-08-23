@@ -10,17 +10,17 @@ tags:
   - dataCompareR
   - glue
   - purrr
-banner: ''
+banner: "banners/twitterCongrats.PNG"
 description: ''
 images: []
 menu: ''
 ---
 
-On the front page premiersoccerstats site, I have a milestones table which highlights when players have reached certain levels in the Premier League e.g. 100 Appearances
+On the front page of my [premiersoccerstats](http://www.premiersoccerstats.com/epl.html) site, I have a Player Milestones table which highlights players who have reached certain levels in the Premier League's  latest round of games e.g. 100 Appearances
 
-This requires comparing two datasets and highlighting differences in the variable of interest. To this end, I use the daff package which was the subject of a talk at the recent useR 2017 conference
+This requires comparing two datasets and subsetting the rows with differences in the variable of interest. To this end, I use the [daff package](https://github.com/edwindj/daff) which was the subject of a [presentation](https://channel9.msdn.com/events/useR-international-R-User-conferences/useR-International-R-User-2017-Conference/Daff-diff-patch-and-merge-for-dataframes?term=daff) at the recent R User 2017 conference
 
-Coincidentally, an alternative package dataCompareR has just been released by Rob Noble-Eddy and others
+Coincidentally, an alternative package [dataCompareR](https://github.com/capitalone/dataCompareR) has just been released by [Rob Noble-Eddy](https://twitter.com/rnobleeddy) and others
 
 
 ```{r, echo=FALSE}
@@ -41,11 +41,11 @@ embed_youtube("weQ4oNk7Pqc", width = 420, height = 315, frameborder = 0,
 
 ---
 
-OK. Back to real-life
+OK. Fast forward 40 years
 
-One project I have had on the back-burner (yep it's been there since this phrase was fashionable) is from the dataset of the tweeters that I am following. send  a congratulatory tweet whenever one of them reaches a certain number of followers e.g 1000
+One project I have had on the back-burner (yep it's been there since this phrase was fashionable) is to send  a congratulatory tweet whenever one of the tweeters I follow reaches a certain, significant,  number of followers e.g 1000
 
-This can be broken down into a few stages. The packages I will rely on (other than the assumed tidyverse) are also listed
+Achieving this can be broken down into several stages. The packages I will rely on (other than the assumed tidyverse) are also listed
 
  1. Acquire my 'friends' (rtweet)
  2. Find out how many followers my friends have at a point in time, df.a (rtweet)
@@ -54,7 +54,7 @@ This can be broken down into a few stages. The packages I will rely on (other th
  5. Craft and issue relevant tweet messages (glue, rtweet, purrr)
  6. Automate process on say, daily, basis
  
- I have covered rtweet and purrr before e.g []() though I am using new functions but dataCompareR and glue are new 
+ I have covered rtweet and purrr in previous posts e.g ['Twitter Followers Collage'](https://www.mytinyshinys.com/2017/03/20/twitterfollowerscollage/) but I am using different functions in those packages. This is my first experience of using  dataCompareR and glue 
  
  ___
  
@@ -72,18 +72,20 @@ library(glue)
 
 ```
 
-If you want to try this for yourself, you will need to obtain an OAuth and preferably store for future use. [Instructions here]()
+N.B. _If you want to try this for yourself, you will need to obtain an OAuth token and preferably store it for future use. [Instructions here](http://rtweet.info/index.html)_
 
-First step is to use an rtweet function to garner those I am following. This takes the form of a data_set with a series of user_id's It changes rarely (and probably could do with some fine-tuning) but the data only takes a few seconds to return so there is no need to save the results in a local file unless you have significantly more than my ,at the time of writing, 166.
+First step is to use an rtweet function to garner the ids of those I am following. This takes the form of a data_set with a series of user_id's    
+ It changes rarely (and probably could do with some fine-tuning) but the data only takes a few seconds to return so there is no need to save the results in a local file unless you have significantly more than my, at the time of writing, total of 166.
 
-I then need to get a summary of their data (which includes the number of followers they each have) This takes around 20 seconds - so reprise the video whilst waiting - and uses the map_df(), purrr function and the lookup_users() from rtweet
+I then need to get a summary of their data (which includes the number of followers they each have) This takes around 20 seconds - so reprise the video whilst waiting - and uses the map_df(), purrr function and lookup_users() from rtweet
 
-I have added a plot for interest
+I have added a plot for interest. Hover for further information
 
 
 ```{r friends}
 
-friends <- get_friends(users, page = "-1", parse = TRUE, token = NULL) #default parameters
+# obtain a list of accounts I follow
+friends <- get_friends("pssguy", page = "-1", parse = TRUE, token = NULL) #default parameters
 
 # now create a function which gets the summary data 
 friendsSummary <- map_df(friends$user_id, function(x) lookup_users(x))
@@ -118,4 +120,138 @@ friendsSummary %>%
 
 ```
 
-Hadley Wickham is the 'biggest name' in the R community I follow. Those with more adherents tend to be organizations
+I have a quite the range, with the people I am following having a median of just under 2000 followers, a figure I never expect to attain
+
+Hadley Wickham is the 'biggest name' I follow in the R community . Those with more adherents tend to be organizations
+
+So this friendsSummary data.frame can be saved for comparison at a later date. For the purposes of this tutorial, I will create a duplicate set and add a nominal 100 to each followers_count. 
+Firstly, however I will add a couple of fields to categorize followers into specific ranges which make sense from the data
+
+```{r}
+
+friendsSummary <- friendsSummary %>% 
+  mutate(category=case_when(
+    followers_count > 9999 ~ 9,
+    followers_count > 4999 ~ 8,
+    followers_count > 2499 ~ 7,
+    followers_count > 999 ~ 6,
+    followers_count > 499 ~ 5,
+    followers_count > 249 ~ 4,
+    followers_count > 99 ~ 3,
+      followers_count > 49 ~ 2,
+      followers_count > 0 ~ 1)
+  ) %>% 
+  mutate(minFollowers=case_when(
+    followers_count > 9999 ~ 10000,
+    followers_count > 4999 ~ 5000,
+    followers_count > 2499 ~ 2500,
+    followers_count > 999 ~ 1000,
+    followers_count > 499 ~ 500,
+    followers_count > 249 ~ 250,
+    followers_count > 99 ~ 100,
+      followers_count > 49 ~ 50,
+      followers_count > 0 ~ 1)
+  )
+
+# save for subsequent retrieval, typically a day later in a script
+write_csv(friendsSummary,"data/friendsSummary.csv")
+
+# this will be our base data.frame
+df.a <- read_csv("data/friendsSummary.csv")
+
+# we now create a duplicate file, add 100 followers to each row and recategorize
+df.b <- df.a
+
+df.b[,"followers_count"] <- df.b[,"followers_count"] + 100L # adding L ensures the firls remains an integer
+
+
+df.b <- df.b %>% 
+  mutate(category=case_when(
+    followers_count > 9999 ~ 9,
+    followers_count > 4999 ~ 8,
+    followers_count > 2499 ~ 7,
+    followers_count > 999 ~ 6,
+    followers_count > 499 ~ 5,
+    followers_count > 249 ~ 4,
+    followers_count > 99 ~ 3,
+      followers_count > 49 ~ 2,
+      followers_count > 0 ~ 1)
+  ) %>% 
+  mutate(minFollowers=case_when(
+    followers_count > 9999 ~ 10000,
+    followers_count > 4999 ~ 5000,
+    followers_count > 2499 ~ 2500,
+    followers_count > 999 ~ 1000,
+    followers_count > 499 ~ 500,
+    followers_count > 249 ~ 250,
+    followers_count > 99 ~ 100,
+      followers_count > 49 ~ 50,
+      followers_count > 0 ~ 1)
+  )
+
+# ensures comparison field are the same class i.e. integer
+df.b$category <- as.integer(df.b$category)
+
+```
+
+OK, so now we can use the dataCompareR function. This results in a list including the desired data.frame (compFriends\$mismatches\$CATEGORY) showing changes, if any, in category
+
+ We are only interested in the rows where the category has increased - letting people know they have less followers is not likely to win you friends
+
+
+```{r}
+
+# Put newer data.frame first and add unique key you want to retain
+compFriends <- rCompare(df.b, df.a, keys = 'screen_name') 
+
+# create a data.frame by joining to original data
+change_df <-compFriends$mismatches$CATEGORY %>% 
+           filter(diffAB>0) %>% # ensure only increases
+            left_join(df.b,by=c("SCREEN_NAME"="screen_name"))
+
+
+change_df %>%
+  select(SCREEN_NAME,valueA,valueB,diffAB) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = FALSE,info=FALSE))
+
+```
+ So ,in this example, 23 have changed category. In real life, with the numbers I am following a daily change would be typically zero or one. Obviously, if you want to do a similar exercise it will depend where you set the catgories, how many followers you have and how often you run the code
+ 
+---
+ 
+Now we get to the fun part of creating and issuing a tweet. I will use the glue package (as an alternative to paste) for the former
+and purrr and rtweet for the latter
+
+```{r}
+
+## add a tweet message
+change_df <-change_df %>% 
+  mutate(tweet=glue("Congrats @{SCREEN_NAME} you now have {minFollowers}+ Followers"))
+
+# adding media can be fun. token required if not saved
+tweetFunc <- function(x) post_tweet(x, media = "img/congrats.gif", token = NULL)
+
+
+# This will actually send tweets so I have commented it out
+#walk(change_df$tweet, tweetFunc)
+
+```
+
+You are notified that your tweet has been posted and it appears in your timeline with the clickable twitter handle of the user
+
+Here is an example
+
+
+```{r}
+library(blogdown) #v 0.0.54
+shortcode("tweet", "889469685279752193")
+```
+
+
+
+rtweet, also offers a similar function to direct message, post_message(), which you can use for personal messages to people who follow you
+
+---
+
+All the above code can be adapted, as required, and collated into an R script which can be run routinely. How to do this will vary by operating system is outside the compass of this post. I plan on setting one up so, if I follow you, look out for your next milestone tweet!
+

@@ -1,0 +1,271 @@
+---
+title: EPL Week 2
+author: Andrew Clark
+date: '2017-08-23'
+slug: epl2018-wk2
+categories:
+  - eplWeekly
+tags: []
+banner: banners/wk2_2017.PNG
+description: ''
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(forcats)
+library(DT)
+library(plotly)
+library(vembedr)
+library(lubridate)
+library(stringr)
+library(VennDiagram)
+library(crosstalk)
+library(htmltools)
+library(explodingboxplotR)
+
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+ teamGames <- readRDS("data/soccer/teamGames.rds")
+ standings <- readRDS("data/soccer/standings.rds")
+ hth <- readRDS("data/soccer/hth.rds")
+
+```
+
+# Round 2
+
+Not so many shocks in Round 2.    
+
+ Three teams remain with 100% records. Manchester United have looked the most impressive and it is not until week 8 that they meet any of the five teams that finished above them last year.
+ 
+ Huddersfield manager David Wagner will probably just be grateful to have six points in the bag so soon and Tony Pulis will be looking to put his feet up even earlier than usual as his WBA teams tend to do once they reach the 40 point safety level
+
+## Game of the Week (video may not be available)
+
+First matchup between serious title candidates and the Spurs v Chelsea game did not diappoint. Two Dele Alli inspired free kicks (one for each side) left the game at 1-1 before Lloris's gaffe provided the visitors with a win
+
+```{r topGame}
+
+embed_youtube("ALDZLJYZgdc", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+## Kane Cant
+
+Well he had eight shots but yet again no August goals for Harry Kane 
+
+  Here are how his goals have been distributed by month
+
+
+
+```{r kane_august}
+
+
+data <- playerGame %>% 
+  filter(PLAYERID=="KANEH"&mins>0) %>% 
+  mutate(month=months(gameDate),monthOrder=month(gameDate)) %>% 
+  select(gameDate,mins,Gls,month,monthOrder,name) %>% 
+  group_by(month,monthOrder) %>% 
+  summarise(apps=n(),mins=sum(mins),Gls=sum(Gls))
+
+data %>% 
+  plot_ly(x=~fct_reorder(month, monthOrder),y=~Gls,
+          hoverinfo="text",
+          text=~paste0("Mins: ",mins,"<br>Goals: ",Gls)) %>% 
+  add_markers(size=~mins) %>% 
+  layout(xaxis=list(title=""),
+         yaxis=list(title="EPL Goals"),
+         title="Premier League Goals by Month", # ideally get name in there
+         margin=list(b=60)
+         
+         ) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+He has been hit by a fair amount of injury at the beginning of some seasons and has not really get going until November in the past
+
+
+<p class="factoid">WBA's Robson-Kanu joins David Lee, Klasnic and Zamora as the four subs(at the time of writing) who have scored and then seen red in Premier League history</p>
+
+```{r sub_goal_red}
+
+grid.newpage();
+
+# A more complicated diagram Demonstrating external area labels
+venn.plot <- draw.pairwise.venn(
+  area1 = 2127,
+  area2 = 62,
+  cross.area = 4,
+  category = c("Scored", "Dismissed"),
+  fill = c("blue", "red"),
+  lty = "blank",
+  cex = 2,
+  cat.cex = 2,
+  cat.pos = c(300, 105),
+  cat.dist = 0.09,
+  cat.just = list(c(-1, -1), c(1, 1)),
+  ext.pos = 30,
+  ext.dist = -0.05,
+  ext.length = 0.85,
+  ext.line.lwd = 2,
+  ext.line.lty = "dashed"
+);
+```
+
+
+
+
+## Attendances
+
+Bournemouth's small ground has held the average attendances down a bit since their promotion but the restoration of Newcastle and, more significantly, the move of Spurs to Wembley suggests records could be set this season
+
+
+```{r crowds}
+
+avCrowds <-teamGames %>%
+  ungroup() %>%
+  filter(venue=="H") %>%
+  mutate(year=str_sub(season,1,4)) %>%
+  group_by(year,TEAMNAME,season) %>%
+  summarize(avCrowd=round(mean(CROWD),0)) %>%
+  ungroup() %>% 
+  arrange(season)
+
+
+
+#avCrowds$year <-  factor(country.df$COUNTRY, levels = country.df$COUNTRY[order(country.df$n,country.df$COUNTRY)])
+
+exploding_boxplot(
+ avCrowds,
+  y = "avCrowd",
+  group = "year",
+  #color = "spray", # looks like has to be a range of colors if you group- which you need to to sep data
+  label = "TEAMNAME", # could be another column name but not combo
+  iqr = 2,
+  margin = list(bottom = 50, left = 70, top = 20, right = 20),
+  xlab = "",
+  ylab = "Av Attendance"
+)
+
+
+```
+
+Average crowds are approaching 38,000, more than 75% higher than the inaugural season 
+
+ Click on any box to view individual club averages by hovering the points
+ 
+
+
+## Aguero's bogey team
+
+With his brief sojurn out of the team at the tail end of last season, the wealth of attacking at Manchester City's disposal and the continuing rumours of possible purchase of Alexis Sanchez, it was probably not the best time for Aguero to be facing an Everton team against whom he has struggled, relatively speaking, to score.
+
+Once again he came up empty-handed
+
+```{r}
+
+#this works - crosstalk to all players
+
+
+played<- playerGame %>% 
+  filter(PLAYERID=="AGUEROS"&mins>0) %>% 
+  arrange(desc(gameDate)) %>% 
+  group_by(Opponents) %>% 
+  tally()  #31
+
+playerGame %>% 
+  filter(PLAYERID=="AGUEROS"&mins>0) %>% 
+  arrange(desc(gameDate)) %>% 
+  group_by(Opponents) %>% 
+  mutate(last=row_number()) %>% 
+  filter(Gls>0) %>% 
+  select(Opponents,gameDate,last,Gls) %>% 
+  slice(1) %>% # latest match scired in
+ left_join(played) %>% 
+  arrange(desc(last)) %>% 
+  select(Opponents,Date=gameDate,`last scored`=last,`All Games`=n) %>% 
+ DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+
+ 
+
+ 
+
+```
+
+Next up is Bournemouth, against whom he scored two games ago
+
+---
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6225033-man-united-looking-menacing-ill-advised-celebrations-and-west-brom-s-axis-of-evil/embed/v4?eid=AQAAAPyVm1mJ_F4A" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6225029-is-the-wembley-curse-fake-news-football-weekly/embed/v4?eid=AQAAAD2Wm1mF_F4A" title="audioBoom player"></iframe>
+
+---
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-08-15"&gameDate<="2017-08-21") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-08-21") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">The +8 goal difference for Man Utd after two games is their best ever in the Premier League and trails only the 2010/11 Chelsea side that inflicted 6-0 lickings to WBA and Wigan to start that season</p> 
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

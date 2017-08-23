@@ -1,0 +1,15 @@
+---
+title: "rstudio::Conf"
+author: "Andrew Clark"
+date: 2016-11-18
+categories: ["community"]
+---
+
+
+Just a quick reminder that the second [rstudio conference](https://www.rstudio.com/conference/) to be held in Florida in January is almost sold out (32 tickets available at time of writing)
+
+Needless to say, a great chance to network as well as take in some interesting talks
+
+Probably will not be going myself. As a white male, I might be forced to stay in the country and become a citizen!
+
+

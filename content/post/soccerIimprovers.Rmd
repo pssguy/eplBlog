@@ -1,0 +1,190 @@
+---
+title: Bournemouth to bash on?
+author: Andrew Clark
+date: '2017-08-04'
+slug: soccerIimprovers
+categories: []
+tags:
+  - engsoccerdata
+banner: "banners/afcBournemouth.PNG"
+description: ''
+images: []
+menu: ''
+---
+
+I have plans to hive off the soccer/football section off to a separate blog as many sports readers will not be interested in code but until then, here is my latest effort
+
+As the new season is now upon us  it was time to post a new article. I have also been intending to pen something based around [James Curley's](https://twitter.com/jalapic) excellent [engsoccerdata](https://github.com/jalapic/engsoccerdata) package
+which anyone interested in R and European football should definitely check out
+
+---
+
+One of the recent success stories in the English Leagues has been AFCBourenmouth - run by that rarity in the premier league a young English manager, Eddie Howe. His team also plays open football - the 122 goals, for and against, in their games topped the Premier league last year.   
+ 
+ With Russian backing, they have spent pretty heavily in this summer transfer window and will hope to improve on their surprising 9th place last year. This capped a club-record five season consecutive improvement in their overall position in the league
+
+I recently polled on twitter to see if people thought this was the best current run
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+ 
+
+
+```{r}
+library(blogdown) 
+shortcode("tweet", "893508341254639616")
+```
+
+Okay my marketing was poor and the response small, but knowledgeable. The ayes had it with Wednesday leading way on six. If the Owls should improve on that finish this season they will be one shy of the tied record of 8
+The latest of these only found Gillingham in the dizzy heights of 11th in the second tier i.e. 31st overall - but still the best in their 85 years in the English leagues
+
+---
+
+Let's look at the code - starting with libraries utilized and imported datsets
+
+```{r setup}
+library(engsoccerdata)
+library(tidyverse)
+library(plotly)
+library(doBy)
+library(crosstalk)
+library(htmltools)
+
+# precalculated dataset
+positions <- read_csv("data/soccer/positionSeqs.csv")
+
+```
+
+
+Here are the current runs by team along with their all-time record best and worst runs
+
+```{r}
+
+# Calculate teams yaer-on-year movement
+df <- positions %>% 
+  arrange(desc(Season)) %>% 
+  group_by(team) %>% 
+  mutate(move=lead(Overall)-Overall) %>% 
+  mutate(change=ifelse(move>0,1,ifelse(move<0,-1,0)))
+
+# Calculate sequences of these up/down movements
+
+sequences <-df %>% 
+  group_by(team) %>% 
+  do(subSeq(.$change))
+
+# look at best ever
+
+best <-sequences %>% 
+  group_by(team) %>% 
+  filter(value==1) %>% 
+  arrange(desc(slength)) %>% 
+  slice(1) %>% 
+  select(team,best=slength) 
+
+worst <-sequences %>% 
+  group_by(team) %>% 
+  filter(value==-1) %>% 
+  arrange(desc(slength)) %>% 
+  slice(1) %>% 
+  select(team,worst=slength) 
+
+
+current <- sequences %>% 
+  filter(first==1&!is.na(value)) %>% 
+  mutate(run=ifelse(value==-1,-slength,slength)) %>% 
+  arrange(desc(run),team) %>% 
+  select(team,current=run)
+
+current %>%
+  left_join(best) %>% 
+  left_join(worst) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+
+```
+
+
+
+
+Now check out any team's position over time and year-on-year changes. Avoid the ugly mess at beginning (I think it is a bug yet to be squashed) and enter any team of your choice
+
+_N.B. The leagues were suspended during both World Wars_
+
+```{r}
+
+#tm <- unique(sequences$team)
+
+sd <- SharedData$new(df)
+
+fs <- filter_select(
+id = "teamChoice",
+label = "Select Team",
+sharedData = sd,
+group =  ~team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+  # produce chart
+posChart  <-  sd %>% 
+    #filter(team==teamChoice) %>% 
+  plot_ly(x=~Season,y=~Overall,showlegend=FALSE,
+          hoverinfo="text",
+          text=~paste0("Season: ",Season,
+            "<br>Tier: ",division,
+            "<br>Position: ",Position,
+                       "<br>Overall: ",Overall,
+                       "<br>Change: ",move)) %>% 
+  add_lines() %>% 
+  add_markers() %>% 
+  layout(title="Finishing Position All Leagues by Season",
+         yaxis=list(autorange='reversed'),showlegend=FALSE
+         ) %>% 
+ config(displayModeBar = F,showLink = F)
+
+
+
+changeChart <- sd %>% 
+  #filter(team=="Manchester United") %>% 
+  plot_ly(x=~Season,y=~move,color=I("red"),
+          hoverinfo="text",
+          text=~paste0("Season: ",Season,
+            "<br>Tier: ",division,
+                       "<br>Position: ",Position,
+                       "<br>Change: ",move)) %>% 
+  add_markers()  %>% 
+  layout(title="Position Year-on-Year All Leagues by Season",
+         yaxis=list(title='Change')
+         ) %>% 
+ config(displayModeBar = F,showLink = F)
+
+
+  tagList(
+  fs_nobootstrap,
+  br(),
+   posChart,
+  br(),
+  changeChart
+)
+
+
+
+```
+
+Of course, a change by itself hides the extent of any improvement or decline. of the record eight year sequences, Gillingham's record includes threee years when they just advanced by one position and Luton only advanced 33 places  in all
+
+Arguably, Swansea can argue for the most impressive long-term run as they put together an 84 position jump between 1974/5 to 1981/2, reaching 6th in the final year. The subsequently dropped down the divisions before almost replicating the achievement this century with a decade which saw them gain 80 places

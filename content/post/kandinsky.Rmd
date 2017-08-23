@@ -1,0 +1,135 @@
+---
+title: When Babe Ruth met Kandinsky
+author: Andrew Clark
+date: '2017-07-27'
+slug: kandinsky
+categories:
+  - entertainment
+tags:
+  - kandinsky
+  - Lahman
+  - grid
+banner: "banners/kandinsky.PNG"
+description: ''
+images: []
+menu: ''
+---
+
+When Babe Ruth first retired from baseball he found it tough. Without the protection of the Yankees PR department his various, and widespread, indiscretions were fodder for the yellow press and the reluctance of anyone to give him a managerial position was humiliating    
+
+ So he became a virtual recluse mainly fly-fishing, painting water-colours and studying the lives of contemporary artists. It was during the late 1930's that he discovered that his favourite painter, Wassily Kandinsky, was alive and living in France.    
+
+ Aware that war in Europe was looming and that he would not be mobbed on a continent where baseball was regarded as a game for girls he made a secret trip to meet his hero.    
+ 
+ None of these #fakefacts were known until recently when a painting Babe created as a tribute to the Russian master was discovered
+
+![](/img/kandinskyRuth.png) 
+
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+OK so there is now a fun way to produce random images in R thanks to the [kandinsky package](http://giorasimchoni.com/2017/07/30/2017-07-30-data-paintings-the-kandinsky-package/) by [Giora Simchoni](https://twitter.com/GioraSimchoni) whose blog covers several fun ways to use R
+
+Any data can be used to create these images so I just used a subset of batting data from the [Lahman Baseball package](http://lahman.r-forge.r-project.org/). Just choose any player and a Kandinsky-style image will appear _N.B. A few players do cause errors currently. Just try another_
+
+
+
+```{r}
+knitr::include_app("https://mytinyshinys.shinyapps.io/kandinskyFD/", 
+  height = "600px")
+```
+
+I have to execute this as an embedded shiny app which you may prefer to experiment with [here](https://mytinyshinys.shinyapps.io/kandinskyFD/)
+
+However, the code with comments is given below
+You can use any data for input but the source I have employed swiftly returns thousands of variations    
+
+If you are on Windows you can easily amend the code to employ the xkcd font, which more closely represents a signature. Many other can be installed, if desired
+
+Firstly load libraries and do some munging on the Lahman database (which has data up to 2016 season as I write) ensuring that only
+players with at least two seasons of data are included (otherwise an image cannot be produced)
+
+```{r setup, eval=FALSE}
+
+
+library(tidyverse)
+library(Lahman)
+library(kandinsky)
+library(glue)
+library(grDevices)
+
+# Font will only work if font installed (by default windows10)- but looks better
+#windowsFonts(xkcd=windowsFont("xkcd"))
+
+## construct batters select
+
+players <- Master %>% 
+      left_join(Batting) %>% 
+      filter(H>0)  %>% 
+  mutate(deathYear=ifelse(is.na(deathYear)," ",deathYear)) %>% 
+  mutate(playerName=glue("{nameFirst} {nameLast} ({birthYear}-{deathYear})")) %>% 
+   mutate(signature=glue("{nameFirst} {nameLast}")) %>%
+    select(playerID,playerName,signature) %>% 
+  group_by(playerID) %>% 
+ slice(2) #10299 # ensures at least 2 seasons which is needed to create plot
+
+
+playerChoice <- players$playerID
+names(playerChoice) <- players$playerName
+
+# Raw data (selection of variables - anything will do)
+df <-   Batting %>% 
+          left_join(Master) %>% 
+          filter(H>0)  %>%
+          select(H,R,HR,RBI,SB,playerID)
+```
+
+Then create a input field to select any player and produce a temporary image for display
+
+```{r image, eval=FALSE}
+
+selectInput("id","Choose or type in player",choices=playerChoice, selectize=TRUE, selected="troutmi01")
+
+
+ 
+
+ output$plot <- renderImage({
+    # A temp file to save the output. It will be deleted after renderImage
+    # sends it, because deleteFile=TRUE.
+    outfile <- tempfile(fileext='.png')
+    
+    # signature
+    sig <- players %>% 
+       filter(playerID==input$id) %>% 
+      pull(signature)
+    
+    # # Generate a png
+     png(outfile, width=600, height=400)
+     
+      pic <- df %>% 
+      filter(playerID==input$id) %>% 
+       select(-playerID) 
+      
+      
+    # basic Image   
+    kandinsky(pic)
+    #Add Signature - bottom right
+    grid.text(sig, x=0.8, y=0.1, rot=0,
+          gp=gpar(fontsize=20, col="black")) # add if windows ,fontfamily="xkcd" 
+     
+     dev.off()
+     
+   
+    # Return a list
+    list(src = outfile,
+         alt = "This is alternate text")
+  }, deleteFile = TRUE)
+
+plotOutput("plot")
+```
+
+ 
+Hope you enjoy!

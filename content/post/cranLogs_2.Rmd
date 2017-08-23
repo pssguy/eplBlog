@@ -3,6 +3,7 @@ title: "Cranlogs Dashboard"
 author: "Andrew Clark"
 date: 2016-11-27
 categories: ["flexdashboard","packages"] 
+banner: "banners/cranLogs_2.PNG"
 ---
 
 # CRAN packages

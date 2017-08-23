@@ -1,0 +1,384 @@
+---
+title: Weather plots for any US location
+author: Andrew Clark
+date: '2017-07-17'
+categories:
+  - maps
+  - weather
+tags:
+  - leaflet
+  - ggjoy
+slug: weather-plots
+banner: "banners/usaWeather.PNG"
+---
+
+Over the past week or so, there has been quite the buzz about the [ggjoy package](https://github.com/clauswilke/ggjoy) from [Claus Wilkie](https://twitter.com/ClausWilke)
+
+As he states
+
+>Joyplots are partially overlapping line plots that create the impression of a mountain range. They can be quite useful for visualizing changes in distributions over time or space. The name "joyplot" was proposed by Jenny Bryan on Twitter on April 24, 2017, in reference to the iconic cover art for Joy Division's album Unknown Pleasures.
+
+Here's the inspiration
+
+![](/img/joyDivision.jpg)
+
+Not sure if Jenny has acquired her sense of irony since moving out of the States, but, as many of you will know, the band's lead singer, Ian Curtis, committed suicide. To my mind, torplots might be better term - but that ship has sailed
+
+Anyways, there has recently been an avalanche of  examples produced. One which intrigued me was in a post by [Austin Wehrwein](http://austinwehrwein.com/data-visualization/it-brings-me-ggjoy/) who downloaded a set of weather data from Weather Underground to produce this map
+
+![](/img/joyWeather.PNG)
+
+More data like this, from weather stations around the world, can be obtained via the [weatherData](https://github.com/Ram-N/weatherData) package from [Ram Narasimhan](https://twitter.com/ramnarasimhan)
+
+In my desire to promote interactive, extensible work on the back of others labours, this seemed a perfect opportunity
+
+I have restricted the data to USA (where you are never too far from an airport with a weather station) but there is no reason not to make it world-wide. I have created a shiny app and it is embedded below but I will go through the basics of the code here
+
+The process can be broken down into four stages
+ 
+ 1. Capture the desired location
+ 2. Determine the closest weather station
+ 3. Collect the data
+ 4. Produce the charts
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+## Shiny App
+
+Here is the finished app. Just select a location and click. After a few seconds - as the data has to be accessed remotely - a joyplot of temperature should appear (scroll down), . I wanted to add something for precipitation (rain/snow) but a joy plot was uninformative so I have created a simple bar-chart of days in month with some wet stuff. There are also some other highlights for the location 
+
+The map only covers the USA and is for 2016 data, but those of you wishing to live in Vancouver may wish to click the North West of Washington State: trust me, early 2017 was even more dismal
+
+
+```{r}
+knitr::include_app("https://mytinyshinys.shinyapps.io/clickweatherus2/", 
+  height = "600px")
+```
+
+---
+
+## Code
+
+For those interested, I describe the code by chunks as used in the app - although it cannot be evaluated. The full code is supplied with the app
+
+## Setup
+
+Load libraries and the dataset of airport weather stations that come with the weatherdata package. I have extracted a function from the doBy package (loading full package is time-consuming)
+
+```{r setup}
+
+library(flexdashboard)
+
+
+library(leaflet)
+library(tidyverse)
+library(ggjoy)
+library(geosphere)
+library(hrbrthemes)
+library(plotly)
+
+
+library(weatherData)
+stations <- USAirportWeatherStations #metadata of 1602 stations
+
+## Function from doBy package for calculating sequences
+subSeq <- function (x, item = NULL) {
+  rrr <- rle(x)
+  len <- rrr$lengths
+  val <- rrr$values
+  
+  first <-
+    last <- rep.int(NA, length(val))
+  first[1] <- 1
+  last [1] <- len[1]
+  if (length(val) > 1) {
+    for (kk in 2:length(val)) {
+      first[kk] <- last[kk - 1] + 1
+      last [kk] <- last[kk - 1] + len[kk]
+    }
+  }
+  midp <- floor(first + len / 2)
+  
+  ans <-
+    cbind(
+      first = first,
+      last = last,
+      slength = len,
+      midpoint = midp
+    )
+  
+  if (!is.null(item)) {
+    iii <- val == item
+    ans <-
+      as.data.frame.matrix(ans[iii, , drop = FALSE], stringsAsFactors = FALSE)
+    ans$value <- val[iii]
+  } else {
+    ans <- as.data.frame.matrix(ans, stringsAsFactors = FALSE)
+    ans$value <- val
+  }
+  ans
+}    
+
+stations <- USAirportWeatherStations #metadata of 1602 stations
+print(names(stations))
+
+```
+
+So the basic data includes airport codes and co-ordinates
+
+---
+
+## Base map
+
+Create a map in leaflet a centre it so contiguous states are shwon. It is pannable and zoomable 
+
+```{r map, eval=FALSE}
+ leaflet() %>%
+  setView(lng = -93,
+  lat = 37,
+  zoom = 5) %>%
+  addTiles(options = providerTileOptions(noWrap = TRUE))
+
+```
+
+---
+
+## Collect the data
+
+Clicking on the map initiates an event, map_click, which garners the latitude and longitudes
+
+We can then use the distm() function from the geosphere package to estimate the distance this location is from all 1600+ weather stations by applying a function with the purrr, map2_dbl(), function. The code results in a  data.frame, nearest, which is effectively the stations data.frame plus a column for distance; sorted so that the nearest station is in the first row
+
+We can now use the airportCode to access the raw data. I have restricted data to 2016 and downloaded all columns, which in addition to temperature and precipitation also include humidity, cloud-cover, wind speed etc. 
+After adding a months column, the data is available for further processing within shiny for plots and tables
+
+```{r, eval=FALSE}
+
+
+data <-  eventReactive(
+  input$map_click,
+  {
+    ## Get the click info like had been doing
+    click <- input$map_click
+    clat <- click$lat
+    clng <- click$lng
+    
+    # function for guaging distance from location to every US airport weather stations
+    get_distance <- function(x, y) {
+      distance <- distm(c(clng, clat), c(x, y), fun = distHaversine)[1, 1]
+    }
+    
+    dist <- map2_dbl(stations$Lon, stations$Lat, get_distance)
+    
+    # add distance as a column. The top onw will be closest
+    nearest <- cbind(stations, dist = dist) %>%
+      arrange(dist)
+    
+    
+    
+    
+    ## get daily weather data for this one
+    
+    weather <-
+      getSummarizedWeather(
+        nearest$airportCode[1],
+        start_date = "2016-01-01",
+        end_date = "2016-12-31",
+        station_type = "airportCode",
+        opt_temperature_columns = FALSE,
+        opt_all_columns = TRUE,
+        opt_custom_columns = FALSE,
+        custom_columns = NULL,
+        opt_verbose = FALSE
+      )
+    
+    
+    
+    
+    # Create a months column
+    weather$month <- months(as.Date(weather$Date))
+    weather$months <-
+      factor(weather$month, levels = rev(unique(weather$month)))
+    
+    # remove date field which otherwise causes issues
+    weather <- weather %>%
+      select(-Date)
+    
+    allCols <- names(weather)
+    
+    # recalibrate to Fahrenheit - needed if downloaded in some countries??
+    if ("Mean_TemperatureC" %in% allCols) {
+      weather <- weather %>%
+        
+        mutate(
+          Min_TemperatureF = round(Min_TemperatureC * 9 / 5 + 32),
+          Max_TemperatureF = round(Max_TemperatureC * 9 / 5 + 32),
+          Mean_TemperatureF = round(Mean_TemperatureC * 9 / 5 + 32)
+        )
+    }
+    
+    # create new. numeric, column on basis T in Precipitation is trace==0.1mm
+    if ("PrecipitationIn" %in% allCols) {
+      weather <- weather %>%
+        
+        mutate(Precipitation = as.numeric(ifelse(
+          PrecipitationIn == "T", "0.1", PrecipitationIn
+        )))
+    } else {
+      weather <- weather %>%
+        
+        mutate(Precipitation = as.numeric(ifelse(
+          Precipitationmm == "T", "0.1", Precipitationmm
+        )))
+    }
+    
+    # add a column for any rain at all
+    weather <- weather %>%
+      mutate(rain = ifelse(Precipitation <= 0.09, 0, 1))
+    
+    
+    ## create some highs and lows
+    
+    
+    
+    rainSeq <- subSeq(weather$rain)
+    
+    maxRain <- rainSeq %>%
+      filter(value == 1) %>%
+      arrange(desc(slength)) %>%
+      head(1) %>%
+      pull(slength)
+    
+    maxNoRain <- rainSeq %>%
+      filter(value == 0) %>%
+      arrange(desc(slength)) %>%
+      head(1) %>%
+      pull(slength)
+    
+    minTemp <-
+      min(weather$Min_TemperatureF)
+    maxTemp <-
+      max(weather$Max_TemperatureF)
+    
+    
+    
+    
+    info = list(
+      weather = weather,
+      nearest = nearest,
+      maxRain = maxRain,
+      maxNoRain = maxNoRain,
+      maxTemp = maxTemp,
+      minTemp = minTemp
+    )
+    return(info)
+    
+    
+})
+```
+
+
+## Temperature 
+
+There is a little wrinkle in the weatherdata packge which means that data is returned in metric or imperial measurements depending on the user's location. Hence the 'possible' need to do some conversion from Celsius to Fahrenheit
+
+The base ggplot has the ggjoy, geom_joy function applied with a further enhancement using the hrbrthemes, theme_ipsum() function.
+
+```{r joytemp_chart, eval=FALSE}
+
+output$tempPlot <- renderPlot({
+  
+  df <- data()$weather
+  nearest <- data()$nearest
+
+  #scales for chart
+  mins<-min(df$Min_TemperatureF)
+  maxs<-max(df$Max_TemperatureF)
+  
+  # variable title   
+  theTitle <- paste0('Temperatures at ',nearest$Station[1],', ',nearest$State[1], ' Airport')
+  
+  ggplot(df,aes(x = Mean_TemperatureF,y=`months`,height=..density..))+
+    geom_joy(scale=2) + # scale 2 less overlap
+    scale_x_continuous(limits = c(mins,maxs))+
+    theme_ipsum(grid="Y")+  
+    theme(axis.title.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          strip.text.y = element_text(angle = 180, hjust = 1))+
+    labs(title=theTitle,
+         subtitle='Median Temperature by month for 2016\nData: Original data from the Weather Underground')
+  
+  
+})
+
+plotOutput("tempPlot")
+
+```
+
+
+## Precipitation
+
+A similar process is applied for the second chart. This time, the data may be returned with either a column 
+'PrecipitationIn' or 'Precipitationmm'. Either way, this is a character column which can have a blank value, the actual precipitation or 'T', which, I believe, represents a trace element. So a bit of work needs to be done before calculating the number of days in each month which have some significant precipitation
+
+I have produced a plotly chart from the processed data
+
+
+```{r rain_chart, eval=FALSE}
+
+
+output$rainPlot <- renderPlotly({
+  
+  df <- data()$weather
+  nearest <- data()$nearest
+  
+  
+  
+  df %>%
+    mutate(rainy = ifelse(Precipitation > 0.1, 1, 0)) %>%
+    group_by(months) %>%
+    summarize(count = sum(rainy), tot = sum(Precipitation)) %>%
+    
+    plot_ly(x =  ~ count, y =  ~ months) %>%
+    add_bars(color = I("orange"), opacity = 0.5) %>%
+    layout(
+      margin = list(l = 90),
+      title = "Days with more than a trace of Precipitation, by month - 2016",
+      xaxis = list(title = "Count"),
+      yaxis = list(title = "")
+    )   %>%  config(displayModeBar = F, showLink = F)
+  
+  
+  
+})
+
+plotlyOutput("rainPlot")
+
+```
+
+---
+
+## Mins and Maxes
+
+Display other analyses in flexboard value boxes e.g longest run of rainy days
+
+```{r rain,eval=FALSE}
+
+renderValueBox({
+
+valueBox(value = data()$maxRain, color="grey"
+)
+
+})
+
+```
+
+The full source code is available with [the app](https://mytinyshinys.shinyapps.io/clickweatherus2/)
+
+## Conclusion
+
+So there you have it. A pretty responsive output, by shiny standards, using the interactive features of leaflet and a useful purrr function amongst others
+
+Enjoy!
