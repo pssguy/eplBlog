@@ -1,0 +1,216 @@
+---
+title: EPL Week 5
+author: Andrew Clark
+date: '2017-09-19'
+slug: epl2018-wk5
+categories:
+  - eplWeekly
+tags: []
+banner: banners/wk5_2017.png
+description: ''
+images: []
+menu: ''
+---
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(forcats)
+library(DT)
+library(plotly)
+library(vembedr)
+
+library(blogdown)
+
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+ #teamGames <- readRDS("data/soccer/teamGames.rds")
+ standings <- readRDS("data/soccer/standings.rds")
+ hth <- readRDS("data/soccer/hth.rds")
+goals <- readRDS("data/soccer/goals.rds")
+summary <- readRDS("data/soccer/summary.rds")
+
+ 
+```
+
+
+### Game of the week Watford 0-6 Manchester City
+
+Second time Man City have won by 5+ goals in consecutive games against same team. They have also done it Derby. Only achieved on two other occasions in English league top tier with WBA figuring twice: crushing local rivals, Birmingham, and suffering  at the hands of Liverpool
+
+Unfortunately, no video available so you'll have to settle for this home-made Huddesfield v Leicester game!
+
+```{r topGame}
+
+embed_youtube("sr_hvKIwnVE", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+## Finishing Strongly
+
+One thing Manchester United have improved this season is scoring on the break - particularly when teams press laste for an equalizer. A classic example was this week against Everton with three late goals just after Everton missed a good chance of an equalizer    
+
+At the time of writing, they have scored more goals from the 80th minute on than any team, other than thier cross-city rivals, have managed in total
+
+```{r}
+
+each <- playerGame %>% 
+  select(PLAYER_MATCH,season,TEAMNAME) %>% 
+  right_join(goals) %>% 
+  select(season,TEAMNAME,TIME) %>% 
+  filter(season=="2017/18")
+
+all <- each %>% 
+  group_by(TEAMNAME) %>% 
+  tally()
+
+
+each %>% 
+  left_join(all) %>% 
+  plot_ly(x=~jitter(TIME),y=~fct_reorder(TEAMNAME, n)) %>% 
+  add_markers(hoverinfo="text",
+              text=~paste0(TIME))  %>% 
+  layout(xaxis=list(title="Goal time"),
+         yaxis=list(title=""),
+         margin=list(l=120,pad=-5)) %>%  config(displayModeBar = F,showLink = F)
+         
+
+         
+
+```
+
+_N.B This chart will vary over time_
+
+Not sure how long before Crystal Palace join the chart. Their next three games they face the top three in the division
+
+<p class="factoid">As forecast last week, Crystal Palace became the first team in the top English Division that a team has kicked off a campaign with five goalless, scoreless games - matching Hartlepool (tier 3 1938/9) and Sunderland (tier 2 1985/6). One of Sunderlandès opponents in that run happened to be Crystal Palace</p>
+
+## Player on the decline
+
+It's tough not to put a fair share of the blame on club captaion, Jason Puncheon, and the last four mangers who keep picking him; most fans certainly appear to have had enough     
+Deemed unworthy enough for inclusion in the 2016 Cup Final starting line-up, he nevertheless appeared on the pitch for 88% of last season's EPL action without registering a single goal. The saving grace is that he already leads the league in bookings and so is likely to be forced to miss some game-time soon
+
+
+
+```{r}
+
+playerGame %>% 
+  filter(PLAYERID=="PUNCHEJ"&mins>0) %>% 
+  arrange(gameDate) %>% 
+  select(name,Gls,CARD) %>% 
+  mutate(booking=ifelse(!is.na(CARD),1,0)) %>% 
+  mutate(cumGls=cumsum(Gls),cumCards=cumsum(booking)) %>% 
+  mutate(apps=row_number()) %>% 
+  plot_ly(x=~apps,y=~cumGls) %>% 
+  add_lines(name="Goals") %>% 
+  add_lines(x=~apps,y=~cumCards,name="Cards") %>% 
+  layout(xaxis=list(title="Appearances (inc. as sub"),
+         yaxis=list(title="Cumulative Record")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+```
+
+He only had one caution on his resume after 70 Premier League appearances to go along with 11 goals. Times have changed
+
+***
+
+<p class="factoid">It has been well recorded that Wayne Rooney has reached the 200 goals mark in the Premier League, trailing only Alan Shearer. Lesser known is that he has topped the century mark in cautions with only Gareth Barry in his sights</p>
+
+***
+
+## Super Subs
+
+If you had the feeling a lot of goals were being scored by subs, you were right   
+  Early doors, but we are heading for a record season
+
+```{r}
+summary %>% 
+             group_by(season) %>% 
+            summarise(start=sum(StGls,na.rm=T),sub=sum(subGls,na.rm=T),pc=round(100*sub/(sub+start),1)) %>% 
+     plot_ly(x=~season, y=~pc) %>% 
+     add_lines(color=I("firebrick2")) %>% 
+     layout(margin=list(b=80),
+            xaxis=list(title=""),
+            yaxis=list(title="% Goals scored by Subs")) %>%  config(displayModeBar = F,showLink = F)
+            
+```
+
+
+
+
+***
+
+<p class="factoid">Subs for Manchester United only scored 4 times in the first three years of the Premier League. After just five games this year, that figure has been exceeded. Martial(3), Rashford and Fellaini the providers</p>
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6311098-aguero-s-goal-glut-everton-s-glass-ceiling-and-reassessing-arsenal-s-koln-onic-irritation/embed/v4?eid=AQAAAAVbwFm6TGAA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6311209-champagne-supernova-football-as-manchester-clubs-stand-apart-football-weekly/embed/v4?eid=AQAAAOdawFkpTWAA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-09-12"&gameDate<="2017-09-18") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-09-18") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+***
+
+## Final Factoid
+
+<p class="factoid">Newcastle became the first promoted team to win three on the trot since Watford and Bournemouth both achieved the feat in Round 17 of 2015/16</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offer
+ 

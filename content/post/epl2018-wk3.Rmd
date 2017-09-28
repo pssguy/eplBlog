@@ -1,0 +1,268 @@
+---
+title: EPL Week 3
+author: Andrew Clark
+date: '2017-08-30'
+slug: epl2018-wk3
+categories:
+  - eplWeekly
+tags: []
+banner: banners/wk3_2017.png
+description: ''
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+
+library(DT)
+library(plotly)
+library(vembedr)
+
+library(blogdown)
+
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+ teamGames <- readRDS("data/soccer/teamGames.rds")
+ standings <- readRDS("data/soccer/standings.rds")
+ hth <- readRDS("data/soccer/hth.rds")
+
+
+ 
+```
+
+
+## Game of the week
+
+A slightly fortuitous win for Manchester City. View the highlights with a Russian commentary
+
+```{r topGame}
+
+embed_youtube("u-0s1-oFyuQ", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+## Arsenal leaking goals
+
+Arsenal have gone from edging a seven-goal thriller against Leicester to a pummelling at the hands of Liverpool, via an unhappy trip to Stoke. Over this period, they have conceded eight goals.
+
+How does that stack up over any three game stretch for them or any other team. Enter 'Arsenal' in the select box
+
+```{r arsenal}
+
+
+
+standings %>% 
+  arrange(tmGameOrder) %>% 
+  select(GA,gameDate,tmGameOrder,team) %>% 
+  group_by(team) %>% 
+  mutate(lag1=lag(GA),lag2=lag(GA,2),threeGame=GA+lag1+lag2) %>% 
+  filter(!is.na(threeGame)) %>% 
+  arrange(desc(threeGame),desc(gameDate)) %>% 
+  select(team,`3 games`=threeGame,Gm1=lag2,Gm2=lag1,Gm3=GA,`Last Game`=gameDate)%>%
+                         DT::datatable(width=500,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE,columnDefs = list(list(className = 'dt-center', targets = 5))))
+
+```
+
+Arsenal's worst sequence included an 8-2 defeat at the hands of Manchester United, but this is the first time they have suffered more than one, distinct, eight goal run in the same calendar year.
+
+Wigan's record might take some beating. It started with an 8-0 drubbing by Chelsea at the end of 2009/10 followed by successive home defeats to Blackpool and Chelsea, again, at the start of the next season. Surprisingly, they won their next game at Spurs and managed to stave off relegation
+
+
+
+
+<p class="factoid">Peter Crouch will rarely have scored an easier goal and his strike aganst WBA ensures that he has now scored in 15 EPL seasons. Of current players, Defoe will be hoping to mark a 17th year soon, Rooney reached 16 in Round 1 and Barry and Milner will be hoping to join him on that level</p>
+
+## Stuck in the Starting Gate
+
+Of course, Arsenal do at least have some points under their belts but Bournemouth, Crystal Palace and West Ham have yet to register a point
+
+How unusual is it to have three teams in this dilemna at this stage of a Premier League campaign?
+
+
+```{r}
+
+standings %>% 
+  filter(cumPts==0&tmYrGameOrder==3) %>% 
+  select(season,team,final_Pos,cumGF) %>% 
+  arrange(season,cumGF) %>% 
+  select(Season=season,Team=team,`Final Pos`=final_Pos,`Goals For`=cumGF) %>%
+   DT::datatable(width=400,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+
+```
+
+_N.B For this year, 'Final Pos' refers to current standings
+
+Several interesting observations can be taken from this table
+
+ * It is the only time it has happened in the Premier League - you have to go back to 1966/7(in the top flight) to find three teams on zero points after three games
+ * The past four years have seen every team get at least one point from the first three games
+ * Prior to Crystal Palace, four teams have been both pointless and goalless. The lowest any of them finished the campaign was 12th
+ * Amazingly, Southampton have found themselves in this situation five times (relegated once). No other team appears more than twice
+ 
+
+
+I got this tidbit from OptaJoe - who are the kings of soccer trivai and  I sometimes ~~steal their ideas~~ get inspiration from them
+
+Here is an example tweet
+
+
+
+```{r}
+ #v 0.0.54
+shortcode("tweet", "901849399445381121")
+```
+
+
+
+Sounds quite the while
+
+## Time between goals
+
+
+```{r }
+
+
+df <- playerGame %>% 
+  filter(Gls>0) %>% 
+  select(gameDate,PLAYERID,name,POSITION) %>% 
+  arrange(gameDate) %>% 
+  group_by(name,PLAYERID,POSITION) %>% 
+ # filter(PLAYERID=="LACAZEA") %>% 
+  mutate(prevDate=lag(gameDate,1),gap=difftime(gameDate,prevDate)) %>% 
+  filter(!is.na(gap)) %>% 
+  ungroup() %>% 
+  arrange(desc(gap)) %>% 
+  group_by(name,PLAYERID,POSITION) %>% 
+  slice(1) %>% 
+  mutate(days=round(parse_integer(gap)/(60*60*24),1)) %>% 
+  arrange(desc(days)) %>% 
+  ungroup() 
+
+df %>% 
+  select(Player=name,position=POSITION,`Game 1`=prevDate,`Game 2`= gameDate,Days=days) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+  So 1077 days is nothing exceptional.     
+  
+  Most of those at the top of the list were out of the Premier League for several years ane were not prolific scorers anyways. Matt Jackson, for example, was an Everton player in the inauguaral season of 1992/93 but was scoreless with them after that year. He later resurfaced with a Wigan team that gained promotion to the top flight when he was well into his thirties
+
+By contrast, James(Jamie) Carragher was a stalwart for Liverpool and clocked up more than 200 league appearances after his last goal for the club
+
+
+Here is every player matched against their total appearances. Hover for further information
+
+```{r}
+
+playerGame %>% 
+  filter(mins>0) %>% 
+  group_by(PLAYERID,name) %>% 
+  summarise(games=n(),goals=sum(Gls)) %>% 
+  right_join(df) %>% 
+   plot_ly(x=~games,y=~days) %>% 
+   add_markers(size=~goals,
+           hoverinfo="text",
+           text=~paste0(name,
+                        "<br>Games: ",games,
+                        "<br>Goals: ",goals,
+                        "<br>Max: ",days," days")) %>% 
+   layout(title='Biggest time gap between goals scored by same Player',
+          xaxis=list(title="League Career Games"),
+          yaxis=list(title="Longest span between Goals")) %>%
+   config(displayModeBar = F,showLink = F)
+
+```
+
+
+
+```{r}
+
+
+
+ 
+
+ 
+
+```
+
+
+
+
+
+
+---
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6246510-xhaka-can-t-as-arsenal-are-annihilated-at-anfield-and-mbappe-to-psg/embed/v4?eid=AQAAAKWOpFluUF8A" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6246644-familiar-scenes-for-arsenal-fans-as-sanchez-walks-alone-football-weekly/embed/v4?eid=AQAAAOGOpFn0UF8A" title="audioBoom player"></iframe>
+
+---
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-08-21"&gameDate<="2017-08-28") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-08-28") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">Peter Cech tore into his team mates after the Liverpool game. No wonder as it was the first time he had conceded 8 goals in three consecutive gameslibrary(blogdown</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

@@ -1,0 +1,67 @@
+---
+title: Hugo Shortcodes
+author: Andrew Clark
+date: '2017-09-12'
+slug: hugo-shortcodes
+categories: []
+tags:
+  - hugo
+  - rtweet
+banner: banners/hugoCodes.PNG
+description: ''
+images: []
+menu: ''
+---
+
+One of the delights of using [blogdown](https://bookdown.org/yihui/blogdown/) to create blogs or websites is that it allows access to Hogo shortcodes which automatically create an HTML snippet based on the parameters you provide. You can even create your own, if you are up to it
+
+Here are a few examples for use in RMarkdown. Check out the blogdown package and [Hugo documentation](https://gohugo.io/content-management/shortcodes/) for more detail
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+
+```
+
+***
+
+## Youtube
+
+I tend to use the [vembedr package](https://github.com/ijlyttle/vembedr) but this is an alternative
+
+```{r youtube}
+library(blogdown)
+shortcode("youtube", "e6GQBzRkc1A")
+
+```
+
+
+***
+
+## Speakerdeck
+
+Shout out to [Jenny Bryan](https://twitter.com/JennyBryan) for posting slides for her 20+ talks. Here  is one of them
+
+```{r speakerdeck}
+
+shortcode("speakerdeck", "8d8ba68c2ba14d42954fa2c96cf8bd5d")
+
+```
+
+Use the arrow keys to move through the slides
+
+***
+
+## Twitter
+
+I have resisted the obvious (DJT) and gone for [Mara Averick](https://twitter.com/dataandme) as she does a great job at highlighting R news and developments plus providing amusing Police Reports. 
+
+This code samples a random tweet from the most recent 200 in her time-line
+
+```{r twitter}
+
+library(rtweet)
+ma <- get_timeline("dataandme", n = 200) 
+shortcode("tweet", ma$status_id[sample(1:200, 1, rep=FALSE)])
+
+```
+

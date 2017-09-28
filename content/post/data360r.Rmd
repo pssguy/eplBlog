@@ -1,0 +1,68 @@
+---
+title: World Bank Data with data360r
+author: Andrew Clark
+date: '2017-09-21'
+slug: data360r
+categories:
+  - economics
+  - opendata
+  - packages
+  - politics
+tags: []
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+The World Bank is a great source of economic and social data.  A couple of years ago, I created a [shiny app](https://mytinyshinys.shinyapps.io/worldBank/) which still appears to work!
+
+![](/img/myWorldBank.png)
+
+Earlier this year, the World Bank launched a new open data platform which collates more than 2000 indices from 40+ data sources many external to the World Bank
+Even better, there is now an R package [data360r](https://github.com/mrpsonglao/data360r) to access the API and deliver data in a tidy format. [Reg Onglao](Reg Onglao) is its author and maintainer and she has written an introductory blog post on the [World Bank Site](http://blogs.worldbank.org/opendata/introducing-data360r-data-power-r#comment-4262). There are further examples on github. The package also provides access to [Governance Global Practice indices](https://govdata360.worldbank.org/)
+
+Rummage around on the World Bank site for access to thousands of reports and explanations for how the data is collected
+
+ 
+Let's take it for a ride
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+
+```{r setup}
+
+library(tidyverse)
+library(plotly)
+
+library(data360r)
+
+
+```
+
+## metadata
+
+The get_metadata360() function downloads the requested TC/Govdata360 metadata, such as:
+
+ * 'countries' == Lists metadata for all countries and regions.
+ * 'indicators' == Lists metadata for all indicators. Does not return actual data.
+ * 'datasets' == Lists metadata for all datasets.
+ 
+```{r}
+## get all and 
+(df_indicators <- get_metadata360(metadata_type = "indicators"))
+
+
+
+# above uses list colums for time frame and vizualizations 
+
+#get all country metadata in TCdata360
+#(df_countries <- get_metadata360(metadata_type = 'countries')) #217x13 inc some landlocked countrues which is bit of surprise
+
+#get all dataset metadata in TCdata360
+#(df_datasets <- get_metadata360(metadata_type = 'datasets')) #82x7 not just world bank as sourcs
+
+```
+ 

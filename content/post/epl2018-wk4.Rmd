@@ -1,0 +1,202 @@
+---
+title: EPL Week 4
+author: Andrew Clark
+date: '2017-09-11'
+slug: epl2018-wk4
+categories:
+  - eplWeekly
+tags: []
+banner: banners/wk4_2017.PNG
+description: ''
+images: []
+menu: ''
+---
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+
+library(DT)
+library(plotly)
+library(vembedr)
+
+library(blogdown)
+
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+ teamGames <- readRDS("data/soccer/teamGames.rds")
+ standings <- readRDS("data/soccer/standings.rds")
+ hth <- readRDS("data/soccer/hth.rds")
+
+
+ 
+```
+
+### Game of the week Stoke City 2-2 Manchester United
+
+United's first real test. Still look going forward but defensive frailties may be exposed by top opposition
+
+```{r topGame}
+
+embed_youtube("eNBb-vP5Lco", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+ 
+## It must be September - Kane starts scoring
+
+The first one was a bit of a fluke but he reaches the 80 goal mark at a younger age than any who have reached that level in fewer appearances
+
+```{r eighty_goals}
+
+players <- c("HENRYT","KANEH","SHEAREA","AGUEROS","VANNISR")
+
+playerGame %>% 
+  filter((START+subOn>0)&PLAYERID %in% players) %>% 
+  select(name,PLAYERID,Gls,Assists,age,gameDate) %>% 
+  arrange(gameDate) %>% 
+  group_by(name,PLAYERID) %>% 
+  mutate(gameOrder=row_number(),points=Assists+Gls,
+         cumGoals=cumsum(Gls),cumAssists=cumsum(Assists),cumPoints=cumsum(points)) %>% 
+    plot_ly(x=~age,y=~cumGoals,color=~name) %>% 
+  add_lines() %>% 
+   #add_trace(x = c(19,36), y = c(80,80),mode="lines") %>% #Error: Columns `x`, `y` must be length 1 or 1152, not 2, 2
+  layout(xaxis=list(title="Age"),
+         yaxis=list(title="Cumulative Goals")
+         ) %>%  config(displayModeBar = F,showLink = F)
+ # this works        
+# plot_ly(mtcars, x = ~mpg, y = ~disp, mode = "markers") %>%
+#  add_trace(x = c(20, 20), y= c(~min(disp), ~max(disp)), mode = "lines")
+
+```
+
+ Of course, Shearer had already played in the old First Division and the others had performed in foreign leagues first.
+ 
+*** 
+
+
+<p class="factoid">This season, no-one joined the fourteen players who have scored on each of their first four games in an EPL season. Mane was the last one standing but his decision to leave a foot impression on Ederson's face ensured that he would not be added to the group</p>
+
+***
+
+## Palace racking up the records
+
+ * First time since 1924/5 that a top-tier team (Preston NE) have started a season with four games goalless and pointless
+ * Became only team to have two distinct five game runs of EPL games without a goal (Ipswich 7 is record)
+ * Only team ever to have only scored in one of nine consecutive EPL games (4-0 v Hull)
+ * Handed Frank de Boer the shortest managerial reign in EPL history
+ 
+*** 
+
+
+ 
+## Player Rotation
+
+Another season, another manager but the same old Watford. They have already utilized 22 players after 4 league games and do not have European games to take into account. On the other hand Liverpool do and the 21 they have put on the pitch already exceeds one full season and matches another
+
+```{r rotation}
+
+x <-
+  playerGame %>% 
+    #filter(season==x) %>% 
+    group_by(name,PLAYERID,TEAMNAME,season) %>% 
+    summarise(tot=sum(mins)) %>% 
+    filter(tot>0) %>% 
+    ungroup() %>% 
+    group_by(TEAMNAME,season) %>% 
+    tally() %>% 
+    arrange(desc(n))
+
+x %>% 
+  filter(TEAMNAME=="Liverpool") %>% 
+  plot_ly(x=~season,y=~n)  %>% 
+  add_bars(color=I('red'),opacity=0.5) %>% 
+  layout(margin=list(b=100),
+         xaxis=list(title=""),
+         yaxis=list(title="Number of Players Used")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+
+```
+
+Liverpool finished third in 1995/6 with young talents like Fowler, Redknapp and McManaman replacing the Barnes and Rush era.    
+ 2015/6 was when Liverpool switched managers - Klopp took over from Rogers - a change often heralding different lineups
+
+***
+
+<p class="factoid">It has been almost 3,400 minutes since Jason Puncheon, Crystal Palace mid-fielder,
+last scored a Premier League goal. Since then, 295 other players have achieved the feat </p>
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6289238-jaw-dropping-performances-by-mane-and-sane-as-frank-de-boer-is-shown-the-door/embed/v4?eid=AQAAACRJt1lW918A" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6289276-controversial-dismissals-at-both-ends-of-the-premier-league-football-weekly/embed/v4?eid=AQAAAHJJt1l8918A" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-08-28"&gameDate<="2017-09-11") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-09-11") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+***
+
+## Final Factoid
+
+<p class="factoid">If Crystal Palace lose their next game without finding the net, it will be the first time in the top English Division that a team has kicked off a campaign with five goalless, scoreless games - matching Hartlepool (tier 3 1938/9) and Sunderland (tier 2 1985/6)</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offer

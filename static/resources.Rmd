@@ -1,0 +1,9 @@
+
+
+## Books
+
+   * General
+     + [Efficient R programming: Gillespie & Lovelace](https://bookdown.org/csgillespie/efficientR/)
+     
+   * Specific
+     + [Happy Git and GitHub for the useR: Jenny Bryan et al](http://happygitwithr.com/)

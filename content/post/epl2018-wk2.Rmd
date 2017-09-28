@@ -6,7 +6,7 @@ slug: epl2018-wk2
 categories:
   - eplWeekly
 tags: []
-banner: banners/wk2_2017.PNG
+banner: banners/wk2_2017.png
 description: ''
 images: []
 menu: ''
@@ -40,6 +40,15 @@ playerGame <- readRDS("data/soccer/playerGame.rds")
  standings <- readRDS("data/soccer/standings.rds")
  hth <- readRDS("data/soccer/hth.rds")
 
+ ## For use in select boxes
+ pgMini <- playerGame %>%  ## so wil only show those that have made an appearance - but that is prob ok
+  select(PLAYERID,name) %>% 
+  unique() %>% 
+   arrange(name)
+ 
+ playerChoice <- pgMini$PLAYERID
+ names(playerChoice) <-pgMini$name
+ 
 ```
 
 # Round 2
@@ -96,6 +105,69 @@ data %>%
 ```
 
 He has been hit by a fair amount of injury at the beginning of some seasons and has not really get going until November in the past
+
+ I have extended this to cover any player
+
+```{r}
+
+## crosstalk version
+
+data <- playerGame %>% 
+  filter(mins>0) %>% 
+  mutate(month=months(gameDate),monthOrder=month(gameDate)) %>% 
+  select(gameDate,mins,Gls,month,monthOrder,name,PLAYERID) %>% 
+  group_by(month,monthOrder,name,PLAYERID) %>% 
+  summarise(apps=n(),mins=sum(mins),Gls=sum(Gls))
+
+sd <- SharedData$new(data)
+
+fs <- filter_select(
+id = "player",
+label = "Select or Type in Player",
+sharedData = sd,
+group =  ~ name,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+
+## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+
+monthChart <- sd %>% 
+  plot_ly(x=~fct_reorder(month, monthOrder),y=~Gls,
+          hoverinfo="text",
+          text=~paste0("Mins: ",mins,"<br>Goals: ",Gls)) %>% 
+  add_markers(size=~mins) %>% 
+  layout(xaxis=list(title=""),
+         yaxis=list(title="EPL Goals"),
+         title="Premier League Goals by Month", # ideally get name in there
+         margin=list(b=60)
+         
+         ) %>%  config(displayModeBar = F,showLink = F)
+
+
+
+
+
+
+  tagList(
+  fs_nobootstrap,
+  br(),
+  monthChart
+)
+
+
+```
+
+Check out Rooney. He tails of at the end of the season - though Manchester United might have already taken care of business by May
 
 
 <p class="factoid">WBA's Robson-Kanu joins David Lee, Klasnic and Zamora as the four subs(at the time of writing) who have scored and then seen red in Premier League history</p>
@@ -177,13 +249,13 @@ Once again he came up empty-handed
 
 ```{r}
 
-#this works - crosstalk to all players
+#this works - but does not cover zero
 
 
 played<- playerGame %>% 
   filter(PLAYERID=="AGUEROS"&mins>0) %>% 
   arrange(desc(gameDate)) %>% 
-  group_by(Opponents) %>% 
+  group_by(Opponents,name,PLAYERID) %>% 
   tally()  #31
 
 playerGame %>% 
@@ -194,7 +266,7 @@ playerGame %>%
   filter(Gls>0) %>% 
   select(Opponents,gameDate,last,Gls) %>% 
   slice(1) %>% # latest match scired in
- left_join(played) %>% 
+ right_join(played) %>% 
   arrange(desc(last)) %>% 
   select(Opponents,Date=gameDate,`last scored`=last,`All Games`=n) %>% 
  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
@@ -208,6 +280,90 @@ playerGame %>%
 ```
 
 Next up is Bournemouth, against whom he scored two games ago
+
+```{r}
+# library(bsselectR)
+# 
+# bsselect(playerChoice, type = "text")
+
+```
+
+
+```{r}
+
+# library(crosstalk)
+# 
+# 
+# 
+# 
+# played<- playerGame %>% 
+#   filter(mins>0) %>% 
+#   group_by(Opponents,name,PLAYERID) %>% 
+#   tally()  #31
+# 
+# allPlayers <-playerGame %>% 
+#   filter(mins>0) %>% 
+#   arrange(desc(gameDate)) %>% 
+#   group_by(Opponents,PLAYERID) %>% 
+#   mutate(last=row_number()) %>% 
+#   filter(Gls>0) %>% 
+#   select(Opponents,gameDate,last,Gls) %>% 
+#   slice(1) %>% # latest match scired in
+#  right_join(played) %>% #68032 - does not take long
+#  arrange(desc(last)) 
+# 
+# 
+# sd <- SharedData$new(allPlayers)
+# 
+# fs <- filter_select(
+# id = "player",
+# label = "Select or Type in Player",
+# sharedData = sd,
+# group =  ~ name,
+# allLevels = FALSE,
+# multiple = FALSE
+# )
+# 
+# 
+# ## this is needed as crosstalk does not work nicely with bootstrap, apparently
+# fs_nobootstrap <- fs
+# 
+# attr(fs_nobootstrap, "html_dependencies") <- Filter(
+#   function(dep) {dep$name != "bootstrap"},
+#   attr(fs_nobootstrap, "html_dependencies")
+# )
+# 
+# 
+# 
+# 
+#  #  produce table
+#  # myTable  <-  sd %>%
+#  #     #arrange(desc(last)) %>%
+#  #   #select(Opponents,Date=gameDate,`last scored`=last,`All Games`=n) %>%
+#  #  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+# 
+#  # Error in DT::datatable(., class = "compact stripe hover row-border order-column",  : 
+#  #  'data' must be 2-dimensional (e.g. data frame or matrix)
+#  
+#  # works - though seems to show all teams
+#  # myChart  <-  sd %>% 
+#  #    plot_ly(x=~Opponents,y=~last) %>% 
+#  #    add_markers()
+#  # 
+# 
+# myTable  <-  sd %>%
+#   DT::datatable()  #Error in DT::datatable(.) : 
+#   #'data' must be 2-dimensional (e.g. data frame or matrix)
+# 
+#   tagList(
+#   fs_nobootstrap,
+#   br(),
+#    myTable
+# )
+# 
+
+
+```
 
 ---
 

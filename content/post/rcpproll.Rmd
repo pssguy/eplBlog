@@ -182,7 +182,7 @@ bestRun <-data %>%
 
 
  # In order to improve data display, the team needs to be changed from a character to a factor and ordered
- bestRun$team <-  factor(bestRun$team, levels = bestRun $team[order(bestRun$points)])
+ bestRun$team <-  factor(bestRun$team, levels = bestRun$team[order(bestRun$points)])
 
 bestRun %>% 
   plot_ly(x=~points,y=~team, height=1500) %>% 

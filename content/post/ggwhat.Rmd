@@ -1,0 +1,177 @@
+---
+title: GG what!
+author: Andrew Clark
+date: '2017-09-20'
+slug: ggwhat
+categories:
+  - diversion
+tags:
+  - ggplot
+banner: 'banners/ggwhat.png'
+description: ''
+images: []
+menu: ''
+---
+
+The ggplot2 package and its extensions dominate the R visualization landscape, particularly for static charts
+
+It got me thinking about how rare was that combination of two 'g's to start a word - at least in the English language. Luckily, there is a [source on github](https://github.com/dwyl/english-words) extracted from an infochimps source
+
+Not exactly a mind-blowing exercise, but a useful way to use a few techniques from the tidyverse
+
+***
+
+First read in libraries and the file
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+
+```{r setup}
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(rvest)
+
+words <- read_csv("https://raw.githubusercontent.com/dwyl/english-words/master/words.txt")
+
+glimpse(words)
+
+
+```
+
+So 466,000+ words. Many are acronyms or proper nouns but these can be excluded. Others are basically the same root e.g. bayonet, bayonetted but for this fun exercise, I'll live with that. I'll tidy the data.frame up by removing one-letter words and creating a 
+more meaningful name for the variable
+
+I need to obtain a full set of possible combinations and then use purrr's, map_df() function. The latter takes about a minute to run. I'm guessing there might be a more efficient method 
+
+```{r data_carpentry}
+
+# change variable name and remove 1-letter words
+words <- words %>% 
+  rename(word=`2`) %>% 
+  filter(nchar(word)>1)  
+  
+
+# Obtain a vector of all 676 possible combinations from the letters vector 26 lowercase letters
+combo <- expand.grid(letters,letters) %>% 
+         mutate(x=paste0(Var1,Var2)) %>% 
+         pull(x)
+
+
+# function to see how many words start with specific 2 letter start
+wordFun <- function(y) {
+  words %>% 
+    filter(str_sub(word,1,2)==y) %>% 
+    tally()
+  
+}
+
+count <- map_df(combo,wordFun)
+df <- cbind(combo=combo,count) %>% 
+    arrange(desc(n))
+
+glimpse(df)
+
+```
+
+
+So the most common combo is 'un'. As a negation, that's unsurprising
+
+
+A heat-map is a good way  to display the results but that requires separation of the combo. Luckily the tidyr package (part of the tidyverse) provides a simple solution. In addition, because of the skewed distribution I have plotted the square-root of the count to provide more variation in colour
+
+
+```{r plot}
+
+df <-df %>% 
+  separate(combo, c("First", "Second"),sep=1,remove=FALSE) %>% #sep=1 separates after the first position
+  rename(count=n)
+
+
+df %>% 
+  mutate(square_root=sqrt(count)) %>% 
+  plot_ly(x=~Second,y=~First,z=~square_root, colors = colorRamp(c("white","orange", "red")), hoverinfo="text",
+          text=~paste0(combo,"<br>",count),
+          type = "heatmap") %>% 
+  layout(xaxis=list(title="Second Letter"),
+         yaxis=list(title="First Letter")) %>%  config(displayModeBar = F,showLink = F)
+         
+```
+
+Hover rectangles for actual count   
+
+There are probably better colour combinations - but, hey, you have the code
+
+Points of interest
+
+ * Vowels are common second letters
+ * Apparantly not all words starting with q are followed by u
+ * There is 1 gg word listed, 'ggr'. A dictionary search did not provide any illumination - maybe a lowercase acronym
+ * s is the most common starting letter - but 10 followup letters of the alphabet barely register
+ 
+```{r}
+ df %>% 
+  filter(First=="s") %>% 
+  plot_ly(x=~Second,y=~count) %>% 
+  layout(xaxis=list(title="Second Letter"),
+         yaxis=list(title="Count"),
+         title="English Words commencing with letter 'S'") %>%  config(displayModeBar = F,showLink = F)
+         
+```
+ 
+***
+ 
+ We can return to the starting point for this diversion by doing a comparable heatmap for CRAN packages: around 11,500 at time of writing
+ 
+ I'll use the rvest package to extract a character vector of their names - and then reapply the function above for the
+ resulting heatmap. This time I'll use the basic count
+ 
+```{r CRAN}
+
+# read in the source data from the url
+info<- read_html("https://cran.r-project.org/web/packages/available_packages_by_name.html")
+
+# this time it makes sense to put everything into lowercase
+packages <- info %>% 
+  html_nodes("td a") %>% 
+  html_text() %>% 
+  tolower() 
+
+
+
+words <- as_tibble(list(word=packages))
+
+# We can just apply this data.frame to the same function and letter combo as before
+count <- map_df(combo,wordFun)
+
+df <- cbind(combo=combo,count) %>% 
+    arrange(desc(n))
+
+glimpse(df)
+
+df <-df %>% 
+  separate(combo, c("First", "Second"),sep=1,remove=FALSE) %>% #sep=1 separates after the first position
+  rename(count=n)
+
+
+df %>% 
+  #mutate(root=sqrt(count)) %>% 
+  plot_ly(x=~Second,y=~First,z=~count, colors = colorRamp(c("red","orange", "white")), reversescale=T,hoverinfo="text",
+          text=~paste0(combo,"<br>",count),
+          type = "heatmap") %>% 
+  layout(xaxis=list(title="Second Letter"),
+         yaxis=list(title="First Letter")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+```
+ 
+ This time 'gg' weighs in at a healthy 70 - presumably all related to ggplot2 
+ There are also many more names starting with 'r' or 'R' (e.g. 17 with rj compared with zero in real life) which use the language name as the first letter
+ 
+ ***
+ 
+ Hope some of the techniques prove useful. Any comments on improving code, welcomed

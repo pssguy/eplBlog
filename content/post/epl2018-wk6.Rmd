@@ -1,0 +1,283 @@
+---
+title: EPL Week 6
+author: Andrew Clark
+date: '2017-09-27'
+slug: epl2018-wk6
+categories:
+  - eplWeekly
+tags: []
+banner: banners/wk6_2017.PNG
+description: ''
+images: []
+menu: ''
+---
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE)
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(forcats)
+library(DT)
+library(plotly)
+library(vembedr)
+library(RcppRoll)
+library(data.table)
+
+#library(blogdown)
+
+
+playerGame <- readRDS("data/soccer/playerGame.rds")
+ #teamGames <- readRDS("data/soccer/teamGames.rds")
+ standings <- readRDS("data/soccer/standings.rds")
+ hth <- readRDS("data/soccer/hth.rds")
+goals <- readRDS("data/soccer/goals.rds")
+summary <- readRDS("data/soccer/summary.rds")
+
+uniquePlayers <- playerGame %>% 
+  select(PLAYERID,name) %>% 
+  unique()
+
+ 
+```
+### Game of the week West Ham 2-3 Tottenham 
+
+The star of this week's post, Christian Eriksen, gets involved in all three goals for Spurs
+
+```{r topGame}
+
+embed_youtube("5VrW8iKeE9Q", width = 420, height = 315, frameborder = 0,
+  allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+<p class="factoid">After six games, Manchester Utd. can already boast eight names on the scoresheet. In 42 games in 1993/4, Arsenal mustered just six</p>
+
+***
+
+## Top v Bottom
+
+Man City's destruction of Crystal Palace ensured those two sides produced the biggest ever difference in Goals Scored after six games of a Premier League season, 21.
+
+
+```{r GF}
+
+top <- standings %>% 
+    filter(tmYrGameOrder==6) %>% 
+    group_by(season) %>% 
+    mutate(minGF=min(cumGF),diff=cumGF-minGF) %>%
+    arrange(desc(diff)) %>% 
+    slice(1) %>% 
+    select(season,top=team,diff,max=cumGF) 
+
+bottom <- standings %>% 
+    filter(tmYrGameOrder==6) %>% 
+    group_by(season) %>% 
+    mutate(maxGF=max(cumGF),diff=cumGF-maxGF) %>%
+    arrange(diff) %>% 
+    slice(1) %>% 
+    select(season,bottom=team,min=cumGF) %>% 
+    inner_join(top,by="season")
+
+ bottom %>% 
+    plot_ly(color = I("gray80"), height = 500) %>% 
+    add_segments(x = ~min, xend = ~max, y = ~season, yend = ~season, showlegend = FALSE
+                 ) %>%
+      add_markers(y=~season,x=~max,name="Prolific",color = I("blue"),
+                hoverinfo="text",
+                text=~paste(top,max)) %>% 
+    add_markers(y=~season,x=~min,name="Impotent",color = I("red"),
+                hoverinfo="text",
+                text=~paste(bottom,min)) %>% 
+    layout(title="Most and least prolific teams after 6 Premier League games",
+      xaxis=list(title="Goals Scored"),
+           yaxis=list(title="")) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+Hover for details
+
+Interesting to note that Tottenham proved very slow starters for three years in five (04/05, 06,07, 08/09)
+even before Harry Kane's August travails
+
+***
+
+<p class="factoid">Man City's, de Bruyne notched up his third consecutive, distinct, two-assist league game. This has only previously been achieved a dozen times in the EPL but Christian Eriksen became the only player to appear twice in this list - in Round 1 of the season</p>
+
+This prompted me to look at Eriksen's assists and goals by game
+Over the past 17 games he has totalled 23 assists. How does this rank all-time?
+
+
+
+```{r eriksen}
+
+sumRows <- 17
+
+df <- playerGame %>% 
+  filter(mins>0) %>% 
+  arrange(gameDate,PLAYERID) %>% 
+  select(PLAYERID,name,Assists) %>% 
+  group_by(PLAYERID) %>% 
+  mutate(games=n()) %>% 
+  filter(games>sumRows)
+
+# much swifter if converting to data.tables package
+setDT(df) ## 
+df2 <- df[,.(sum = RcppRoll::roll_sum(Assists, n = sumRows, fill = NA, align = "left"),
+                  seq = seq_len(.N)),
+               keyby = .(PLAYERID)][!is.na(sum)] 
+
+
+
+df2 %>% 
+  arrange(desc(sum)) %>% 
+  group_by(PLAYERID) %>% 
+  slice(1) %>% 
+  arrange(desc(sum)) %>% 
+    left_join(uniquePlayers) %>% 
+  ungroup() %>% 
+    select(name,Assists=sum) %>%
+  filter(Assists>0) %>% 
+                         DT::datatable(width=300,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+
+  
+
+```
+
+So Eriksen ranks up with the best of all time. A little surprising to see Henry so high but he earned 144 assists to add to his 175 goals whilst in the Premier League
+
+Here is his moving average assists per game over 17 game sequences for the Dane. He is currently performing at around the height of his career with
+Harry Kane being a prime beneficiary
+
+
+```{r moving av}
+
+df2 %>% 
+  filter(PLAYERID=="ERIKSEC") %>% 
+  arrange(seq) %>% 
+  mutate(av=sum/17) %>% 
+  plot_ly(x=~seq,y=~av) %>% 
+  add_lines() %>% 
+  layout(xaxis=list(title="Sequences of 17 Consecutive Appearances"),
+         yaxis=list(title="Moving Average - Assists per Game")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+
+```
+_N.B. Unlike official statistics, up to two assists per goal are allowed_
+
+***
+
+## Barry Record
+
+Gareth Barry breaking the record Premier league appearance record at the weekend was slightly tarnished by the fact that the previous record holder, Ryan Giggs, had played 40 top flight games before the Premier League was established
+
+On the other hand, Barry had already far surpassed Giggs time played as he has now played 525 complete games 138   more than the Welshman
+  
+  
+```{r barry}
+
+# select leading players
+players <- playerGame %>% 
+    select(name,PLAYERID,mins) %>% 
+    group_by(PLAYERID) %>% 
+    summarize(tot=sum(mins,na.rm=T)) %>% 
+    arrange(desc(tot)) %>% 
+    head(4) %>% 
+    pull(PLAYERID)
+
+## add closest still playing
+
+players <- c(players,"CARRICM")
+
+playerGame %>% 
+    filter(PLAYERID %in% players) %>% 
+    arrange(gameDate) %>% 
+    group_by(PLAYERID) %>% 
+    mutate(cummins=cumsum(mins)) %>% 
+    plot_ly(x=~gameDate,y=~cummins, color=~name) %>% 
+    add_lines() %>% 
+    layout(title="Cumulative EPL Minutes played by Leading Players",
+           xaxis=list(title=""),
+           yaxis=list(title="Cumulative Minutes '000")) %>%  config(displayModeBar = F,showLink = F)
+           
+
+```
+  _NB Prior to 1999/2000 substitution times are estimated_
+  
+  Gareth Barry inherited the honour of most minutes played in the Premier League last December - and from David James not Ryan Giggs.     
+  Barry may set a record that will last for a very long time. He is still a regular at WBA. His closest contender from the crop of current players, Michael Carrick, trails him by around 15,000 minutes; is the same age; and has yet to play a minute of league football thi season
+  
+  
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6332897-xg-ogs-and-cliff-richard-s-greatest-hits/embed/v4?eid=AQAAAHOJylnhoWAA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6333277-the-oumar-niasse-appreciation-edition-football-weekly/embed/v4?eid=AQAAAEiJylldo2AA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-09-19"&gameDate<="2017-09-26") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-09-26") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+***
+
+## Final Factoid
+
+<p class="factoid">Gareth Barry also holds the record for outfielder with the most complete games, 525.
+Only goalkeepers, David James(567) and Mark Schwarzer(513) also make the 500 club </p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offer
+ 

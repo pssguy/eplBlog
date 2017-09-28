@@ -21,7 +21,7 @@ banner: "banners/plotlyFunctions.PNG"
 
 Amongst interactive chart options for R, plotly (aided by its wrapper function for ggplot2) is the pre-eminent, interactive chart 
 
-![](img/cranPlots.png)
+![](/img/cranPlots.png)
 
  
 
