@@ -15,6 +15,8 @@ images: []
 menu: ''
 ---
 
+_NB This is a revamp of a previous post_
+
 The World Bank is a great source of economic and social data.  A couple of years ago, I created a [shiny app](https://mytinyshinys.shinyapps.io/worldBank/) which still appears to work!
 
 ![](/img/myWorldBank.png)
@@ -36,6 +38,8 @@ knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
 
 library(tidyverse)
 library(plotly)
+library(leaflet)
+library(stringr)
 
 library(data360r)
 
@@ -50,19 +54,155 @@ The get_metadata360() function downloads the requested TC/Govdata360 metadata, s
  * 'indicators' == Lists metadata for all indicators. Does not return actual data.
  * 'datasets' == Lists metadata for all datasets.
  
-```{r}
-## get all and 
-(df_indicators <- get_metadata360(metadata_type = "indicators"))
+### datasets 
 
+In addition to  World Bank datasets, many others have been incorporated into the API. Click on link to get to the releavant organization's web page
 
+```{r datasets}
 
-# above uses list colums for time frame and vizualizations 
+df_datasets <- get_metadata360(metadata_type = 'datasets')
 
-#get all country metadata in TCdata360
-#(df_countries <- get_metadata360(metadata_type = 'countries')) #217x13 inc some landlocked countrues which is bit of surprise
-
-#get all dataset metadata in TCdata360
-#(df_datasets <- get_metadata360(metadata_type = 'datasets')) #82x7 not just world bank as sourcs
+df_datasets  %>% 
+  #mutate(sourceLink = paste0("<a href=', link, "\" target=\"_blank\">", source, '</a>")) 
+  mutate(sourceLink = paste0("<a href=", link,">", source, "</a>")) %>% 
+  arrange(source) %>% 
+  select(dataset_id=id,sourceLink)%>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,escape=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
 
 ```
+
+
  
+ 
+### Indicators
+ 
+```{r indicators}
+## get all and 
+
+
+df_indicators <- get_metadata360(metadata_type = "indicators")
+
+glimpse(df_indicators)
+
+df_indicators %>%
+  select(id,name,valueType,dateRange) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))                                 
+
+```
+
+There are more than 2500 indicators. There are 16 variables in all including a length definition. The table lists is an easy way of searching
+For instance, entering "tourism" will show that some  eg the 2469* datasets are a handy reprocessing of the same basic data 
+
+### Countries
+
+The countries data includes some interesting basic data. One thing new to me is that the geo variable (providing lng and lat for each capital city) is a data.frame but in View() form they are split geo.lat & geo.lng
+
+I have used the leaflet package to map capital cities
+
+```{r countries}
+
+df_countries <- get_metadata360(metadata_type = 'countries')
+
+glimpse(df_countries)
+
+df_countries %>% 
+  leaflet() %>% 
+  addProviderTiles(provider = "CartoDB.Positron") %>% 
+  addCircles(lng = ~geo$lng,lat = ~geo$lat,
+             label= ~paste0(capitalCity,", ",name)
+  )
+
+```
+
+
+In addition, there to the get_metadata360() function, there are also `get_resources360() and search_360() functions which may prove invaluable
+
+***
+
+## Example
+
+Let's take a look at World Governance Indicators. Clicking on the link in the table will lead you to details of methodology etc. but for purposes of illustration of the package, the image below gives a broad overview
+
+![](/img/governanceIndicator.PNG)
+
+We can now utilize the war-horse, get_data360 function. We can save a bit of processing by calling for the data in 'long', tidy format
+```{r}
+
+
+df <- get_data360(dataset_id = 51, output_type = "long")
+
+tail(df,10)
+```
+
+As can be seen, for each country/year combo there are sub-indicators which provides both the estimate (over a range -2.5 to +2.5) for each indicator, a degree of its potential error and equivalent data for its rank. So here for example, at best, Zimbabwe would fall in the lowest 11% for Rule of Law in 2015
+
+Let's see how the estimate varies over time
+
+```{r zimbabwe}
+
+df %>% 
+  filter(`Country Name`=="Zimbabwe"&Indicator=="Rule of law score (-2.5 to 2.5)"&`Subindicator Type`=="Estimate") %>% 
+  mutate(Year=as.integer(as.character(Period))) %>% 
+  plot_ly(x=~Year,y=~Observation,
+          hoverinfo="text",
+          text="") %>% 
+  add_lines()
+
+```
+
+
+ Zimbabwe has never been famed for it's governance but after increasing poverty in the 1990's opposition to President Mugabe's rule and proposals to exten his power grew. This was met by governement intimidation so that by 2009 Zimbabwe was in the lowest 1 percentile for this indicator
+ 
+### Overall Indicators
+ 
+ The indicators are likely to be closely correlated but let's just group them together for the latest year available 2015
+ This requires a fair amount of data carpentry
+ 
+```{r}
+
+
+
+df %>% 
+    # Reduce to required data
+  filter(Period=="2015"&`Subindicator Type`=="Estimate") %>% 
+    # Remove extraneous info
+    mutate(Indicator=str_sub(Indicator,1,-21)) %>% 
+    # amend name and limit data
+    select(Country=`Country Name`,Indicator,Observation) %>% 
+    # transform to wide format
+    spread(Indicator,Observation) %>% 
+    # Calculatea an overall score, reduce field lengths and rank countries accordingly
+    mutate(meanIndicator=rowMeans(.[2:7],na.rm=TRUE)) %>% 
+    mutate_if(is.numeric,round,2) %>%
+    arrange(desc(meanIndicator)) %>% 
+    mutate(Rank=row_number()) %>% 
+    arrange(Rank) %>% 
+    select(Rank,Country,Corruption:`Voice & accountability`)%>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+``` 
+
+
+It would also be interesting to map this
+
+```{r map}
+
+pal <- colorNumeric("viridis", domain = mapdf$Rank, reverse=TRUE)
+
+mapdf %>% 
+   leaflet() %>% 
+   addProviderTiles(provider = "CartoDB.Positron") %>% 
+   addPolygons(
+     label= ~paste(Rank,name_long),
+               opacity= 0.3,
+               color = ~ pal(Rank)
+   ) %>% 
+  addLegend("bottomleft", 
+              pal = pal, 
+              values = ~ Rank,
+              title = "Overall Rank of Six <br> World Governance Indicators",
+              opacity = 0.5)
+
+```
+
+This probably makes sense as a shiny app
