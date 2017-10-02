@@ -17,17 +17,18 @@ menu: ''
 
 _NB This is a revamp of a previous post_
 
-The World Bank is a great source of economic and social data.  A couple of years ago, I created a [shiny app](https://mytinyshinys.shinyapps.io/worldBank/) which still appears to work!
+The World Bank is a great source of economic and social data.  A couple of years ago, I used it to create a [shiny app](https://mytinyshinys.shinyapps.io/worldBank/) which still appears to work!
 
 ![](/img/myWorldBank.png)
 
-Earlier this year, the World Bank launched a new open data platform which collates more than 2000 indices from 40+ data sources many external to the World Bank
+Earlier this year, the World Bank launched a new open data platform which collates more than 2000 indices from 40+ data sources many external to the World Bank    
+
 Even better, there is now an R package [data360r](https://github.com/mrpsonglao/data360r) to access the API and deliver data in a tidy format. [Reg Onglao](Reg Onglao) is its author and maintainer and she has written an introductory blog post on the [World Bank Site](http://blogs.worldbank.org/opendata/introducing-data360r-data-power-r#comment-4262). There are further examples on github. The package also provides access to [Governance Global Practice indices](https://govdata360.worldbank.org/)
 
 Rummage around on the World Bank site for access to thousands of reports and explanations for how the data is collected
 
  
-Let's take it for a ride
+Let's take it for a ride. These are packages that I will use
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
@@ -40,6 +41,8 @@ library(tidyverse)
 library(plotly)
 library(leaflet)
 library(stringr)
+library(sf)
+library(viridisLite)
 
 library(data360r)
 
@@ -48,26 +51,37 @@ library(data360r)
 
 ## metadata
 
-The get_metadata360() function downloads the requested TC/Govdata360 metadata, such as:
+The get_metadata360() function downloads the requested TC/Govdata360 metadata, including:
 
- * 'countries' == Lists metadata for all countries and regions.
- * 'indicators' == Lists metadata for all indicators. Does not return actual data.
  * 'datasets' == Lists metadata for all datasets.
+ * 'indicators' == Lists metadata for all indicators. Does not return actual data.
+ * 'countries' == Lists metadata for all countries and regions.
  
-### datasets 
+This will give us a good handle on what is available 
+ 
+### Datasets 
 
-In addition to  World Bank datasets, many others have been incorporated into the API. Click on link to get to the releavant organization's web page
+In addition to  World Bank datasets, many others have been incorporated into the API. Click on any link to get to a  web page of the relevant organization
 
 ```{r datasets}
 
 df_datasets <- get_metadata360(metadata_type = 'datasets')
 
-df_datasets  %>% 
-  #mutate(sourceLink = paste0("<a href=', link, "\" target=\"_blank\">", source, '</a>")) 
-  mutate(sourceLink = paste0("<a href=", link,">", source, "</a>")) %>% 
-  arrange(source) %>% 
-  select(dataset_id=id,sourceLink)%>%
-                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,escape=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+df_datasets  %>%
+#mutate(sourceLink = paste0("<a href=', link, "\" target=\"_blank\">", source, '</a>"))
+mutate(sourceLink = paste0("<a href=", link, ">", source, "</a>")) %>%
+arrange(source) %>%
+select(dataset_id = id, sourceLink) %>%
+DT::datatable(
+class = 'compact stripe hover row-border order-column',
+rownames = FALSE,
+escape = FALSE,
+options = list(
+paging = TRUE,
+searching = TRUE,
+info = FALSE
+)
+)
 
 ```
 
@@ -80,22 +94,31 @@ df_datasets  %>%
 ## get all and 
 
 
+
 df_indicators <- get_metadata360(metadata_type = "indicators")
 
 glimpse(df_indicators)
 
 df_indicators %>%
-  select(id,name,valueType,dateRange) %>% 
-                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))                                 
+select(id, name, valueType, dateRange) %>%
+DT::datatable(
+class = 'compact stripe hover row-border order-column',
+rownames = FALSE,
+options = list(
+paging = TRUE,
+searching = TRUE,
+info = FALSE
+)
+)                                 
 
 ```
 
-There are more than 2500 indicators. There are 16 variables in all including a length definition. The table lists is an easy way of searching
-For instance, entering "tourism" will show that some  eg the 2469* datasets are a handy reprocessing of the same basic data 
+There are more than 2500 indicators. There are 16 variables in all including a lengthy definition. The table above is an easy way of searching
+For instance, entering "tourism" will show that some  eg the 2469* datasets include a handy reprocessing of the same underlying data 
 
 ### Countries
 
-The countries data includes some interesting basic data. One thing new to me is that the geo variable (providing lng and lat for each capital city) is a data.frame but in View() form they are split geo.lat & geo.lng
+The countries data includes some interesting basic data. One thing new to me is that the geo variable (providing lng and lat for each capital city) is a data.frame but in View() form they are split into geo.lat & geo.lng
 
 I have used the leaflet package to map capital cities
 
@@ -105,17 +128,20 @@ df_countries <- get_metadata360(metadata_type = 'countries')
 
 glimpse(df_countries)
 
-df_countries %>% 
-  leaflet() %>% 
-  addProviderTiles(provider = "CartoDB.Positron") %>% 
-  addCircles(lng = ~geo$lng,lat = ~geo$lat,
-             label= ~paste0(capitalCity,", ",name)
-  )
+df_countries %>%
+leaflet() %>%
+addProviderTiles(provider = "CartoDB.Positron") %>%
+addCircles(
+lng = ~ geo$lng,
+lat = ~ geo$lat,
+label = ~ paste0(capitalCity, ", ", name)
+)
 
 ```
 
+***
 
-In addition, there to the get_metadata360() function, there are also `get_resources360() and search_360() functions which may prove invaluable
+In addition to the get_metadata360() function, there are also `get_resources360() and search_360() functions which to help explore the datasets
 
 ***
 
@@ -123,9 +149,9 @@ In addition, there to the get_metadata360() function, there are also `get_resour
 
 Let's take a look at World Governance Indicators. Clicking on the link in the table will lead you to details of methodology etc. but for purposes of illustration of the package, the image below gives a broad overview
 
-![](/img/governanceIndicator.PNG)
+![](/img/governanceIndicator.png)
 
-We can now utilize the war-horse, get_data360 function. We can save a bit of processing by calling for the data in 'long', tidy format
+We can now utilize the war-horse, get_data360 function with the appropriate id, 51. We can save a bit of processing by calling for the data in 'long', tidy format
 ```{r}
 
 
@@ -136,7 +162,7 @@ tail(df,10)
 
 As can be seen, for each country/year combo there are sub-indicators which provides both the estimate (over a range -2.5 to +2.5) for each indicator, a degree of its potential error and equivalent data for its rank. So here for example, at best, Zimbabwe would fall in the lowest 11% for Rule of Law in 2015
 
-Let's see how the estimate varies over time
+Let's see how this 'Rule of Law' estimate varies over time
 
 ```{r zimbabwe}
 
@@ -151,7 +177,7 @@ df %>%
 ```
 
 
- Zimbabwe has never been famed for it's governance but after increasing poverty in the 1990's opposition to President Mugabe's rule and proposals to exten his power grew. This was met by governement intimidation so that by 2009 Zimbabwe was in the lowest 1 percentile for this indicator
+ Zimbabwe has never been famed for it's governance but after increasing poverty in the 1990's opposition both to President Mugabe's rule and proposals to further extend his power grew. This was met by governement intimidation so that by 2009 Zimbabwe was in the lowest 1 percentile for this indicator
  
 ### Overall Indicators
  
@@ -161,48 +187,88 @@ df %>%
 ```{r}
 
 
+# create a distinct data.frame as it will be used for both table and map
+df_2015 <- df %>%
+# Reduce to required data
+filter(Period == "2015" & `Subindicator Type` == "Estimate") %>%
+# Remove extraneous info
+mutate(Indicator = str_sub(Indicator, 1, -21)) %>%
+# amend name and limit data
+select(Country = `Country Name`, Indicator, Observation, iso3 = `Country ISO3`) %>%
+# transform to wide format
+spread(Indicator, Observation) %>%
+# Calculatea an overall score, reduce field lengths and rank countries accordingly
+mutate(meanIndicator = rowMeans(.[3:8], na.rm = TRUE)) %>%
+mutate_if(is.numeric, round, 2) %>%
+arrange(desc(meanIndicator)) %>%
+mutate(Rank = row_number()) %>%
+arrange(Rank)
 
-df %>% 
-    # Reduce to required data
-  filter(Period=="2015"&`Subindicator Type`=="Estimate") %>% 
-    # Remove extraneous info
-    mutate(Indicator=str_sub(Indicator,1,-21)) %>% 
-    # amend name and limit data
-    select(Country=`Country Name`,Indicator,Observation) %>% 
-    # transform to wide format
-    spread(Indicator,Observation) %>% 
-    # Calculatea an overall score, reduce field lengths and rank countries accordingly
-    mutate(meanIndicator=rowMeans(.[2:7],na.rm=TRUE)) %>% 
-    mutate_if(is.numeric,round,2) %>%
-    arrange(desc(meanIndicator)) %>% 
-    mutate(Rank=row_number()) %>% 
-    arrange(Rank) %>% 
-    select(Rank,Country,Corruption:`Voice & accountability`)%>%
-                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+df_2015 %>%
+select(Rank, Country, Corruption:`Rule of law`, Voice = `Voice & accountability`) %>%
+DT::datatable(
+class = 'compact stripe hover row-border order-column',
+rownames = FALSE,
+options = list(
+paging = TRUE,
+searching = TRUE,
+info = FALSE
+)
+)
 
 ``` 
-
+_N.B. +2.5 is best score, -2.5 lowest_
 
 It would also be interesting to map this
 
+We do not currently have any country shapefile information in the data but this can be provided from the sf package. We can then join it via df_countries iso3 filed to our indicator data.frame, df2015
+
+They are colored with the viridis scale which renders well in balck and white and can be perceived by 
+those who have most common forms of color blindness
+
 ```{r map}
 
-pal <- colorNumeric("viridis", domain = mapdf$Rank, reverse=TRUE)
+# collect shapefiles and rename variable for easier join
+world <-
+st_read(system.file("shapes/world.gpkg", package = "spData")) %>%
+mutate(iso2 = as.character(iso_a2))
+# class(world) [1] "sf"         "data.frame"
 
-mapdf %>% 
-   leaflet() %>% 
-   addProviderTiles(provider = "CartoDB.Positron") %>% 
-   addPolygons(
-     label= ~paste(Rank,name_long),
-               opacity= 0.3,
-               color = ~ pal(Rank)
-   ) %>% 
-  addLegend("bottomleft", 
-              pal = pal, 
-              values = ~ Rank,
-              title = "Overall Rank of Six <br> World Governance Indicators",
-              opacity = 0.5)
+
+
+df_2015 <- df_2015 %>%
+left_join(df_countries, by = c("iso3" = "iso3"))
+
+
+map_df <- world %>%
+left_join(df_2015)
+
+# Use a color scale that
+pal <- colorNumeric("viridis", domain = map_df$Rank, reverse = TRUE)
+
+map_df %>%
+leaflet(options = leafletOptions(minZoom = 2)) %>%
+addProviderTiles(provider = "CartoDB.Positron") %>%
+
+addPolygons(
+label = ~ paste(Rank, name_long),
+opacity = 0.3,
+color = ~ pal(Rank)
+) %>%
+addLegend(
+"bottomleft",
+pal = pal,
+values = ~ Rank,
+title = "Overall Rank of Six <br> World Governance Indicators",
+opacity = 0.5
+)
 
 ```
+Pan, zoom and hover for Country Ranking
 
-This probably makes sense as a shiny app
+It would make sense to create a shiny app for this data. It's on the list
+
+***
+
+Feel free to contact me if you have any questions or work offers
