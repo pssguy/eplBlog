@@ -3,12 +3,7 @@ title: User2017- padr package example
 author: Andrew Clark
 date: '2017-07-19'
 slug: user2017-padr
-categories: []
-tags: []
-banner: "banners/padr.PNG"
-description: ''
-images: []
-menu: ''
+banner: banners/padr.PNG
 ---
 
 Of course, it is not the same as actually being there, but as a good fall-back the videos of the talks for the R User 2017 conference are now available on [channel 9](https://channel9.msdn.com/Events/useR-international-R-User-conferences/).    

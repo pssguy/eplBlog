@@ -1,7 +1,7 @@
 ---
 title: World Bank Data with data360r
 author: Andrew Clark
-date: '2017-09-21'
+date: '2017-09-29'
 slug: data360r
 categories:
   - economics
@@ -23,7 +23,7 @@ The World Bank is a great source of economic and social data.  A couple of years
 
 Earlier this year, the World Bank launched a new open data platform which collates more than 2000 indices from 40+ data sources many external to the World Bank    
 
-Even better, there is now an R package [data360r](https://github.com/mrpsonglao/data360r) to access the API and deliver data in a tidy format. [Reg Onglao](Reg Onglao) is its author and maintainer and she has written an introductory blog post on the [World Bank Site](http://blogs.worldbank.org/opendata/introducing-data360r-data-power-r#comment-4262). There are further examples on github. The package also provides access to [Governance Global Practice indices](https://govdata360.worldbank.org/)
+Even better, there is now an R package [data360r](https://tcdata360.worldbank.org/tools/data360r) to access the API and deliver data in a tidy format. [Reg Onglao](Reg Onglao) is its author and maintainer and she has written an introductory blog post on the [World Bank Site](http://blogs.worldbank.org/opendata/introducing-data360r-data-power-r#comment-4262). There are further examples on github. The package also provides access to [Governance Global Practice indices](https://govdata360.worldbank.org/) and the World Bank Group's [Trade & Competitiveness Global Practice data](https://tcdata360.worldbank.org/)
 
 Rummage around on the World Bank site for access to thousands of reports and explanations for how the data is collected
 

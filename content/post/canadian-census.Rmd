@@ -2,13 +2,15 @@
 title: Canadian Census
 author: Andrew Clark
 date: '2017-09-13'
+categories:
+  - community
+  - opendata
+  - maps
+  - packages
+tags:
+  - cancensus
 slug: canadian-census
-categories: []
-tags: []
-banner: "banners/canCensus_1.png"
-description: ''
-images: []
-menu: ''
+banner: banners/canCensus_1.png
 ---
 
  A few weeks ago I did a post on the [StatCan API](https://www.mytinyshinys.com/2017/08/09/statcanapi/)
@@ -40,7 +42,7 @@ Load up libraries and API key
 
 # In beta so probably worth running each time
 #devtools::install_github("mountainmath/cancensus")
-library(cancensus)
+library(cancensus) #0.1.0
 library(tidyverse)
 library(plotly)
 library(leaflet)

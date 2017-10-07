@@ -105,7 +105,7 @@ standings %>%
 
 ```
 
-_N.B For this year, 'Final Pos' refers to current standings
+_N.B For this year, 'Final Pos' refers to current standings_
 
 Several interesting observations can be taken from this table
 

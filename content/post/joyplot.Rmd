@@ -12,6 +12,22 @@ slug: weather-plots
 banner: "banners/usaWeather.PNG"
 ---
 
+_There are issues with packages in this post. Here are author comments_
+  
+1. weatherData
+  
+ "All, yes looks like WU is no longer making it easy to get CSV files without API's. If anyone figures out a URL for directly fetching CSV's, I will modify the package. But until then, we are stuck"
+ 
+2. ggjoy
+
+ "All code has been moved over to package ggridges. As of this version, ggjoy
+  simply calls ggridges and re-exports relevant functions under the old name."
+  
+I will revamp the code, including the shiny app if and when weatherData becomes operational again
+However, you my still find some of the code techniques of value
+
+***
+
 Over the past week or so, there has been quite the buzz about the [ggjoy package](https://github.com/clauswilke/ggjoy) from [Claus Wilkie](https://twitter.com/ClausWilke)
 
 As he states
