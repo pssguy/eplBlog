@@ -1,0 +1,165 @@
+---
+title: Searching Stack Overflow
+author: Andrew Clark
+date: '2017-10-10'
+slug: searching-stack-overflow
+categories:
+  - API
+  - community
+  - flexdashboard
+tags:
+  - anytime
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+Rstudio has recently launched a community site and it seems to be providing a great forum already. One of the topics with over 60 contributions
+is [Choosing between this sitre and StackOverflow for posting a question](https://community.rstudio.com/t/choosing-between-this-site-and-stackoverflow-for-posting-a-question/1151/53)    
+
+ As long threads tend to do, it went off at a bit of a tangent and following a comment I made, [Edward Visel](https://twitter.com/alistaire) produced some code for reporting on recent posts on 'tidyverse which I have generalized into a shiny app - shown below.
+ 
+ Just enter some tags (or use the default) and press the button. A table should be returned almost immediately
+ 
+ 
+ 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+knitr::include_app("https://mytinyshinys.shinyapps.io/stackoverflowflexdb", 
+  height = "1200px")
+```
+
+
+
+
+Although the app has the code embedded, I thought it would be worthwhile to just go through it - for me to reference back to if nothing else    
+ First load libraries
+
+```{r setup, eval=FALSE}
+
+library(tidyverse)
+library(DT)
+
+library(lubridate)
+library(anytime)
+library(markdown)
+
+
+```
+
+
+## Inputs
+
+The [Stack overflow API](https://api.stackexchange.com/docs/search#fromdate=2017-09-27&order=desc&sort=votes&tagged=broom%3Bdplyr%3Bforcats%3Bggplot2%3Bhaven%3Bhttr%3Bjsonlite%3Blubridate%3Bmagrittr%3Bmodelr%3Bpurrr%3Breadr%3Breadxl%3Brstudio%3Bstringr%3Btibble%3Brvest%3Btidyr%3Bxml2%3Btidyverse%3Brlang&filter=default&site=stackoverflow&run=true) offers paramters such as tags, title text and time period. If you want more on who asked and answered questions you may be able to do some scraping - but I have not investigated that
+
+I have included a numericInput with nominal values, a textInput field for tags and a dateRange; with an action button to call the data These inputs are sandwiched between a small amount of explanatory text 
+
+```{r inputs, eval=FALSE}
+includeMarkdown("stackOverflow.md")
+hr()
+numericInput(inputId="obs", label="Observations:", value=50, min = 10, max = 100, step=10, width=100)
+
+textInput(inputId="tags", label="Tags - separate with semi-colon", value="tidyverse", width = 300,
+          placeholder="You need to enter something e.g. python")
+dateRangeInput(inputId="daterange", label="Date Range", start = Sys.Date()-7, end = Sys.Date(), min = NULL,
+  max = Sys.Date(), format = "yyyy-mm-dd", startview = "month", weekstart = 0,
+  language = "en", separator = " to ", width = NULL)
+actionButton("button", "OK I'm Good")
+hr()
+includeMarkdown("credit.md")
+
+
+```
+
+## Processing
+
+This code is activated whenver the input button is pressed. If the tidyverse tag is included, all 20 packages included within it are searched for. The parameters are passed to the API with the dates coerced to unix epoch time, which is the number of seconds since midnight UTC January 1st, 1970.
+
+```{r data_processing, eval=FALSE}
+
+
+query <- eventReactive(input$button,{
+ 
+  # split up the tidyverse packages
+  if(input$tags=="tidyverse") {
+    theTags <- paste(tidyverse_packages(), collapse = ';')
+  } else{
+    theTags <- input$tags
+  }
+  
+ 
+  
+ top_so <- function() {
+    response <- httr::GET('https://api.stackexchange.com/2.2/', 
+                          path = 'search',
+                          query = list(
+                                       pagesize = input$obs,
+                                       fromdate = as.integer(lubridate::as_datetime(input$daterange[1])),
+                                       todate = as.integer(lubridate::as_datetime(input$daterange[2])),
+                                       order = 'desc',
+                                       sort = 'creation',
+                                       tagged = theTags,
+                                       site = 'stackoverflow'))
+    content <- httr::content(response)
+    content %>% 
+        pluck('items') %>% # restrict processing to the 'items' list
+        map(~splice(.x[-2], set_names(.x$owner, ~paste0('owner_', .x)))) %>% # add an 'owner_' prefix to all names within the owner list
+        transpose() %>% #now all owner_reputations etc. are in a list
+        modify_depth(2, ~.x %||% NA_integer_) %>% # will change say nulls in owner_accept_rate to NA
+        simplify_all() %>% # collapses each list of vectors into one vector so that...
+        tibble::as_data_frame() #... a data frame can be produced
+}
+
+top_so()
+
+})
+
+```
+
+The returned object 'content' is a list of lists, including information on how much of the daily quota of calls to the API is available
+ 
+ What we are after is the 'items' list
+ 
+ ![](/img/SOCapture.png)
+
+The second part of the top_so() function is a standard method of creating a data.frame from a list - with an added wrinkle that here the main list, in this case 'items', has one of it's values, in this case, 'owner' also being a list
+
+
+## Tabular Output
+
+  The output is a swiftly-delivered searchable, sortable table.    
+  
+  The two points of interest in the code is the creation of a question variable, which links to 
+  the appropriate SO page and the use of the anydate() function from the anytime package to convert the numeric return
+  to the appropriate date
+
+
+```{r table, eval=FALSE}
+
+output$table <- renderDataTable({
+#All dates in the API are in unix epoch time, which is the number of seconds since midnight UTC January 1st, 1970.
+query() %>% 
+  mutate(question = paste0("<a href=", link, "\" target=\"_blank\">", title, "</a>")) %>%
+    mutate(created=anydate(creation_date)) %>% 
+  select(question,answered=is_answered,views=view_count,answers=answer_count,score,asker=owner_display_name,created) %>%
+  datatable(
+    class = 'compact stripe hover row-border order-column',
+    rownames = FALSE,
+    escape = FALSE,
+    options = list(
+    paging = TRUE,
+    searching = TRUE,
+    info = FALSE
+)
+)
+})
+
+dataTableOutput("table")
+
+```
+
+***
+
+This is the link to the [finished app](https://mytinyshinys.shinyapps.io/stackoverflowflexdb)

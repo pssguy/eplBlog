@@ -6,7 +6,7 @@ slug: epl2018-wk6
 categories:
   - eplWeekly
 tags: []
-banner: banners/wk6_2017.PNG
+banner: 'banners/wk6_2017.png'
 description: ''
 images: []
 menu: ''
