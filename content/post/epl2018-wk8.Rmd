@@ -1,0 +1,313 @@
+---
+title: EPL Week 8
+author: Andrew Clark
+date: '2017-10-17'
+slug: epl2018-wk8
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk8_2017.png'
+description: ''
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(vembedr) 
+ library(blogdown)
+# library(crosstalk)
+# 
+# library(htmltools)
+
+managers<- readRDS("data/soccer/managers.rds")
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## might want to build earlier
+managers[is.na(managers$Left),"Left"] <- as.Date(Sys.Date(), origin= '1970-01-01') #
+
+managerGame <-managers %>% 
+  mutate(name=paste(FirstName,Lastname)) %>% 
+  group_by(ManagerID,ManagerTeam) %>% 
+  inner_join(standings,by=c("TEAMNAME"="team")) %>% 
+  select(Lastname,FirstName,name,ManagerID,ManagerTeam,Joined,Left,TEAMNAME,gameDate,res,GF,GA,position) %>% 
+  filter(gameDate>=as.Date(Joined)&gameDate<=as.Date(Left)) %>% 
+  mutate(points=ifelse(res=="Win",3,ifelse(res=="Draw",1,0))) %>% 
+  ungroup()
+
+# ## manager selection
+# select <-managerGame %>% 
+#   select(name,ManagerID) %>% 
+#   arrange(name) %>% 
+#   unique()
+# 
+# managerChoice <- select$ManagerID
+# names(managerChoice) <- select$name
+
+```
+
+
+## Game of the week Crystal Palace 2 - 2 Chelsea
+
+Champions lose to previously goalless, pointless London rivals
+
+
+```{r topGame}
+
+embed_youtube("MuLTnBYuEWs", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+<!-- <div style="width: 100%; height: 0px; position: relative; padding-bottom: 56.250%;"><iframe src="https://www.youtube.com/watch?v=MuLTnBYuEWs" frameborder="0"  allowfullscreen style="width: 100%; height: 100%; position: absolute;"></iframe></div> -->
+
+
+<p class="factoid">Julian Speroni and Gareth McAuley made their first appearances of the season becoming the oldest player and oldest outfielder, respectively, to appear in this campaign</p>
+
+
+
+***
+
+## Mo's MO
+
+It is a well known that Jose Mourinho's modus operandi in away games against top sides is to play very conseravtively. It was not that succesful last season and although he got a point at Liverpool, the latter's poor defence was probably there for the taking against a team that had averaged three goals per game after seven rounds
+
+Jamie Redknapp mentioned that you don't expect many 3-2 victories from a Mourinho team.     
+
+ In fact, there have been six
+
+```{r}
+shortcode("tweet", "919708190715002881")
+```
+
+Well behind Sir Alex Fergsuon against whom all managers are measured and who has a marginally better overall win percentage (53-51)
+
+Let's look at a heatmaps of their results. Hover squares for totals
+
+```{r}
+
+
+temp <- managerGame %>%
+  filter(ManagerID=="MourinhoJ") %>%
+   mutate(combo=paste0(GF,GA)) %>%
+  group_by(combo) %>%
+  tally()
+
+
+allCombos <- expand.grid(
+  data.frame(GF=0:9,GA=0:9)
+) %>%
+  mutate(combo=paste0(GF,GA)) #still a df with 100vals
+
+test <- allCombos %>%
+  left_join(temp) %>% 
+  select(GF,GA,count=n)
+
+# need to transform
+Games <- t(matrix(test$count, nrow = 10, ncol = 10, byrow = TRUE,
+                  dimnames = list(unique(test$GF),
+                                  unique(test$GA))))
+
+
+plot_ly(x = unique(test$GF), y = unique(test$GF), z = Games, key = Games, hoverinfo="z",
+        colorscale='YIOrRd', reversescale=T,
+        type = "heatmap") %>%
+  layout(title="Mourinho Results by Goal Score",
+                xaxis = list(title = "Goals Against"), 
+         yaxis = list(title = "Goals For")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+
+```
+
+
+So his 23rd goalless stalemate. 2-0 victories (40) is narrowly the most common outcome
+
+
+
+```{r}
+
+
+temp <- managerGame %>%
+  filter(ManagerID=="FergusonA") %>%
+   mutate(combo=paste0(GF,GA)) %>%
+  group_by(combo) %>%
+  tally()
+
+
+allCombos <- expand.grid(
+  data.frame(GF=0:9,GA=0:9)
+) %>%
+  mutate(combo=paste0(GF,GA)) #still a df with 100vals
+
+test <- allCombos %>%
+  left_join(temp) %>% 
+  select(GF,GA,count=n)
+
+# need to transform
+Games <- t(matrix(test$count, nrow = 10, ncol = 10, byrow = TRUE,
+                  dimnames = list(unique(test$GF),
+                                  unique(test$GA))))
+
+plot_ly(x = unique(test$GF), y = unique(test$GF), z = Games, key = Games, hoverinfo="z",
+        colorscale='YIOrRd', reversescale=T,
+        type = "heatmap") %>%
+  layout(title="Ferguson Results by Goal Score",
+    xaxis = list(title = "Goals Against"), 
+         yaxis = list(title = "Goals For")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+
+
+```
+
+Interestingly, 1-0 victories is the only result that topped the century mark but 0-0 draws were relatively less commonplace that with Mourinho 
+
+***
+
+## City on the Rampage
+
+Meanwhile, United's cross-city rivals continue apace with only their second-ever sevon goal haul in the Premier League (7-0 v Norwich 2103/4) and now boast the most ever goals scored after eight rounds
+
+```{r}
+
+
+prev <- standings %>% 
+  filter(tmYrGameOrder<=8&season<"2017/18") %>% 
+  select(team,tmYrGameOrder,season,cumGF) %>% 
+  arrange(season,tmYrGameOrder) %>% 
+  group_by(season,team)
+
+current <- standings %>% 
+  filter(tmYrGameOrder<=8&season=="2017/18") %>% 
+  select(team,tmYrGameOrder,season,cumGF) %>% 
+  arrange(season,tmYrGameOrder) %>% 
+  group_by(season,team)
+
+manC <- standings %>% 
+  filter(tmYrGameOrder<=8&season=="2017/18"&team=="Man. City") %>% 
+  select(team,tmYrGameOrder,season,cumGF) %>% 
+  arrange(season,tmYrGameOrder) %>% 
+  group_by(season,team)
+
+prev %>%        
+plot_ly(x=~tmYrGameOrder,y=~cumGF,
+        hoverinfo="text",
+        text=~paste0(team,"<br>",season,"<br>",
+                     cumGF," goals")) %>% 
+  add_lines(color=I("lightgrey"), name="Prev Years") %>% 
+  add_lines(data=current,x=~tmYrGameOrder,y=~cumGF,color=I("red"),name="2017/18") %>% 
+  add_lines(data=manC,x=~tmYrGameOrder,y=~cumGF,color=I("blue"),name="Man City 17/18") %>% 
+  layout(title="Goals for by team by Year",
+         xaxis=list(title="Games played"),
+         yaxis=list(title="Cumulative Goals")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+```
+
+Everton (2005/06) now replace Palace as the lowest scorers at this stage of the season. The Toffees had finished 4th the previous campaign
+
+
+***
+
+<p class="factoid">After 8 League games, City have already scored as many goals as 16 teams have managed after 38 matches in previous EPL campaigns - including their team of 2006/07</p>
+
+***
+
+## Arsenal conceding
+
+Courtesy of a 90th minute strike by Watford's Cleverley, Arsenal(26) now only have Crystal Palace(29) ahead of them in terms of conceding the most EPL goals in 2017
+
+```{r}
+standings %>% 
+  filter(venue=="A") %>% 
+  select(gameDate,GA,team) %>% 
+  mutate(year=str_sub(gameDate,1,4)) %>% 
+  group_by(year,team) %>% 
+  summarise(tot=sum(GA)) %>% 
+  arrange(desc(tot)) %>% 
+  filter(team=="Arsenal") %>% 
+  plot_ly(x=~year,y=~tot,color=I("red")) %>% 
+  layout(title="Arsenal goals conceded by calendar year",
+         xaxis=list(title=""),
+         yaxis=list(title="Goals conceded")) %>%  config(displayModeBar = F,showLink = F)
+         
+```
+
+1992 and 2017(at the time of writing) are part years
+
+Up to and including 2007, Arsenal conceded 20 away goals in only two years. Since then, they have only dipped below this level once.       
+2011 included an 8-2 drubbing at Old Trafford
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6398477-stoke-enter-city-s-seventh-circle-of-swell/embed/v4?eid=AQAAAFMy7lkNomEA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6398652-from-zaha-to-mourinho-the-premier-league-happiness-index-football-weekly/embed/v4?eid=AQAAANsx7lm8omEA" title="audioBoom player"></iframe>
+
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-10-02"&gameDate<="2017-10-17") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-10-17") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">de Bruyne was withdrawn after 66 minutes with 4 assists - one shy of the EPL record</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

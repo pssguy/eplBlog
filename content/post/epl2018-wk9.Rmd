@@ -1,0 +1,263 @@
+---
+title: EPL week 9
+author: Andrew Clark
+date: '2017-10-27'
+slug: epl2018-wk9
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk9_2017.png'
+description: ''
+images: []
+menu: ''
+---
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(vembedr) 
+ library(blogdown)
+library(lubridate)
+# library(crosstalk)
+# 
+# library(htmltools)
+
+managers<- readRDS("data/soccer/managers.rds")
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+summary<- readRDS("data/soccer/summary.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+
+
+```
+
+
+## Match of the Day
+
+Sunday games rule; as Arsenal consign Koeman to the dustbin and Klopp may start to worry
+
+
+```{r topGame}
+
+embed_youtube("BggJS6xh2JE", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+## Managers Out
+
+There have already been three dismissals with less than a quarter of the season gone
+
+1. Crystal Palace: de Boer  - not matching playing styles to player skills
+2. Leicester City: Shakespeare - board were reluctant in first place
+3. Everton: Koeman - poor results after big summer spending spree
+
+Given that all the promoted clubs have performed well, several others will be nervous
+
+1. Stoke - Mark Hughes's team are 17th and have conceded most in the division
+2. West Ham - Bilic's team look disorganized. Defeat at Palace next time out could be it
+3. WBA - Pulis team have 2 wins in 18 EPL games, both 1-0
+4. Liverpool - Klopp's team are no better off than when Rodger's was sacked two years ago and glaring defensive         deficiencies have not been addressed
+
+How do the dismissals compare with previous seasons
+  
+```{r}
+
+
+temp <-managers %>% 
+  filter(is.na(Caretaker)&Left!=("2017-10-23")) %>% 
+  mutate(year=year(Left),month=month(Left),day=day(Left),name=paste0(FirstName,Lastname)) %>% 
+  select(ManagerID,TeamID,name,year,month,day,Left) %>% 
+  filter(month %in% 8:9|(month==10&day<24)) %>% 
+  group_by(year) %>% 
+  arrange(Left) %>% 
+  mutate(order=row_number())
+
+temp %>% 
+  count(year) %>% 
+  plot_ly(x=~year,y=~n) %>% 
+  add_bars(color=I("lightblue")) %>%  config(displayModeBar = F,showLink = F)
+    
+
+
+```
+
+So higher than average but not exceptional. The most recent time when four had recived their marching orders was in 2004/5. Houllier (Liverpool) and Ranieiri (Chelsea) were big names to go in the summer break and Sturrock (Southampton), Robson (Newcastle), Souness (Blackburn) and Adams (Leicester) were also out by this time of the season
+
+The cull did not end there, as Megson (WBA), Jones (Wolves), Santini (Spurs), Redknapp( Portsmouth) and Wigley (Southampton again) were also out by Christmas. Fully half the division had new managers
+
+***
+
+It has been well-documented that Everton's summer spending was high on No 10's (Sigurdsson, Rooney and Klaassen) and low on goal-scorers - Lukaku and B arkley were their 1-2 scorers in each of the past two seasons
+
+However, the age distribution of players is also out of whack
+
+```{r age_everton}
+
+ages <-summary %>% 
+  filter(season=="2017/18"&PLAYERID!="OWNGOAL") %>% 
+  mutate(age=(Sys.Date()-born)/365.25) %>% 
+  select(name,TEAMNAME,mins,age)
+  
+ages %>% 
+  filter(TEAMNAME=="Everton") %>% 
+  plot_ly(x=~age,y=~mins,
+          hoverinfo="text",
+          text=~paste0(name,"<br>Age: ",round(age,0),
+                       "<br>Mins: ",mins)) %>% 
+  layout(xaxis=list(title="Age"),
+         yaxis=list(title="Minutes Played this Season")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+```
+_NB This data will change as the season progresses_
+
+They are a mix of promising youngsters and aging veterans with only Keane - of outfield regulars (top 11 in minutes played) - in the sweet 24-27 age range
+
+They also lead the division in regulars  who have turned 32, at the time of writing 
+
+```{r oldies}
+
+ages %>% 
+  arrange(desc(mins)) %>% 
+  group_by(TEAMNAME) %>% 
+  slice(1:11) %>% 
+  filter(age>32) %>% 
+  mutate(age=round(age,1)) %>% 
+  group_by(TEAMNAME) %>% 
+  select(player=name,team=TEAMNAME,age,mins) %>% 
+  
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = FALSE,info=FALSE))
+
+```
+
+
+***
+
+## Rooney of the Rovers
+
+
+<p class="factoid">If Rooney fails to create a goal in the first 8 minutes of his next league game, he will 
+record his longest ever stretch without an assist, 1455 minutes, going back to pre-Christmas 2016</p>
+
+On the other hand, he did score with a cracking shot from outside the area - reminiscent of his first ever-strike - also against Arsenal
+
+```{r rooney_goal}
+
+embed_youtube("E4dBWUjuCU0", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+It was his only goal against the soon-to-be-retired Seaman, but he has scored against a further 77 goalkeepers
+
+
+```{r rooney_goalies}
+
+## calc all goalies
+goalies <- playerGame %>% 
+  filter(str_sub(POSITION,1,1)=="G"&mins>0) %>% 
+  select(MATCHID,TEAMMATCHID,name,PLAYERID,gameDate,season)
+
+# link Rooney goals to goalies he has faces, summarize and plot
+playerGame %>% 
+  filter(mins>0) %>% 
+  left_join(goalies, by="MATCHID") %>% 
+  filter(TEAMMATCHID.x!=TEAMMATCHID.y)  %>% 
+  select(player=name.x,TEAMNAME,Gls,mins,gameDate=gameDate.x,PLAYERID.x,PLAYERID.y,goalie=name.y,Opponents,season=season.x) %>% 
+  group_by(player,PLAYERID.x,PLAYERID.y,goalie) %>% 
+  summarise(apps=n(),totMins=sum(mins),goals=sum(Gls)) %>% 
+  ungroup() %>% 
+  filter(PLAYERID.x=="ROONEYX") %>%
+  plot_ly(x=~totMins,y=~goals,
+          hoverinfo="text",
+          text=~paste0(goalie," (",goals,")",
+                      "<br>",totMins," mins" )) %>% 
+  layout(title="Rooney EPL goals by Opponent Goalie",
+         xaxis=list(title=("Minutes Played")),
+           yaxis=list(title="Goals scored")) %>%  config(displayModeBar = F,showLink = F)
+           
+
+
+
+```
+
+Hover points for details
+
+***
+
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6419937-koeman-and-everton-consciously-uncouple-is-bilic-next-for-the-chop/embed/v4?eid=AQAAADEy7lnh9WEA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6420384-koeman-given-the-chop-at-everton-and-lovren-thrown-under-the-bus-football-weekly/embed/v4?eid=AQAAAAcy7lmg92EA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-10-17"&gameDate<="2017-10-24") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-10-24") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">Manchester City already have six players with seven or more points (goals+assists). Eleven teams have none</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

@@ -1,0 +1,65 @@
+---
+title: Archer Memes
+author: Andrew Clark
+date: '2017-10-26'
+slug: archer-memes
+categories:
+  - packages
+  - entertainment
+tags:
+  - slickR
+  - meme
+banner: 'banners/archerMeme.png'
+description: ''
+images: []
+menu: ''
+---
+
+I have rather belatedly gotten around to viewing the adult animated series, [Archer](https://www.netflix.com/title/70171942), on Netflix. If you have not read up about the show, [wikipedia](https://en.wikipedia.org/wiki/Archer_(TV_series)) has good coverage and there is an in-depth viz project -[A data driven exploration of Archer](https://archervisualization.herokuapp.com/) - by [Mara Averick](https://twitter.com/dataandme) and [Elijah Meeks](https://twitter.com/Elijah_Meeks)
+
+
+The subtitles often shout-out for a meme and I have clipped several, initially from Series 1 Ep 6. One way of viewing them is in a carousel such of that of the recently developed package, [htmlwidget slickR](https://github.com/metrumresearchgroup/slickR), from the Metrum research group
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE)
+```
+
+All we have to do is collect the relevant files and apply the slickR() function
+
+I have 25 images in the carousel so it may take a time to process
+
+```{r}
+library(slickR)
+
+
+  archerFiles <- list.files("img/archerMemes", full.names = TRUE, pattern = "*.JPG")
+
+ slickR(obj=archerFiles, width= 650)
+ 
+ 
+  
+```
+
+Just cycle through to view
+
+Lots of them are standalone amusing, but the [meme package](https://github.com/GuangchuangYu/meme/) from
+[Guangchuang Yu](https://twitter.com/guangchuangyu) makes it easy to add some upper text
+
+```{r}
+
+library(meme)
+
+u <- "img/archerMemes/arousesMe.JPG"
+meme(u, upper="The thought of a tidyverse tutorial",color="blue", size=2)
+
+
+```
+
+There is a meme_save() function so that you can swiftly add the memed image to a tweet
+
+You can expect my tweets to be sprinkled with these from now on
+
+***
+
+Feel free to contact me if you have any questions or work offers
+

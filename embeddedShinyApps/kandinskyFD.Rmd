@@ -4,6 +4,9 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    social: [ menu ]
+    source_code: embed
+  
 runtime: shiny       
 ---
 
@@ -19,9 +22,10 @@ library(tidyverse)
 library(Lahman)
 library(kandinsky)
 library(glue)
+library(grDevices)
 
-# Font will only work if font installed (by default windows10)
-windowsFonts(xkcd=windowsFont("xkcd"))
+# Font will only work if font installed (by default windows10)- but looks better
+#windowsFonts(xkcd=windowsFont("xkcd"))
 
 ## construct batters select
 
@@ -71,16 +75,17 @@ selectInput("id","Choose or type in player",choices=playerChoice, selectize=TRUE
       pic <- df %>% 
       filter(playerID==input$id) %>% 
        select(-playerID) 
+      
+      
     # basic Image   
     kandinsky(pic)
     #Add Signature - bottom right
     grid.text(sig, x=0.8, y=0.1, rot=0,
-          gp=gpar(fontsize=20, col="black",fontfamily="xkcd"))
+          gp=gpar(fontsize=20, col="black")) # add if windows ,fontfamily="xkcd" 
      
      dev.off()
      
-    # pic <- NULL didnt help
-
+   
     # Return a list
     list(src = outfile,
          alt = "This is alternate text")

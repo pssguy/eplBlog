@@ -55,6 +55,7 @@
   + [CRAN Task Views](https://cran.r-project.org/web/views/)
   + [Sports packages - blog post](https://blog.ouseful.info/2015/07/08/sports-data-and-r-scope-for-a-thematic-rather-than-task-view-living-post/)
   +  [Awesome R](https://awesome-r.com/) Very comprehensive
+  +  [Data processing packages](https://www.computerworld.com/article/2921176/business-intelligence/great-r-packages-for-data-import-wrangling-visualization.html)
 
 
 ## Tutorials
