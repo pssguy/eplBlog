@@ -96,13 +96,13 @@ temp %>%
 
 ```
 
-So higher than average but not exceptional. The most recent time when four had recived their marching orders was in 2004/5. Houllier (Liverpool) and Ranieiri (Chelsea) were big names to go in the summer break and Sturrock (Southampton), Robson (Newcastle), Souness (Blackburn) and Adams (Leicester) were also out by this time of the season
+So higher than average but not exceptional. The most recent time when four had received their marching orders was in 2004/5. Houllier (Liverpool) and Ranieiri (Chelsea) were big names to go in the summer break and Sturrock (Southampton), Robson (Newcastle), Souness (Blackburn) and Adams (Leicester) were also out by this time of the season
 
 The cull did not end there, as Megson (WBA), Jones (Wolves), Santini (Spurs), Redknapp( Portsmouth) and Wigley (Southampton again) were also out by Christmas. Fully half the division had new managers
 
 ***
 
-It has been well-documented that Everton's summer spending was high on No 10's (Sigurdsson, Rooney and Klaassen) and low on goal-scorers - Lukaku and B arkley were their 1-2 scorers in each of the past two seasons
+It has been well-documented that Everton's summer spending was high on No 10's (Sigurdsson, Rooney and Klaassen) and low on goal-scorers - Lukaku and Barkley were their 1-2 scorers in each of the past two seasons
 
 However, the age distribution of players is also out of whack
 
@@ -126,7 +126,7 @@ ages %>%
 ```
 _NB This data will change as the season progresses_
 
-They are a mix of promising youngsters and aging veterans with only Keane - of outfield regulars (top 11 in minutes played) - in the sweet 24-27 age range
+They are a mix of promising youngsters and ageing veterans with only Keane - of outfield regulars (top 11 in minutes played) - in the sweet 24-27 age range
 
 They also lead the division in regulars  who have turned 32, at the time of writing 
 
