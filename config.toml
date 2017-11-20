@@ -12,6 +12,8 @@ footnotereturnlinkcontents = "↩"
 theme = "hugo-icarus-theme"
 
 
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+
 [permalinks]
     post = "/:year/:month/:day/:slug"
 
@@ -47,13 +49,21 @@ theme = "hugo-icarus-theme"
 
 [[params.menu]]
     before = false
-    label  = "Tags"
+    label  = "Packages" #Renamed - on clicking still sgows Tags as heading
     link   = "tags/"
 
 [[params.menu]]
     before = false
     label  = "Categories"
     link   = "categories/"
+
+## added came up on main menu but no page automatically created
+[[params.menu]]
+    before = false
+    label  = "Resources"
+    link   = "info.html"  ## but put in static folder I think - did this by taking md/Rmd file previewing it as HTML then opening in browser,copying view source
+#  copying to Notebook and saving as in static  info.html - then build site and upload - as single file if necessary(check it has been transferred to public)
+
 
 # Enter a link for the follow button on the left
 [params.profile]
