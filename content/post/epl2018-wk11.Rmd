@@ -1,0 +1,272 @@
+---
+title: EPL week 11
+author: Andrew Clark
+date: '2017-11-06'
+slug: epl2018-wk11
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk11_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(vembedr) 
+library(blogdown)
+library(lubridate)
+library(crosstalk)
+library(forcats)
+library(glue)
+library(htmltools)
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+assists<- readRDS("data/soccer/assists.rds")
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+## for use in assister
+scorer <- goals %>% 
+  left_join(playerGame) %>% 
+  select(scorer=name,scorerID=PLAYERID,PLAYER_MATCH_GOAL)
+
+assister <- assists %>% 
+  left_join(playerGame) %>% 
+  select(name,PLAYERID,PLAYER_MATCH_GOAL,gameDate,Opponents,season)
+
+```
+
+
+## Match of the Day
+
+Mourinho still can't buy a result away against big clubs
+
+```{r topGame}
+
+embed_youtube("QQ-cKUlOHHk", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+## The Spanish connection
+
+Morata connected up with Azpilicueta's cross for Chelsea's winner against Manchester United and he has now assisted on five of the striker's seven league goals this season, only topped by six of the 52 goals Diego Costa scored for the club
+
+
+```{r example}
+player <- "AZPILIC"
+
+## sum for player 
+scorerOrder <- assister %>% 
+  filter(PLAYERID==player) %>% 
+  left_join(scorer) %>% 
+  group_by(scorer) %>% 
+  tally() %>% 
+  arrange(desc(n))
+
+
+playerName<- assister %>% 
+  filter(PLAYERID==player) %>% 
+  head(1) %>% 
+  pull(name)
+
+
+
+assister %>% 
+  filter(PLAYERID==player) %>% 
+  arrange(gameDate) %>% 
+  mutate(order=row_number()) %>% 
+  left_join(scorer) %>% # join individ
+  left_join(scorerOrder) %>% #join sum
+  plot_ly(x=~order,y=~fct_reorder(scorer, n),
+          hoverInfo="text",
+          text=~paste0(gameDate,
+                       "<br>v ",Opponents)) %>% 
+  add_markers(color=~season, size=I(8)) %>% 
+  layout(margin=list(l=120),
+         title= glue("{playerName}'s Assists by Scorer"),
+         xaxis=list(title="Goal Order"),
+         yaxis=list(title="")) %>%  config(displayModeBar = F,showLink = F)
+
+
+
+```
+
+See the [premiersoccerstats.com](https://mytinyshinys.shinyapps.io/premierLeague/) for any player's chart
+
+
+
+***
+
+<p class="factoid">In spite of helping create more than 50 goals at Manchester City, de Bruyne has not assisted on any of the 7 David Silva has scored during that period</p>
+
+***
+
+## Comebacks
+
+For a team in crisis, Everton did well to come back from a two goal deficit to win against Watford - even if it take an injury-time penalty miss by Cleverly to gain the points
+
+Overall, once a deficit of two goals occurs, only 1.7% of teams recover to win the game - and there is a 93% chance of losing the game
+This was Everton's third victory from 211 two goal deficits they have endured in the Premier league
+
+Enter any team to view the outcomes of all their two goal deficits
+
+
+
+
+
+
+
+
+```{r two_down}
+
+
+data <-scoreLines %>% 
+  group_by(TEAMMATCHID) %>% 
+  mutate(
+    twoDown=ifelse(diff<=-2,1,0)) %>% 
+  filter(twoDown==1) %>% 
+  select(TEAMMATCHID,MATCHID) %>% 
+  unique()  %>% 
+  left_join(teamGames) %>% 
+  left_join(standings) %>% 
+  select(team,GF,GA,gameDate,OppTeam,res,venue) %>% 
+  mutate(GD=GF-GA) %>% 
+  arrange(gameDate) %>% 
+  group_by(team)
+
+sd <- SharedData$new(data)
+
+fs <- filter_select(
+id = "team",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+ ## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+
+chart <- sd %>%
+   plot_ly(x=~gameDate,y=~GD) %>% 
+  add_markers(color=~res,hoverinfo="text",
+              text=~paste0("v ",OppTeam,"<br>",
+                           GF,"-",GA)) %>% 
+   layout(xaxis=list(title=""),
+          yaxis=list(title="Goal Difference")) %>%  config(displayModeBar = F,showLink = F)
+
+
+ tagList(
+  fs_nobootstrap,
+  br(),
+  chart
+)
+
+
+
+```
+
+
+
+***
+
+## Tweet of the Week
+
+```{r}
+shortcode("tweet", "927993920084201473")
+```
+
+
+
+***
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6461984-city-sensational-again-bilic-sacked-at-last-and-seagulls-soar-of-course/embed/v4?eid=AQAAAEj1AFogmmIA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6462724-slaven-bilic-gone-while-manchester-city-cruise-on-football-weekly/embed/v4?eid=AQAAACT1AFoEnWIA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-11-01"&gameDate<="2017-11-08") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-11-06") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">Crystal Palace have led in only one of the first 11 game. Even in the worst ever season - when they totalled just 11 points - Derby County led in nine of the 38</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+

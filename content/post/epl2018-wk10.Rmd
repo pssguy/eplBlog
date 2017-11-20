@@ -6,8 +6,8 @@ slug: epl-week-10
 categories:
   - eplWeekly
 tags: []
-banner: ''
-description: 'banners/wk10_2017.png'
+banner: 'banners/wk10_2017.png'
+description: 
 images: []
 menu: ''
 ---
