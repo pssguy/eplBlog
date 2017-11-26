@@ -1,0 +1,219 @@
+---
+title: EPL week 13
+author: Andrew Clark
+date: '2017-11-26'
+slug: epl-week-13
+categories:
+  - eplWeekly
+tags:
+  - RcppRoll
+banner: 'banners/wk12_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(vembedr) 
+library(blogdown)
+library(lubridate)
+library(crosstalk)
+library(forcats)
+library(glue)
+library(htmltools)
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+# goals<- readRDS("data/soccer/goals.rds")
+# playerGame<- readRDS("data/soccer/playerGame.rds")
+# teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+
+## Match of the Day
+
+The one top-six clash ended in stalemate leaving both Liverpool and Chelsea even further behind the Manchester clubs
+
+
+```{r topGame}
+
+embed_youtube("n_vQUh5X0KQ", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+
+## Schedule difficulty
+
+In spite of the season now more than a third gone, there remain some significant differences in terms of quality of opposition (based on finishing position last year)
+
+```{r}
+## last year's returning teams by position
+old <- standings %>% 
+  filter(season=="2016/17"&tmYrGameOrder==1) %>% 
+  select(position=final_Pos,team) %>% 
+  filter(position<18) 
+
+# promoted clubs filling the bottom three spots - again by how they finished in Championship
+new <- data.frame(team=c("Newcastle U","Brighton","Huddersfield"), position=c(18,19,20))
+
+all <- bind_rows(old,new)
+
+
+myFun <- function(x) {
+  
+  
+  # need to remove selected team from the table and re-order
+  change <- all %>% 
+    filter(team!=x) %>% 
+    mutate(order=row_number())
+  
+  # apply team's schedule to date
+  standings %>% 
+  filter(season=="2017/18"&team==x&tmYrGameOrder<=12) %>% 
+  select(OppTeam) %>% 
+  left_join(change,by=c("OppTeam"="team")) %>% 
+  summarise(diff=mean(order)) %>% 
+    pull(diff)
+}
+
+# map across allteasm
+difficulty=map_dbl(all$team,myFun)
+
+df <- data.frame(team=all$team,difficulty=difficulty)
+
+df %>% 
+  arrange(difficulty) %>% 
+  #mutate(diff=row_number())%>%
+  select(team) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=TRUE,options= list(paging = TRUE, searching = FALSE,info=FALSE, pageLength = 20), width=200, height=1000)
+
+
+```
+
+Before the half-way stage of the season, Chelsea have still to face
+Southampton's are
+
+
+***
+
+<p class="factoid">/p>
+
+***
+
+## So close for Burnley
+
+Another controversial extra-time victory for Arseanl over Burnley has denied the  of keeping four consecutive clean sheets
+They have to settle for equalling the 
+
+```{r}
+
+
+
+```
+
+
+
+***
+
+<p class="factoid"></p>
+
+***
+
+
+
+***
+
+## Tweet of the Week
+
+```{r}
+#shortcode("tweet", "932379661778210817")
+```
+
+
+
+***
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6502679-pulis-p45-ed-narrative-busters-and-dulwich-hamlet-s-toilets-opposite-stand/embed/v4?eid=AQAAACyCE1oXOWMA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6503058-pulis-gone-arsenal-s-bragging-rights-and-buffon-s-broken-heart-football-weekly/embed/v4?eid=AQAAAA6CE1qSOmMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-11-21"&gameDate<="2017-11-27") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-11-27") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">Man. Utd's go-ahead goal came via a left footed cross from Ashley Young.
+He never scores with it though. All 43 of his EPL goals have been with right foot</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
