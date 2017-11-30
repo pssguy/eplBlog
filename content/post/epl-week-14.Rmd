@@ -1,0 +1,301 @@
+---
+title: EPL week 14
+author: Andrew Clark
+date: '2017-11-29'
+slug: epl-week-14
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk13_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode
+library(glue)
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+# library(lubridate)
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+
+## Match of the Day
+
+Allardyce is beaming. Everton are close to top half of table and he has three long-term-injured players back soon: Boalsie, Barkley and Coleman
+
+```{r topGame}
+
+embed_youtube("n_vQUh5X0KQ", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+
+## Rooney Rocket
+
+I do not collect number of goals scored from own-half but that final goal of his hat-trick was his 28th in his EPL career - good for 7th all-time 
+
+What is perhaps even more impressive is that after just over 900 minutes on the pitch he has already notched 7 goals
+In only one season has he started the year more quickly
+
+```{r}
+
+
+plDroughtFun <- function(df) {
+  expand.grid(c(df$on:df$off),df$PLAYER_MATCH)
+}
+
+## calculate minuteds played to date
+rooney <- playerGame %>% 
+  filter(PLAYERID=="ROONEYX") %>% 
+  select(season,gameDate,mins,Gls) %>% 
+  group_by(season) %>% 
+  arrange(gameDate) %>% 
+  mutate(cumMins=cumsum(mins),cumGls=cumsum(Gls))
+  
+
+maxMins <-rooney %>% 
+  filter(season=="2017/18"&cumMins==max(cumMins)) %>% 
+  select(cumMins) %>% 
+  pull(cumMins)
+
+# need to add other column as are matching on TIME
+gls <- goals %>% 
+  mutate(scored=1)
+
+
+  games <-playerGame %>% 
+    filter(PLAYERID=="ROONEYX"&mins>0) %>% 
+    select(PLAYERID,name,PLAYER_MATCH,START,on,offA,gameDate,TEAMMATCHID,season) %>% 
+    mutate(on=as.integer(on),off=as.integer(offA)) %>% 
+    mutate(on=ifelse(is.na(on),1,on),off=ifelse(is.na(off),90,off))
+  
+  # create list so can apply function above with purrr
+  games_list <- split(games, 1:nrow(games))
+  mins <-map_df(games_list,plDroughtFun)
+  
+  
+  # rename columns and add gameDate
+  names(mins) <- c("TIME","PLAYER_MATCH") 
+  mins <-mins %>% 
+    left_join(games) %>% 
+    select(TIME,PLAYER_MATCH,gameDate,season)
+  
+  goalData <- mins %>% 
+    left_join(gls)  %>% 
+    select(PLAYER_MATCH,TIME,gameDate,scored,season) %>% 
+    arrange(gameDate,TIME,season) %>% 
+    group_by(season) %>% 
+    mutate(minsPlayed=row_number(),goal=ifelse(is.na(scored),0,1),cumGoals=cumsum(goal))
+  
+  
+ df <- goalData %>% 
+    filter(minsPlayed==maxMins) %>% 
+     arrange(season)
+ 
+ # df %>%
+ #                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+ 
+ theTitle <- glue("Goals scored after {maxMins} minutes of season")
+ 
+ df %>% 
+   plot_ly(x=~season,y=~cumGoals) %>% 
+   add_bars() %>% 
+   layout(title=theTitle,
+          xaxis=list(title=""),
+          yaxis=list(title="Goals to date")) %>%  config(displayModeBar = F,showLink = F)
+          
+
+```
+
+This chart will update as the season progresses
+
+At the time of writing, however, he had yet to record an assist
+
+
+***
+
+<p class="factoid">Raheem Sterling turns 23 on 8th September. He has 95 goals and assists (up to 2 per goal) equalling Ryan Giggs at the same age. Rooney leads with 142</p>
+
+***
+
+## Palace Patience
+
+After the first seven games, Palace were pointless, but doubling the number of games has seen them reach nine points - still bottom but now only fourth favourites for the drop
+
+They recorded their first clean sheet and first away point at arch-rivals Brighton, but are now scoreless on their league travels for a record ... minutes, almost 250 minutes longer than their previous record set in 1994 and ended by current England manager, Gareth Southgate
+
+```{r}
+tmDroughtFun <- function(df) {
+  expand.grid(c(1:90),df$TEAMMATCHID)
+}
+
+
+
+# need to add other column as are matching on TIME
+gls <- goals %>% 
+  mutate(scored=1)
+
+
+games <- teamGames %>% 
+  filter(TEAMNAME=="Crystal P"&venue=="A") %>% 
+  ungroup() %>% 
+  select(TEAMMATCHID,gameDate)
+
+
+mins <- expand.grid(c(1:90),games$TEAMMATCHID)
+names(mins) <- c("TIME","TEAMMATCHID")
+
+mins <-mins %>% 
+  left_join(games) %>% 
+  select(TIME,TEAMMATCHID,gameDate) %>% 
+  as.tbl()
+names(gls)
+
+# create gaps between goals
+goalData <- mins %>% 
+  left_join(gls)  %>% 
+  select(TEAMMATCHID,TIME,gameDate,scored) %>% 
+  arrange(gameDate,TIME) %>% 
+  mutate(minOrder=row_number(),goal=ifelse(is.na(scored),0,1)) %>% 
+  filter(goal==1|minOrder==max(minOrder)) %>% # to take account of current spell
+  mutate(minslag=lag(minOrder),gap=minOrder-minslag)
+
+# account for gap at beginning of career
+goalData[1,]$gap <- goalData[1,]$minOrder
+
+goalData %>% 
+  arrange(gameDate) %>% 
+  mutate(order=row_number()) %>% 
+  plot_ly(x=~order,y=~gap) %>% 
+  add_bars()  %>% 
+  layout(title="Gap between away goals",
+         xaxis=list(title="Goal Order"),
+         yaxis=list(title="Minutes")) %>%  config(displayModeBar = F,showLink = F)
+         
+
+  
+
+
+```
+
+Maybe vary color by season (see couple of rounds ago) have it by any club (look at all games/home alternatives)
+
+
+***
+
+<p class="factoid">Giroud now has 16 goals as a sub, accounting for 23% of all his EPL strikes. Reknowned super-sub, Solskjaer, only had 19% from the bench</p>
+
+***
+
+
+
+***
+
+## Tweet of the Week
+
+```{r}  
+shortcode("tweet", "936082648295866368") 
+```
+
+
+
+***
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6527110-rejuvenated-rooney-sterling-and-salah-strike-again-and-presumptuous-pep-talks/embed/v4?eid=AQAAAABgIFqGmGMA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6527311-raheem-sterling-english-managers-and-the-world-cup-draw-football-weekly-extra/embed/v4?eid=AQAAAK9fIFpPmWMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-11-21"&gameDate<="2017-11-27") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-11-27") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">Man. Utd. have already scored precisely 4 goals in six league games and look well placed to obliterate the  single-seaon record of seven which they currenly jointly hold with Chelsea and Tottenham</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers

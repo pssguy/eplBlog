@@ -1,0 +1,238 @@
+---
+title: EPL week 12
+author: Andrew Clark
+date: '2017-11-21'
+slug: epl2018-wk12
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk12_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse)
+library(plotly)
+library(stringr)
+library(vembedr) 
+library(blogdown)
+library(lubridate)
+library(crosstalk)
+library(forcats)
+library(glue)
+library(htmltools)
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+# goals<- readRDS("data/soccer/goals.rds")
+# playerGame<- readRDS("data/soccer/playerGame.rds")
+# teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+
+## Match of the Day
+
+Following a defeat to North London rivals, Spurs now talking top 4, not title
+
+
+```{r topGame}
+
+embed_youtube("n_vQUh5X0KQ", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+
+## Pulis is out
+
+Stodgy football and a points-per-game average lower than Steve Clarke will do that for you. His spell
+at WBA ended with the lowest ppg average of any of his three clubs. The Welsh managership may come calling
+
+![](/img/wbaManagers.png)
+
+
+
+![](/img/tonyPulis.png)
+
+See the [premiersoccerstats.com](https://mytinyshinys.shinyapps.io/premierLeague/) site for a new chart showing any manager's equivalent chart
+
+***
+
+<p class="factoid">Already equalling a season-best 7 assists, Azpilicueta has cracked the all-time Top 20 for defenders; but he still has 5 Chelsea players ahead of him</p>
+
+***
+
+## Flat Track Bullies
+
+With Pogba back and against moderate opposition, United were once again big winners. Lukaku ended his EPL goal drought at 434 minutes - coincidentally the exact period before his final goal for Everton
+
+Although they are not quite keeping pace with Man City at the head of the table, Man United have recorded more games with at least four goals- in their case exactly four. 
+
+Here is a chart showing their progress in comparison with other clubs that have started as strongly as them. Hover for details
+
+```{r}
+
+
+best <- standings %>% 
+  filter(GF>3) %>% 
+  group_by(team,season) %>% 
+  tally() %>% 
+  ungroup() %>% 
+  filter(n==max(n)) %>% 
+  left_join(standings) %>% 
+  arrange(gameDate) %>% 
+  select(team,season,tmYrGameOrder,GF) %>% 
+  group_by(team,season) %>%
+  mutate(yes=ifelse(GF>3,1,0),count=cumsum(yes))
+
+manU <- standings %>% 
+  filter(season=="2017/18"&team=="Man. Utd.") %>% 
+  left_join(standings) %>% 
+  arrange(gameDate) %>% 
+  select(team,season,tmYrGameOrder,GF) %>% 
+  #group_by(team,season) %>%
+  mutate(yes=ifelse(GF>3,1,0),count=cumsum(yes))
+
+all <- bind_rows(best,manU) 
+
+# all leaders after round 12
+temp12 <-standings %>% 
+  filter(GF>3&tmYrGameOrder<=12) %>% 
+  group_by(team,season) %>% 
+  tally() %>% 
+  ungroup() %>% # otherwise does not match overall n
+  filter(n==max(n)) %>% 
+  left_join(standings) %>% 
+  arrange(gameDate) %>% 
+  select(team,season,tmYrGameOrder,GF) %>% 
+  group_by(team,season) %>%
+  mutate(yes=ifelse(GF>3,1,0),count=cumsum(yes))
+
+# put grey before colors (which dont work) so latter take precedence
+plot_ly(data=temp12,x=~tmYrGameOrder,y=~count) %>% 
+    add_lines(color=I("lightgrey"), line=list(shape= "hv"),
+              hoverinfo="text", name="Other Round 12 leaders",
+              text= ~paste0(team," ", season,"<br>",
+                            count," after ",tmYrGameOrder," games")) %>% 
+  add_lines(data=all,x=~tmYrGameOrder,y=~count,color=~team,colors=c("red","lightblue","black"),  line=list(shape= "hv"),
+            hoverinfo="text", 
+            text= ~paste0(team," ", season,"<br>",
+                          count," after ",tmYrGameOrder," games")) %>% 
+    layout(xaxis=list(title="Games Played"),
+           yaxis=list(title="Four goal Wins")) %>%  config(displayModeBar = F,showLink = F)
+```
+
+The Liverpool side with the SSS strike-force of Suarez, Sterling and Sturridge backed up by Gerrard, Coutinho and Henderson ran up four goal tallies an amazing 11 times in a run of 24 games
+
+***
+
+<p class="factoid">With 12 assists to date, Kevin de Bruyne still leads the EPL table - three ahead of team-mante, David Silva - but has not registered one in last three outings</p>
+
+***
+
+<!-- ## Personalized Web site -->
+
+<!-- The [premiersoocerstats site](https://www.premiersoccerstats.com) with unique charts blah blah blah now has a bookmarking feature -->
+
+<!-- When you click on the bookmark button at the bottom of the side panel, a URL is produced which saves every page on the site as when you just left it. You can then save this url in your as a bookmark in your browser and access the team/player info exactly as you left it - updated with any new games data. This will save you time accessing the data of most interest to you -->
+
+<!-- Here are a few I have compiled as starting points for each team -->
+
+
+
+
+***
+
+## Tweet of the Week
+
+```{r}
+shortcode("tweet", "932379661778210817")
+```
+
+
+
+***
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6502679-pulis-p45-ed-narrative-busters-and-dulwich-hamlet-s-toilets-opposite-stand/embed/v4?eid=AQAAACyCE1oXOWMA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6503058-pulis-gone-arsenal-s-bragging-rights-and-buffon-s-broken-heart-football-weekly/embed/v4?eid=AQAAAA6CE1qSOmMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-11-08"&gameDate<="2017-11-21") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-11-21") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+
+
+## Final Factoid
+
+<p class="factoid">Man. Utd's go-ahead goal came via a left footed cross from Ashley Young.
+He never scores with it though. All 43 of his EPL goals have been with right foot</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
