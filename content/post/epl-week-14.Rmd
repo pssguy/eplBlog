@@ -6,7 +6,7 @@ slug: epl-week-14
 categories:
   - eplWeekly
 tags: []
-banner: 'banners/wk13_2017.png'
+banner: 'banners/wk14_2017.png'
 description: 
 images: []
 menu: ''
@@ -63,7 +63,7 @@ Allardyce is beaming. Everton are close to top half of table and he has three lo
 
 ```{r topGame}
 
-embed_youtube("n_vQUh5X0KQ", width = 420, height = 315, frameborder = 0,
+embed_youtube("JddLLNc2tvw", width = 420, height = 315, frameborder = 0,
    allowfullscreen = TRUE, query = NULL) 
 
 
@@ -74,7 +74,7 @@ embed_youtube("n_vQUh5X0KQ", width = 420, height = 315, frameborder = 0,
 
 ## Rooney Rocket
 
-I do not collect number of goals scored from own-half but that final goal of his hat-trick was his 28th in his EPL career - good for 7th all-time 
+I do not collect the  number of goals scored from own-half but that final goal of his hat-trick was the 28th in his EPL career from outside of the area - good for 7th all-time 
 
 What is perhaps even more impressive is that after just over 900 minutes on the pitch he has already notched 7 goals
 In only one season has he started the year more quickly
@@ -137,11 +137,11 @@ gls <- goals %>%
  # df %>%
  #                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
  
- theTitle <- glue("Goals scored after {maxMins} minutes of season")
+ theTitle <- glue("Goals scored by Rooney after {maxMins} minutes of season")
  
  df %>% 
-   plot_ly(x=~season,y=~cumGoals) %>% 
-   add_bars() %>% 
+   plot_ly(x=~season,y=~cumGoals, color=~season) %>% 
+   add_bars(showlegend = FALSE) %>% 
    layout(title=theTitle,
           xaxis=list(title=""),
           yaxis=list(title="Goals to date")) %>%  config(displayModeBar = F,showLink = F)
@@ -162,9 +162,9 @@ At the time of writing, however, he had yet to record an assist
 
 ## Palace Patience
 
-After the first seven games, Palace were pointless, but doubling the number of games has seen them reach nine points - still bottom but now only fourth favourites for the drop
+After the first seven games Palace were pointless, but twice as far into the season has seen them reach nine points - still bottom but now only fourth favourites for the drop
 
-They recorded their first clean sheet and first away point at arch-rivals Brighton, but are now scoreless on their league travels for a record ... minutes, almost 250 minutes longer than their previous record set in 1994 and ended by current England manager, Gareth Southgate
+They recorded their first clean sheet and first away point at arch-rivals Brighton, but are now scoreless on their league travels for a club EPL record 826 minutes, almost 250 minutes longer than their previous record set in 1994: one ended by current England manager, Gareth Southgate
 
 ```{r}
 tmDroughtFun <- function(df) {
@@ -191,7 +191,7 @@ mins <-mins %>%
   left_join(games) %>% 
   select(TIME,TEAMMATCHID,gameDate) %>% 
   as.tbl()
-names(gls)
+
 
 # create gaps between goals
 goalData <- mins %>% 
@@ -220,12 +220,11 @@ goalData %>%
 
 ```
 
-Maybe vary color by season (see couple of rounds ago) have it by any club (look at all games/home alternatives)
 
 
 ***
 
-<p class="factoid">Giroud now has 16 goals as a sub, accounting for 23% of all his EPL strikes. Reknowned super-sub, Solskjaer, only had 19% from the bench</p>
+<p class="factoid">Giroud now has 16 goals as a sub, accounting for 23% of all his EPL strikes. Renowned super-sub, Solskjaer, only had 19% from the bench</p>
 
 ***
 
@@ -239,7 +238,7 @@ Maybe vary color by season (see couple of rounds ago) have it by any club (look 
 shortcode("tweet", "936082648295866368") 
 ```
 
-
+The answer is Viduka. Who - like Salah and a few others - managed 12 in 14. The missing player is Papiss Cisse who got 13 at the start of his career at Newcastle
 
 ***
 
@@ -259,7 +258,7 @@ shortcode("tweet", "936082648295866368")
 ```{r results}
 ## results - amy have to copy and run in console
 hth %>% 
-  filter(season=="2017/18"&gameDate>="2017-11-21"&gameDate<="2017-11-27") %>% ## may need to put in day later?
+  filter(season=="2017/18"&gameDate>="2017-11-27"&gameDate<="2017-11-30") %>% ## may need to put in day later?
   filter(venue=="H") %>% 
   arrange(team) %>% 
   select(Home=team,GF,GA,Away=OppTeam) %>% 
@@ -275,7 +274,7 @@ hth %>%
 
 # table
 hth %>% 
-  filter(season=="2017/18"&gameDate<="2017-11-27") %>% 
+  filter(season=="2017/18"&gameDate<="2017-11-30") %>% 
   group_by(team) %>% 
   mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
   summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
