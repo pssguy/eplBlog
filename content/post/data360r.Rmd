@@ -166,8 +166,18 @@ Let's see how this 'Rule of Law' estimate varies over time
 
 ```{r zimbabwe}
 
+# previous - tTHEY HAVE CHANGED iNDICATOR NAMES
+# df %>% 
+#   filter(`Country Name`=="Zimbabwe"&Indicator=="Rule of law score (-2.5 to 2.5)"&`Subindicator Type`=="Estimate") %>% 
+#   mutate(Year=as.integer(as.character(Period))) %>% 
+#   plot_ly(x=~Year,y=~Observation,
+#           hoverinfo="text",
+#           text="") %>% 
+#   add_lines()
+
+
 df %>% 
-  filter(`Country Name`=="Zimbabwe"&Indicator=="Rule of law score (-2.5 to 2.5)"&`Subindicator Type`=="Estimate") %>% 
+  filter(`Country Name`=="Zimbabwe"&Indicator=="Rule of Law"&`Subindicator Type`=="Estimate") %>% 
   mutate(Year=as.integer(as.character(Period))) %>% 
   plot_ly(x=~Year,y=~Observation,
           hoverinfo="text",
@@ -186,13 +196,32 @@ df %>%
  
 ```{r}
 
+# needs sorting
+
+# create a distinct data.frame as it will be used for both table and map
+# df_2015 <- df %>%
+# # Reduce to required data
+# filter(Period == "2015" & `Subindicator Type` == "Estimate") %>%
+# # Remove extraneous info
+# mutate(Indicator = str_sub(Indicator, 1, -21)) %>%
+# # amend name and limit data
+# select(Country = `Country Name`, Indicator, Observation, iso3 = `Country ISO3`) %>%
+# # transform to wide format
+# spread(Indicator, Observation) %>%
+# # Calculatea an overall score, reduce field lengths and rank countries accordingly
+# mutate(meanIndicator = rowMeans(.[3:8], na.rm = TRUE)) %>%
+# mutate_if(is.numeric, round, 2) %>%
+# arrange(desc(meanIndicator)) %>%
+# mutate(Rank = row_number()) %>%
+# arrange(Rank)
+
 
 # create a distinct data.frame as it will be used for both table and map
 df_2015 <- df %>%
 # Reduce to required data
 filter(Period == "2015" & `Subindicator Type` == "Estimate") %>%
-# Remove extraneous info
-mutate(Indicator = str_sub(Indicator, 1, -21)) %>%
+# Remove extraneous info (no longer required)
+#mutate(Indicator = str_sub(Indicator, 1, -21)) %>%
 # amend name and limit data
 select(Country = `Country Name`, Indicator, Observation, iso3 = `Country ISO3`) %>%
 # transform to wide format
@@ -206,7 +235,7 @@ arrange(Rank)
 
 
 df_2015 %>%
-select(Rank, Country, Corruption:`Rule of law`, Voice = `Voice & accountability`) %>%
+select(Rank, Country, `Control of Corruption`:`Rule of Law`, Voice = `Voice and Accountability`) %>%
 DT::datatable(
 class = 'compact stripe hover row-border order-column',
 rownames = FALSE,
