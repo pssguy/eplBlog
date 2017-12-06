@@ -6,7 +6,7 @@ slug: epl-week-15
 categories:
   - eplWeekly
 tags: []
-banner: 'banners/wk14_2017.png'
+banner: 'banners/wk15_2017.png'
 description: 
 images: []
 menu: ''
@@ -27,7 +27,8 @@ library(plotly) # for plots
 library(DT) # for tables
 library(vembedr) # for videos
 library(blogdown) # for shortcode
-library(glue)
+#library(glue)
+library(lubridate)
 
 
 
@@ -46,11 +47,11 @@ library(glue)
 standings<- readRDS("data/soccer/standings.rds")
 hth<- readRDS("data/soccer/hth.rds")
 
-goals<- readRDS("data/soccer/goals.rds")
+#goals<- readRDS("data/soccer/goals.rds")
 playerGame<- readRDS("data/soccer/playerGame.rds")
 teamGames<- readRDS("data/soccer/teamGames.rds")
 # assists<- readRDS("data/soccer/assists.rds")
-#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
 
 
 
@@ -60,11 +61,12 @@ teamGames<- readRDS("data/soccer/teamGames.rds")
 
 ## Match of the Day
 
+The big-six contest, Arsenal v Man. Utd. illustrated once again that de Gea may be the finest goalkeeper in the world
 
 
 ```{r topGame}
 
-embed_youtube("JddLLNc2tvw", width = 420, height = 315, frameborder = 0,
+embed_youtube("gYLMo-0hpdc", width = 420, height = 315, frameborder = 0,
    allowfullscreen = TRUE, query = NULL) 
 
 
@@ -72,18 +74,129 @@ embed_youtube("JddLLNc2tvw", width = 420, height = 315, frameborder = 0,
 
 ***
 
+## Club in Crisis - Spurs
 
+After being praised to the heights by the press, things at Spurs are unravelling fairly quickly. Their lack of good squad depth has been shown up by the sale of Walker, stand-off with Rose and injuries to Wanyama and Alderweireld
+
+In what cannot make happy reading for manager Mauricio Pochettino, his points-per-game average has now fallen below that of his much-derided
+predecessor, Tim Sherwood
+
+ ![](/img/timSherwood.png)
+***
+
+The last time they were further off the pace at this stage of the season was nine years back, six weeks into Harry Redknapp's stewardship
+
+ ![](/img/spursDeficit.png)
+
+
+An article in [Football365](http://www.football365.com/news/questions-mount-as-spurs-poch-fail-to-conjure-answers) mentioned how substitutions had contributed so little to their goal-scoring. 
+
+Here is the impact for all clubs
+
+```{r}
+
+playerGame %>% 
+  filter(on>0&season=="2017/18") %>% 
+  group_by(TEAMNAME) %>% 
+  summarize(count=n(),mins=sum(mins),goals=sum(Gls),assists=sum(Assists),points=goals+assists) %>% 
+  plot_ly(x=~mins,y=~jitter(points)) %>% 
+  add_markers(hoverinfo="text",text=~paste0(
+    "Goals: ",goals,
+    "<br>Assists: ",assists,
+    "<br>Mins: ",mins
+  ),showlegend=FALSE) %>% 
+  add_text(text=~TEAMNAME,showlegend=FALSE, hoverinfo="none") %>% 
+  layout(title="Goals and Assists contributed by subs - 2017/18",
+    xaxis=list(title="Minutes",rangemode="tozero"),
+    yaxis=list(title="Goals and Assists")
+    
+    ) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+Obviously, a lot depends on the substitutes used (defensive or offensive) and state of the game but Spurs are middle of the road. 
+
+<p class="factoid">Manchester United stand out in their output from subs with Martial, alone, contributing 4 goals and 3 assists - more than 15 teams!
+</p>
 
 ***
 
+## No hand brake on this bus
+
+Man. Utd. played extremely well on the break (something that is much improved over last season) which led to one of the few occasions when Arsenal have gone two down inside a dozen minutes
+
+The chart below indicates every game they have played - showing if and when they first suffered a 2 goal deficit in games
+You may want to zoom and hover for more details
+
+```{r}
+
+data <-scoreLines %>% 
+  left_join(teamGames) %>% 
+  left_join(standings,by=c("MATCHID"="MATCHID","TEAMNAME"="team")) %>% #36mill
+  select(team=TEAMNAME,season=season.x,gameDate=gameDate.x,mins,diff,tmYrGameOrder=tmYrGameOrder.x, GF=GF.y,GA=GA.y,OppTeam,final_Pos)
+
+downTwo <- data %>% 
+  filter(team=="Arsenal"&diff<=-2) %>% 
+  group_by(TEAMMATCHID) %>% 
+  slice(1)
+
+
+data %>% 
+  filter(team=="Arsenal") %>% 
+  group_by(TEAMMATCHID,gameDate) %>% 
+  slice(1) %>% 
+  select(TEAMMATCHID,gameDate) %>% 
+  left_join(downTwo) %>% 
+  arrange(gameDate) %>% 
+  ungroup() %>% 
+  mutate(mins=ifelse(is.na(team),0.1,mins),order=row_number()) %>% 
+  plot_ly(x=~gameDate, y=~mins) %>% 
+  add_bars()
+
+
+```
+
+As you can see, there have been a couple of seasons when they have never been 2 goals down in a game but they have struggled lately with ten occasions already this year, by far their worst record
+
+```{r}
+
+downTwo %>% 
+  mutate(year=as.character(year(gameDate))) %>% 
+  group_by(year) %>% 
+  tally() %>% 
+  plot_ly(x=~year,y=~n,color=~year) %>% 
+  add_bars(showlegend=FALSE) %>% # does not work - neither does showscale need to make year a character
+  layout(title="Number of EPL Games Arsenal have been two goals down in - by calendar year",
+         xaxis=list(title=""),
+         yaxis=list(title="Count")) %>%  config(displayModeBar = F,showLink =  F)
+
+```
+
+
+
+
+<p class="factoid">This was only the fourth occasion when Arsenal have been faced with  a two goal mountain to climb so early. The goalkeeper on each previous occasion -all lost - was Wojciech Szczęsny</p>
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "936397390264770560") 
+```
+
+
+
+***
 
 ## Totally Football and Guardian Weekly Review Podcasts
 
 
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6527110-rejuvenated-rooney-sterling-and-salah-strike-again-and-presumptuous-pep-talks/embed/v4?eid=AQAAAABgIFqGmGMA" title="audioBoom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6534073-united-s-best-de-gea-day-yet-the-world-cup-draw-and-benevento-s-last-minute-miracle/embed/v4?eid=AQAAAAMlJlq5s2MA" title="audioBoom player"></iframe>
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6527311-raheem-sterling-english-managers-and-the-world-cup-draw-football-weekly-extra/embed/v4?eid=AQAAAK9fIFpPmWMA" title="audioBoom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6534418-gunners-misfire-hull-upheaval-and-benevento-scenes-football-weekly/embed/v4?eid=AQAAAO8kJloStWMA" title="audioBoom player"></iframe>
 
 ***
 
@@ -122,7 +235,7 @@ hth %>%
 
 ## Final Factoid
 
-<p class="factoid"></p>
+<p class="factoid">Coutinho, purportedly still keen on a January move to Real Madrid, has his most productive game for Liverpool with one goal and three assists against Brighton</p>
 
 
 ---
