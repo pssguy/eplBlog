@@ -1,0 +1,302 @@
+---
+title: EPL Week 17
+author: Andrew Clark
+date: '2017-12-13'
+slug: epl-week-17
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk16_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode
+
+
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+# library(lubridate)
+# library(crosstalk)
+# library(forcats)
+ library(glue)
+# library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+
+
+
+
+
+```
+
+
+
+## Match of the Day
+
+Second time recently, Watford have removed Deeney late in winning position only to end up with no points
+
+
+```{r topGame}
+
+embed_youtube("aYtYqEXndlM", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+
+<p class="factoid">Watford were ahead of Crystal Palace for 85 minutes in Tuesday's game - 15 minutes more than Palace have led in matches the whole season to date
+</p>
+
+
+
+
+***
+
+## Yet Another Man City Chart
+
+With Man. City racking up another four goals away from home, they are well on course to break Chelsea's season record of 103 in 2009/10, when Drogba (29) and Lampard (22) led the way
+
+At the time of writing, after Round 17 of 38, they have already scored more goals than half the teams did in ANY premier league season bar 1992/3 - when 42 games were played
+
+
+```{r}
+
+mncGoals <- standings %>% 
+  filter(team=="Man. City") %>% 
+  arrange(desc(gameDate)) %>% 
+  slice(1) %>% 
+  pull(cumGF) 
+
+theTitle= glue("Teams scoring less than {mncGoals} goals in full season")
+
+standings %>% 
+  filter(season<"2017/18") %>% 
+   group_by(team,season) %>% 
+  arrange(desc(gameDate)) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  filter(cumGF<mncGoals) %>% 
+  group_by(season) %>% 
+  tally() %>% 
+  plot_ly(x=~season,y=~n) %>% 
+  add_bars(color=~season,showlegend =FALSE) %>% 
+  layout(title=theTitle,
+         margin=list(b=100),
+         xaxis=list(title=""),
+           yaxis=list(title="Count")
+  ) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+Check back here as season progresses
+
+***
+
+## Goal Scoring by Team
+
+Let's take a look at how the goalscoring has panned out by team, by minute
+You may want to zoom in at 45 and 90 minute mark as this includes any extra time - when many goals are scored
+
+```{r}
+each <- playerGame %>% 
+  select(PLAYER_MATCH,season,TEAMNAME,venue,Opponents) %>% 
+  right_join(goals) %>% 
+  select(season,TEAMNAME,TIME,venue,Opponents) %>% 
+  filter(season=="2017/18")
+
+all <- each %>% 
+  group_by(TEAMNAME) %>% 
+  tally()
+
+
+each %>% 
+  left_join(all) %>% 
+  plot_ly(x=~jitter(TIME),y=~fct_reorder(TEAMNAME, n)) %>% 
+  add_markers(hoverinfo="text", color=~venue, colors=c("blue","orange"),
+              text=~paste0(TIME," v ",Opponents)) %>% 
+  layout(margin=list(l=120),
+         title="Time of goals scored, by venue, 2017/8",
+         xaxis=list(title="Minutes Played"),
+         yaxis=list(title="")
+         ) %>%  config(displayModeBar = F,showLink = F)
+         
+
+```
+
+
+At the time of writing, points to note are that even though Manchester City have recorded 53 goals, the earliest is in the 10th minute while Liverpool's  have yet to notch one before the 15th.    
+
+Palace have not scored away at all nor found the target between the 56th and 88th minute
+
+***
+
+## David Silva Acclaim
+
+Following another outstanding display against Swansea, Silva is winning a host of plaudits. However, it should be noted that many of his own team are actually putting up statistically better seasons in terms of goals and assists per 90 minutes played
+
+```{r}
+
+playerGame %>% 
+  filter(TEAMNAME=="Man. City"&season=="2017/18"&PLAYERID!="OWNGOAL"&gameDate<as.Date("2017-12-15")) %>% 
+  group_by(PLAYERID,name) %>% 
+  summarize(goals=sum(Gls),assists=sum(Assists),points=goals+assists,mins=sum(mins,na.rm=T),ppg=round(90*(goals+assists)/mins,2)) %>% 
+              ungroup() %>% 
+              arrange(desc(ppg)) %>% 
+              filter(mins>499) %>% 
+              select(` `=name,goals,assists,points,`Pts per 90mins`=ppg) %>%
+  head(10) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+```
+
+ _N.B. Up to two assists are allowed per goal_
+
+After 17 games, he is only sixth on the team for those having played at least 500 minutes
+
+However, showing City's all-round attacking prowess, Silva's points per 90 minutes would translate to being highest-ranked on most other teams
+
+```{r}
+playerGame %>% 
+  filter(season=="2017/18"&PLAYERID!="OWNGOAL"&gameDate<as.Date("2017-12-15")) %>% 
+  group_by(PLAYERID,name,TEAMNAME) %>% 
+  summarize(goals=sum(Gls),assists=sum(Assists),points=goals+assists,mins=sum(mins,na.rm=T),ppg=round(90*(goals+assists)/mins,2)) %>% 
+  ungroup() %>% 
+  group_by(TEAMNAME) %>% 
+  filter(mins>499) %>% 
+  arrange(desc(ppg)) %>% 
+  group_by(TEAMNAME) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
+  select(-c(PLAYERID,mins)) %>% 
+  arrange(desc(ppg)) %>% 
+  rename(` `=name,`Pts per 90mins`=ppg,` `=TEAMNAME) %>% 
+  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+```
+
+
+***
+
+
+
+
+
+
+
+
+<p class="factoid">Everton have avoided defeat five times this season when they have only notched one goal. On each occasion, Rooney has been the scorer - earning the team seven points</p>
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "940084359335309312") 
+```
+
+Nobody could/would!
+
+The answer is 
+
+* 7 Sheffield Wednesday
+* 5 Crystal Palace; Norwich City
+* 3 Oldham Athletic; QPR; Sheffield Utd.
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552940-recency-bias-revel-ations-and-the-rooney-contradiction/embed/v4?eid=AQAAAJunMlps_WMA" title="audioBoom player"></iframe>
+
+***
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552886-manchester-city-make-history-and-arsenal-in-89-football-weekly-extra/embed/v4?eid=AQAAAG2nMlo2_WMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-11"&gameDate<="2017-12-14") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-14") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">103 players have now scored away from home - all of them totalling more than managed by the entire Palace squad</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+

@@ -1,0 +1,313 @@
+---
+title: EPL Week 16
+author: Andrew Clark
+date: '2017-12-11'
+slug: epl-week-16
+categories:
+  - eplWeekly
+  - soccer
+tags: []
+banner: 'banners/wk16_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode
+
+library(RcppRoll) # for window calculations
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+# library(lubridate)
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+#goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+### function extracted from doBy package which takes too long to load
+subSeq <- function (x, item = NULL) {
+  rrr <- rle(x)
+  len <- rrr$lengths
+  val <- rrr$values
+  
+  first <- last <- rep.int(NA, length(val))
+  first[1] <- 1
+  last [1] <- len[1]
+  if (length(val)>1){
+    for (kk in 2:length(val)){
+      first[kk] <- last[kk-1]+1
+      last [kk] <- last[kk-1]+len[kk]
+    }
+  }
+  midp <- floor(first + len/2)
+  
+  ans <- cbind(first=first, last=last, slength=len, midpoint=midp)
+  
+  if (!is.null(item)) {
+    iii <- val==item
+    ans <- as.data.frame.matrix(ans[iii,,drop=FALSE], stringsAsFactors=FALSE)
+    ans$value <- val[iii]
+  } else {
+    ans <- as.data.frame.matrix(ans, stringsAsFactors=FALSE)
+    ans$value <- val
+  }
+  ans
+}
+
+
+
+
+```
+
+
+
+## Match of the Day
+
+Bizarrely, the top two teams contrive to score three cock-up goals
+
+
+```{r topGame}
+
+embed_youtube("3GtmoG1PEOI", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+
+## City dominance
+
+With an eleven point lead over their nearest rivals, Man City are looking home and hosed for the title. Their 46 point tally after 16 games is an EPL record, three greater than Chelsea 2005/6, but is actually not the largest margin at this stage of a season.    
+ In 1993/4, Man. Utd. held a 12 point lead over their nearest rivals, Blackburn, which had narrowed to 8 by the season end
+
+Here are the biggest comebacks each season (hover for details)
+
+```{r}
+
+leaders <- standings %>% 
+  filter(position==1) %>% 
+  select(leader=team,season,tmYrGameOrder,leaderPts=cumPts)
+
+df <- standings %>% 
+  filter(final_Pos==1) %>% 
+  select(winner=team,season,tmYrGameOrder,winnerPts=cumPts) %>% 
+  left_join(leaders,by=c("season"="season","tmYrGameOrder"="tmYrGameOrder")) %>% 
+  mutate(diff=winnerPts-leaderPts) %>% 
+  filter(winner!=leader) %>% 
+  arrange(diff,desc(tmYrGameOrder)) %>% 
+  group_by(season) %>% 
+  slice(1) %>% 
+  mutate(diff=if_else(diff==0,-0.2,diff)) %>% 
+  mutate(diffnumber=if_else(diff==0,0,-diff)) %>% 
+  filter(season!="2017/18")
+
+df %>% 
+    plot_ly(x=~season,y=~diff,color=~winner) %>% 
+  add_bars(name="Champs",
+           hoverinfo="text",
+           text=~paste0(
+             season,
+             "<br>",leader," led ",winner," by ",diffnumber,' points',
+             "<br>after Round ",tmYrGameOrder)
+           ) %>% 
+  layout(title="Maximun points deficit made up by Champion by Season",
+         margin=list(b=80),
+         xaxis=list(title=""),
+         yaxis=list(title="Points in Arrears")) %>%  config(displayModeBar = F,showLink = F)
+
+```
+
+So bigger deficits later into the season have been overcome - including Manchester United over Newcastle in 1995/6 - although expectations are not high that City will implode as the Magpies did
+
+***
+
+City have also now recorded the highest single-season run of victories at 14
+
+Here are the top winning runs for every team which has appeared in the Premier League
+
+```{r}
+myFun <- function(x,y) {
+  standings %>% 
+    ungroup() %>% 
+    filter(team==x&season==y) %>% 
+    arrange(tmGameOrder) %>% 
+    select(res,tmGameOrder) %>% 
+    mutate(cat=ifelse(res=="Win",1,0)) %>% 
+    do(subSeq(.$cat)) %>% 
+    filter(value==1) %>% 
+    arrange(desc(slength)) %>% 
+      slice(1) %>% 
+      pull(slength)
+}
+
+tmYrs <-standings %>%
+  select(season,team) %>%
+  unique(.)
+
+
+## 15-20 secs 526 recs
+run <- map2_dbl(tmYrs$team,tmYrs$season,myFun)
+
+df <- cbind(tmYrs,run=run)
+
+df <-df %>% 
+  group_by(team) %>% 
+  arrange(desc(run), desc(team)) %>% 
+  slice(1)
+
+df %>% 
+  plot_ly(x=~run,y=~fct_reorder(team, run), color=~team, showlegend = FALSE, height = 1000) %>% 
+  layout(title="Longest Sequences of Wins within season",
+         margin=list(l=100,pad=5),
+          xaxis=list(title="Wins in Row"),
+         yaxis=list(title="")
+) %>%  config(displayModeBar = F,showLink = F)
+
+
+
+```
+
+Brighton will be hoping to have got themselves off the bottom of the chart by the end of the season
+
+
+<p class="factoid">Benteke's missed penalty means he has now gone 1000 minutes without scoring in the league
+</p>
+
+***
+
+## West Brom Woes
+
+WBA remain just above the drop zone but have not benefited from the Pardew bounce as the new management has produced no goals in two games against teams below them
+
+They have now gone 14 games without winning.   
+
+How often does that occur and is it a presage of relegation?
+
+
+```{r}
+
+standings %>% 
+  mutate(cat=ifelse(res=="Win",1,0)) %>% 
+  select(gameDate,season,team,cat,final_Pos) %>% 
+  arrange(gameDate) %>% 
+  group_by(season,team) %>% 
+   mutate(roll_sum = roll_sum(cat, 14, align = "right", fill = NA)) %>% 
+  filter(roll_sum==0) %>% 
+  ungroup() %>% 
+  select(-c(gameDate,cat,roll_sum)) %>% 
+  unique() %>%
+ DT::datatable(width=300,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+```
+
+So typically once a season, with WBA featuring once before and escaping by the skin of thier teeth. 
+Generally, such a run will mean the drop but there are obviously many teams still in the mix
+
+
+<p class="factoid">There was a greater than 20 year age gap between two outfield bench-warmers for the first time this season. WBA's Gareth McAuley(38) and Rayaan Tulloch(16) also set a club record</p>
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "940072530953383937") 
+```
+
+
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6546608-city-out-of-sight-west-ham-win-at-last-and-arsenal-off-to-ostersunds/embed/v4?eid=AQAAAHmuLlqw5GMA" title="audioBoom player"></iframe>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6546651-city-slickers-benteke-s-blunder-and-classic-allardyce-football-weekly/embed/v4?eid=AQAAAOLcLlrb5GMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-04"&gameDate<="2017-12-11") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-11") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">Palace are only the second team in EPL history to be bottom after a five-game unbeaten run (QPR 2012/13)</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
