@@ -1,0 +1,349 @@
+---
+title: EPL Week 18
+author: Andrew Clark
+date: '2017-12-17'
+slug: epl-week-18
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk17_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode
+
+
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+# library(lubridate)
+ library(crosstalk)
+# library(forcats)
+# library(glue)
+ library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+
+
+
+
+
+```
+
+
+
+## Match of the Day
+
+Four teams win away from home by three goal margins - surprisingly Huddersfield, West Ham and Crystal Palace
+
+
+```{r topGame}
+
+embed_youtube("aYtYqEXndlM", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+
+<p class="factoid">
+</p>
+
+
+
+
+***
+
+## Who is your Talisman
+
+Some players are regarded as more essential to their teams than others - Pogba at Manchester united or Zaha at Crystal Palace for example. 
+
+As a crude way of estimating this we can look at the average points per game the team has secured with their services when they are playing or not
+
+
+Here is the leading player, by each team this season (with a minimum of 5 starts) 
+
+
+```{r}
+
+# ppg <-playerGame %>% 
+#   filter(season=="2017/18"&START>0) %>% 
+#   select(name,TEAMMATCHID,PLAYERID) %>% 
+#   left_join(teamGames) %>% 
+#   left_join(standings,by=c("MATCHID"="MATCHID","TEAMNAME"="team")) %>% 
+#   select(season.x,res,TEAMNAME,name,PLAYERID)   %>% 
+#   
+#   mutate(points=
+#            case_when(
+#              res=="Win" ~ 3,
+#              res =="Draw" ~ 1,
+#              res=="Loss" ~ 0)
+#   ) %>% 
+#     group_by(PLAYERID,TEAMNAME,name) %>% 
+#   summarize(ppg=sum(points)/n(),games=n()) 
+
+#NB all filtering/arranging etc need to be done before sd
+
+ppg <-playerGame %>% 
+  filter(season=="2017/18"&START>0) %>% 
+  select(name,TEAMMATCHID,PLAYERID) %>% 
+  left_join(teamGames) %>% 
+  left_join(standings,by=c("MATCHID"="MATCHID","TEAMNAME"="team")) %>% 
+  select(season.x,res,TEAMNAME,name,PLAYERID)   %>% 
+  
+  mutate(points=
+           case_when(
+             res=="Win" ~ 3,
+             res =="Draw" ~ 1,
+             res=="Loss" ~ 0)
+  ) %>% 
+    group_by(PLAYERID,TEAMNAME,name) %>% 
+  summarize(ppg=round(sum(points)/n(),2),games=n()) %>% 
+  
+    arrange(desc(ppg)) %>% 
+    # mutate(ppg=round(ppg,2)) %>% 
+    # mutate(ifelse(ppg<0.01,0.03,ppg)) %>% 
+    filter(games>4) %>% 
+    rename(team=TEAMNAME)
+
+sd <- SharedData$new(ppg)
+
+fs <- filter_select(
+id = "team",
+label = "Select Team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+ ## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+chart <- sd %>% 
+    plot_ly(x=~ppg,y=~fct_reorder(name,ppg)) %>% 
+    add_markers(size=~games,
+                hoverinfo="text",
+                text=~paste0(name,
+                             "<br>Starts: ",games,
+                             "<br>ppg: ",ppg)) %>% 
+    add_segments(x = 0, xend = ~ppg, y = ~fct_reorder(name,ppg), yend = ~fct_reorder(name,ppg), showlegend = FALSE, color=I("lightgrey")) %>% 
+    layout(
+    title="Average Team Points per Game when Starter (min 5)<br>Circle size reflects games played",
+           margin=list(l=120),
+           xaxis=list(title="Points per game"),
+           yaxis=list(title="")
+           )  %>%  config(displayModeBar = F,showLink = F)
+
+
+tagList(
+  fs_nobootstrap,
+  br(),
+  chart
+)
+
+# ppg %>% 
+#     filter(games>4) %>% 
+#     arrange(desc(ppg)) %>% 
+#     filter(TEAMNAME=="Crystal P") %>% 
+#     mutate(ppg=round(ppg,2)) %>% 
+#     mutate(ifelse(ppg<0.01,0.03,ppg)) %>% 
+#     plot_ly(x=~ppg,y=~fct_reorder(name,ppg)) %>% 
+#     add_markers(size=~games,
+#                 hoverinfo="text",
+#                 text=~paste0(name,
+#                              "<br>Starts: ",games,
+#                              "<br>ppg: ",ppg)) %>% 
+#     add_segments(x = 0, xend = ~ppg, y = ~fct_reorder(name,ppg), yend = ~fct_reorder(name,ppg), showlegend = FALSE, color=I("lightgrey")) %>% 
+#     layout(
+#     title="Average Team Points per Game when Starter (min 5)<br>Circle size reflects games played",
+#            margin=list(l=120),
+#            xaxis=list(title="Points per game"),
+#            yaxis=list(title="")
+#            )  %>%  config(displayModeBar = F,showLink = F)
+           
+
+```
+
+
+
+```{r}
+
+  
+  ## 
+  
+  ppg %>% 
+    filter(games>4) %>% 
+    arrange(desc(ppg)) %>% 
+    group_by(TEAMNAME) %>% 
+    slice(1) %>% 
+    arrange(desc(ppg)) %>%
+    mutate(ppg=round(ppg,2)) %>% 
+    ungroup() %>% 
+    select(-PLAYERID) %>% 
+    rename(` `=TEAMNAME,` `=name,`Points per Game`=ppg) %>% 
+    
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+```
+
+Clearly it will depend on strength of opposition they have faced but Pogba does lead his team whilst Zaha is second on his. The under-utilization of Pedro at Chelsea also seems a bit strange as he formed such an integral part of the champions last year
+
+
+***
+
+<p class="factoid">Dwight Gayle jointly leads Newcastle United with three goals but has been on the losing side
+in each of his eight starts</p>
+
+## 
+
+```{r}
+
+         
+
+```
+
+
+
+
+***
+
+## 
+
+```{r}
+
+
+```
+
+ 
+
+```{r}
+
+```
+
+
+***
+
+
+
+
+
+
+
+
+<p class="factoid"></p>
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "940084359335309312") 
+```
+
+
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552940-recency-bias-revel-ations-and-the-rooney-contradiction/embed/v4?eid=AQAAAJunMlps_WMA" title="audioBoom player"></iframe>
+
+***
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552886-manchester-city-make-history-and-arsenal-in-89-football-weekly-extra/embed/v4?eid=AQAAAG2nMlo2_WMA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-14"&gameDate<="2017-12-19") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-18") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">103 players have now scored away from home - all of them totalling more than managed by the entire Palace squad</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
