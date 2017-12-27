@@ -1,0 +1,253 @@
+---
+title: EPL Week 19
+author: Andrew Clark
+date: '2017-12-26'
+slug: epl-week-19
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk19_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+ library(lubridate)
+ library(crosstalk)
+# library(forcats)
+# library(glue)
+ library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+
+
+
+
+
+```
+
+
+
+## Match of the Day
+
+Arsenal and Liverpool showing why they are fun to watch but won't be winning major trophies
+
+
+```{r topGame}
+
+embed_youtube("hzsCYuzgkao", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+<p>
+
+
+## Kane is Able
+
+Some eyebrows were raised when Harry Kane was rated by a [Guardian poll](https://www.theguardian.com/football/ng-interactive/2017/dec/19/the-100-best-footballers-in-the-world-2017-interactive) of 169 experts  as the fifth best player in the world for 2017 but he certainly did his best to justify it with a hat-trick at high-flying Burnley
+
+He now jointly - holds the record for most Premier League goals in a calendar year with one game remaining and is one of only three players to have led in that category and scored at the rate of more than a goal per 90 minutes played
+
+
+```{r}
+
+playerGame %>% 
+    filter(PLAYERID!="OWNGOAL") %>% 
+    select(PLAYERID,name,Gls,gameDate,mins) %>% 
+    mutate(year=year(gameDate)) %>% 
+    group_by(PLAYERID,name,year) %>% 
+    summarize(tot=sum(Gls),totMins=sum(mins)) %>% 
+    ungroup() %>% 
+    arrange(desc(tot)) %>% 
+    group_by(year) %>% 
+    slice(1) %>% 
+    mutate(gpg=round(90*tot/totMins,2)) %>% 
+    plot_ly(x=~year,y=~tot) %>% 
+ 
+    add_bars(color= ~year,
+             hoverinfo="text",
+             text=~paste0(name,
+                          "<br>Goals: ",tot,
+                          "<br>Gls per 90mins: ",gpg)) %>% 
+ hide_colorbar() %>% 
+  layout(
+    title="Leading Scorer in Calendar year",
+    xaxis=list(title=""),
+    yaxis=list(title="Goals Scored")
+  ) %>% 
+  config(displayModeBar = F,showLink = F)
+  
+    
+
+```
+
+Kane was also the leader two years ago and will have Alan Shearer's four year record in his sights
+Surprising winners? How about Robbie Keane 2007 and Wilfried Bony, 2014
+
+***
+
+Sort and filter the table, as desired
+
+
+```{r}
+ playerGame %>% 
+    filter(PLAYERID!="OWNGOAL") %>% 
+    select(PLAYERID,name,Gls,gameDate,mins,TEAMNAME) %>% 
+    mutate(year=year(gameDate)) %>% 
+    group_by(PLAYERID,name,year,TEAMNAME) %>% 
+    summarize(tot=sum(Gls),totMins=sum(mins)) %>% 
+    ungroup() %>% 
+    arrange(desc(tot),totMins) %>% 
+    group_by(year,TEAMNAME) %>%
+    slice(1) %>% 
+    mutate(gpg=round(90*tot/totMins,2)) %>% 
+    arrange(desc(gpg)) %>% 
+  ungroup() %>% 
+  mutate(rank=row_number()) %>% 
+  slice(2:11) %>% 
+    select(rank,team=TEAMNAME,year,name,Goals=tot,`Goals per 90 mins`=gpg) %>%
+                         DT::datatable(width=600,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+  
+
+```
+
+
+
+
+***
+
+<p class="factoid">Kane's 7th minute penalty ended a goal-drought three minutes shy of his season longest of 305 minutes </p>
+
+## 
+
+
+***
+
+
+
+
+
+
+
+
+<p class="factoid">Last season, Raheem Sterling only scored three league goals after 24th September which was matched or bettered
+by 108 other players. This season he currnetly is in sole position of 4th place</p>
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "944971910609113088") 
+```
+
+
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6564111-bristol-city-hit-the-big-time-clasico-chat-tom-ince-v-saido-berahino-and-the-doucoure-imperative/embed/v4?eid=AQAAAO7eQ1oPKWQA" title="audioBoom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6567565-christmas-carrolls-and-sid-s-ham-garage-football-weekly/embed/v4?eid=AQAAAMTbP1qNNmQA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-19"&gameDate<="2017-12-24") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-24") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid"></p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+

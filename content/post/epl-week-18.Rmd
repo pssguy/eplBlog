@@ -1,12 +1,12 @@
 ---
 title: EPL Week 18
 author: Andrew Clark
-date: '2017-12-17'
+date: '2017-12-19'
 slug: epl-week-18
 categories:
   - eplWeekly
 tags: []
-banner: 'banners/wk17_2017.png'
+banner: 'banners/wk18_2017.png'
 description: 
 images: []
 menu: ''
@@ -69,12 +69,12 @@ teamGames<- readRDS("data/soccer/teamGames.rds")
 
 ## Match of the Day
 
-Four teams win away from home by three goal margins - surprisingly Huddersfield, West Ham and Crystal Palace
+Four teams win away from home by at least three goal margins - surprisingly Huddersfield, West Ham and Crystal Palace join Liverpool
 
 
 ```{r topGame}
 
-embed_youtube("aYtYqEXndlM", width = 420, height = 315, frameborder = 0,
+embed_youtube("mwLoshj56qs", width = 420, height = 315, frameborder = 0,
    allowfullscreen = TRUE, query = NULL) 
 
 
@@ -82,20 +82,14 @@ embed_youtube("aYtYqEXndlM", width = 420, height = 315, frameborder = 0,
 
 
 ***
+<p>
 
-<p class="factoid">
-</p>
-
-
-
-
-***
 
 ## Who is your Talisman
 
-Some players are regarded as more essential to their teams than others - Pogba at Manchester united or Zaha at Crystal Palace for example. 
+Some players are regarded as more essential to their teams than others - Pogba at Manchester United or Zaha at Crystal Palace spring to mind. 
 
-As a crude way of estimating this we can look at the average points per game the team has secured with their services when they are playing or not
+As a crude way of assessing this, we can look at the average points per game the team has secured with their services when they are playing or not
 
 
 Here is the leading player, by each team this season (with a minimum of 5 starts) 
@@ -103,23 +97,7 @@ Here is the leading player, by each team this season (with a minimum of 5 starts
 
 ```{r}
 
-# ppg <-playerGame %>% 
-#   filter(season=="2017/18"&START>0) %>% 
-#   select(name,TEAMMATCHID,PLAYERID) %>% 
-#   left_join(teamGames) %>% 
-#   left_join(standings,by=c("MATCHID"="MATCHID","TEAMNAME"="team")) %>% 
-#   select(season.x,res,TEAMNAME,name,PLAYERID)   %>% 
-#   
-#   mutate(points=
-#            case_when(
-#              res=="Win" ~ 3,
-#              res =="Draw" ~ 1,
-#              res=="Loss" ~ 0)
-#   ) %>% 
-#     group_by(PLAYERID,TEAMNAME,name) %>% 
-#   summarize(ppg=sum(points)/n(),games=n()) 
 
-#NB all filtering/arranging etc need to be done before sd
 
 ppg <-playerGame %>% 
   filter(season=="2017/18"&START>0) %>% 
@@ -138,8 +116,7 @@ ppg <-playerGame %>%
   summarize(ppg=round(sum(points)/n(),2),games=n()) %>% 
   
     arrange(desc(ppg)) %>% 
-    # mutate(ppg=round(ppg,2)) %>% 
-    # mutate(ifelse(ppg<0.01,0.03,ppg)) %>% 
+
     filter(games>4) %>% 
     rename(team=TEAMNAME)
 
@@ -163,8 +140,8 @@ attr(fs_nobootstrap, "html_dependencies") <- Filter(
 )
 
 chart <- sd %>% 
-    plot_ly(x=~ppg,y=~fct_reorder(name,ppg)) %>% 
-    add_markers(size=~games,
+    plot_ly(x=~ppg,y=~fct_reorder(name,ppg)) %>%# right order - shows ALL players best bet in combo with yaxis vis=F
+         add_markers(size=~games,
                 hoverinfo="text",
                 text=~paste0(name,
                              "<br>Starts: ",games,
@@ -174,7 +151,7 @@ chart <- sd %>%
     title="Average Team Points per Game when Starter (min 5)<br>Circle size reflects games played",
            margin=list(l=120),
            xaxis=list(title="Points per game"),
-           yaxis=list(title="")
+           yaxis=list(title="",visible = FALSE)
            )  %>%  config(displayModeBar = F,showLink = F)
 
 
@@ -184,29 +161,14 @@ tagList(
   chart
 )
 
-# ppg %>% 
-#     filter(games>4) %>% 
-#     arrange(desc(ppg)) %>% 
-#     filter(TEAMNAME=="Crystal P") %>% 
-#     mutate(ppg=round(ppg,2)) %>% 
-#     mutate(ifelse(ppg<0.01,0.03,ppg)) %>% 
-#     plot_ly(x=~ppg,y=~fct_reorder(name,ppg)) %>% 
-#     add_markers(size=~games,
-#                 hoverinfo="text",
-#                 text=~paste0(name,
-#                              "<br>Starts: ",games,
-#                              "<br>ppg: ",ppg)) %>% 
-#     add_segments(x = 0, xend = ~ppg, y = ~fct_reorder(name,ppg), yend = ~fct_reorder(name,ppg), showlegend = FALSE, color=I("lightgrey")) %>% 
-#     layout(
-#     title="Average Team Points per Game when Starter (min 5)<br>Circle size reflects games played",
-#            margin=list(l=120),
-#            xaxis=list(title="Points per game"),
-#            yaxis=list(title="")
-#            )  %>%  config(displayModeBar = F,showLink = F)
+
            
 
 ```
 
+Not an ideal chart, as is, but hover points for more information
+
+Here are leading players, by team. Check back for changes as the season progresses
 
 
 ```{r}
@@ -217,20 +179,20 @@ tagList(
   ppg %>% 
     filter(games>4) %>% 
     arrange(desc(ppg)) %>% 
-    group_by(TEAMNAME) %>% 
+    group_by(team) %>% 
     slice(1) %>% 
     arrange(desc(ppg)) %>%
     mutate(ppg=round(ppg,2)) %>% 
     ungroup() %>% 
     select(-PLAYERID) %>% 
-    rename(` `=TEAMNAME,` `=name,`Points per Game`=ppg) %>% 
+    rename(` `=team,` `=name,`Points per Game`=ppg) %>% 
     
                          DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
 
 
 ```
 
-Clearly it will depend on strength of opposition they have faced but Pogba does lead his team whilst Zaha is second on his. The under-utilization of Pedro at Chelsea also seems a bit strange as he formed such an integral part of the champions last year
+Clearly it will depend on strength of opposition they have faced but, at the time of writing, Pogba does lead his team whilst Zaha is second on his. The under-utilization of Pedro at Chelsea also seems a bit strange as he formed such an integral part of the champions team last year
 
 
 ***
@@ -238,31 +200,30 @@ Clearly it will depend on strength of opposition they have faced but Pogba does 
 <p class="factoid">Dwight Gayle jointly leads Newcastle United with three goals but has been on the losing side
 in each of his eight starts</p>
 
-## 
+## Liverpool equal all-time record
 
-```{r}
+Liverpool may have slipped up in a couple of home games but their away dominance continued. The most recent four 
+away results 
 
-         
+* West Ham 4-1
+* Stoke 3-0
+* Brighton 5-1
+* Bournemouth 4-0
 
-```
+equals an all-time English League record for consecutive away wins with goal margins of three or more
 
+![](/img/liverpoolBigAway.png)
 
-
-
-***
-
-## 
-
-```{r}
-
-
-```
-
+ Wolves also recorded their victories recently, in League One, 2013/14
  
+ * Oldham 3-0
+ * Brentford 3-0
+ * Walsall 3-0
+ * Swindon 4-1
+ 
+ Liverpool's is a bit more impressive but next up is Arsenal so a continuation of the run is unlikely.
+ Win by 4 and they will be the first ever to achieve a sequence of three such victories
 
-```{r}
-
-```
 
 
 ***
@@ -274,7 +235,8 @@ in each of his eight starts</p>
 
 
 
-<p class="factoid"></p>
+<p class="factoid">For Palace last week, Sako ended a goal drought of 1262 minutes and Benteke one of 1109.
+Townsend extended his to 2103</p>
 
 ***
 
@@ -282,7 +244,7 @@ in each of his eight starts</p>
 
 
 ```{r}  
-shortcode("tweet", "940084359335309312") 
+shortcode("tweet", "942933134806433792") 
 ```
 
 
@@ -294,6 +256,8 @@ shortcode("tweet", "940084359335309312")
 <iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552940-recency-bias-revel-ations-and-the-rooney-contradiction/embed/v4?eid=AQAAAJunMlps_WMA" title="audioBoom player"></iframe>
 
 ***
+<p>
+
 <iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6552886-manchester-city-make-history-and-arsenal-in-89-football-weekly-extra/embed/v4?eid=AQAAAG2nMlo2_WMA" title="audioBoom player"></iframe>
 
 ***
@@ -312,14 +276,15 @@ hth %>%
                               columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
 ```
 
-
+***
+<p>
 
 ```{r standings}
 
 
 # table
 hth %>% 
-  filter(season=="2017/18"&gameDate<="2017-12-18") %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-19") %>% 
   group_by(team) %>% 
   mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
   summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
@@ -333,7 +298,7 @@ hth %>%
 
 ## Final Factoid
 
-<p class="factoid">103 players have now scored away from home - all of them totalling more than managed by the entire Palace squad</p>
+<p class="factoid">Including follow-ups, Everton have now scored from seven penalties: as many have they have achieved in a full season since 2006/7 (8)</p>
 
 
 ---
