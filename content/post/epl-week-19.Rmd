@@ -38,11 +38,11 @@ library(blogdown) # for shortcode(tweet)
 # library(vembedr) 
 # library(blogdown)
  library(lubridate)
- library(crosstalk)
+# library(crosstalk)
 # library(forcats)
 # library(glue)
- library(htmltools)
-#library(RcppRoll) 
+# library(htmltools)
+library(RcppRoll) 
 
 #library(sparkline)
 
@@ -87,9 +87,9 @@ embed_youtube("hzsCYuzgkao", width = 420, height = 315, frameborder = 0,
 
 ## Kane is Able
 
-Some eyebrows were raised when Harry Kane was rated by a [Guardian poll](https://www.theguardian.com/football/ng-interactive/2017/dec/19/the-100-best-footballers-in-the-world-2017-interactive) of 169 experts  as the fifth best player in the world for 2017 but he certainly did his best to justify it with a hat-trick at high-flying Burnley
+Some eyebrows were raised when Harry Kane was rated by a [Guardian poll](https://www.theguardian.com/football/ng-interactive/2017/dec/19/the-100-best-footballers-in-the-world-2017-interactive) of 169 experts  as the fifth best player in the world for 2017 but he certainly did his best to justify that ranking with a hat-trick at high-flying Burnley
 
-He now jointly - holds the record for most Premier League goals in a calendar year with one game remaining and is one of only three players to have led in that category and scored at the rate of more than a goal per 90 minutes played
+He now (at the time of writing) jointly - holds the record for most Premier League goals in a calendar year with one game remaining and is one of only three players to have led in that category and scored at the rate of more than a goal per 90 minutes played
 
 
 ```{r}
@@ -124,10 +124,14 @@ playerGame %>%
 
 ```
 
-Kane was also the leader two years ago and will have Alan Shearer's four year record in his sights
+Kane was also the leader two years ago and will have Alan Shearer's four time winner's record in his sights
 Surprising winners? How about Robbie Keane 2007 and Wilfried Bony, 2014
 
 ***
+<p class="factoid">Kane's 7th minute penalty ended a goal-drought three minutes shy of his season longest of 305 minutes </p>
+***
+
+Here is a table of players who have led their team in scoring for each calendar year    
 
 Sort and filter the table, as desired
 
@@ -147,7 +151,7 @@ Sort and filter the table, as desired
     arrange(desc(gpg)) %>% 
   ungroup() %>% 
   mutate(rank=row_number()) %>% 
-  slice(2:11) %>% 
+ # slice(2:11) %>% 
     select(rank,team=TEAMNAME,year,name,Goals=tot,`Goals per 90 mins`=gpg) %>%
                          DT::datatable(width=600,class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
   
@@ -159,22 +163,43 @@ Sort and filter the table, as desired
 
 ***
 
-<p class="factoid">Kane's 7th minute penalty ended a goal-drought three minutes shy of his season longest of 305 minutes </p>
-
-## 
 
 
-***
+## Arsenal turnaround
+
+After being comprehensively outplayed for much of the game, Liverpool's defensive frailties enabled the Gunners to score three goals in six minutes through Sanchez, Xhaka and Ozil; before, ultimately, settling for a point    
+
+Just how rare is this goal blitz
+
+```{r}
+scoreLines2 <- scoreLines %>% 
+    arrange(mins) %>% 
+    group_by(TEAMMATCHID)  %>% 
+    mutate(tot_sum = roll_sum(GF, 6, align = "right", fill = NA))
 
 
+scoreLines2 %>% 
+  left_join(teamGames) %>% 
+  filter(tot_sum>2) %>% 
+  select(TEAMNAME,gameDate,season,MATCHID,mins) %>% 
+  left_join(standings) %>% 
+  filter(TEAMNAME==team) %>% 
+  select(team,OppTeam,GF,GA,gameDate,season,TEAMMATCHID,mins) %>% 
+  arrange(desc(mins)) %>% 
+  slice(1)   %>%
+  ungroup() %>% 
+  arrange(team,desc(gameDate)) %>% 
+  select(team,opponents=OppTeam,GF,GA,date=gameDate,season,`last minute`=mins) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging =TRUE, searching = TRUE,info=FALSE))
+```
+
+So, it turns out not that uncommon - at least for Arsenal. This is their record, 10th time in the Premier League but the only one in which they have not proved victorious. In fact, goals from Giroud, Sanchez and Ozil did for Huddesfield less than a month ago
+
+The only team to have ever scored four in six minutes are Spurs v Southampton back in 1992/3
+
+![](/img/spurs4in6.png)
 
 
-
-
-
-
-<p class="factoid">Last season, Raheem Sterling only scored three league goals after 24th September which was matched or bettered
-by 108 other players. This season he currnetly is in sole position of 4th place</p>
 
 ***
 
@@ -185,7 +210,7 @@ by 108 other players. This season he currnetly is in sole position of 4th place<
 shortcode("tweet", "944971910609113088") 
 ```
 
-
+This got a pretty good response with some Fulham fans aware that Clint Dempsey notched exactly 50 goals for his club
 
 ***
 
@@ -235,7 +260,8 @@ hth %>%
 
 ## Final Factoid
 
-<p class="factoid"></p>
+<p class="factoid">Last season, Raheem Sterling only scored three league goals after 24th September which was matched or bettered
+by 108 other players. This season he currently is in sole position of 4th place</p>
 
 
 ---

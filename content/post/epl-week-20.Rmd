@@ -1,0 +1,273 @@
+---
+title: EPL Week 20
+author: Andrew Clark
+date: '2017-12-27'
+slug: epl-week-20
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk19_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+ library(lubridate)
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+library(RcppRoll) 
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+
+managers<- readRDS("data/soccer/managers.rds")
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+
+
+
+
+
+```
+
+
+
+## Match of the Day
+
+
+
+
+```{r topGame}
+
+embed_youtube("hzsCYuzgkao", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+<p>
+
+
+## Pardew Bounce
+
+Alan Pardew has a rep as someone who gives a team an instant return, extended runs good and bad and ultimate disappointment
+Well stage one hasn't happened with WBA as they have yet to win a game in siz but how true is it of his four other Premier managerships
+
+
+```{r}
+
+## Take account of managers who are in situ
+managers[is.na(managers$Left),"Left"] <- as.Date(Sys.Date(), origin= '1970-01-01')
+
+managerGame <-managers %>% 
+  mutate(name=paste(FirstName,Lastname)) %>% 
+  group_by(ManagerID,ManagerTeam) %>% 
+  inner_join(standings,by=c("TEAMNAME"="team")) %>% 
+  select(Lastname,FirstName,name,ManagerID,ManagerTeam,Joined,Left,TEAMNAME,gameDate,res,GF,GA,position) %>% 
+  filter(gameDate>=as.Date(Joined)&gameDate<=as.Date(Left)) %>% 
+  mutate(points=ifelse(res=="Win",3,ifelse(res=="Draw",1,0))) %>% 
+  ungroup()
+
+
+
+managerGame %>% 
+   arrange(gameDate) %>% 
+   group_by(ManagerID,name,TEAMNAME) %>% 
+   mutate(cumPoints=cumsum(points),gameOrder=row_number()) %>% 
+   filter(ManagerID=="PardewA") %>% 
+   group_by(TEAMNAME) %>% 
+   plot_ly(x=~gameOrder,y=~cumPoints,color=~TEAMNAME, colors="Accent") %>% 
+  add_lines(line = list(shape = "hv")) %>% 
+  layout(title="Cumulative Points by Games Played",
+         xaxis=list(title='Points'),
+         yaxis=list(title="Games Managed")) %>%
+      config(displayModeBar = F,showLink = F)
+   
+    
+
+```
+
+For the three teams he has managed to 50 games+, there is only a 5 point span at the half-century mark
+
+ His performaces after 6 games has been, in chronological order
+ 
+       * West Ham United (11)
+       * Charlton(8)
+       * Newcastle United(10)
+       * Crystal Palace(10)
+       * WBA(3)
+       
+  So, by some margin, his worst start. The six game span has only yielded two goals
+  
+  Indeed, over the last 17 games, he has only registered one victory
+  
+```{r}
+df<- managerGame %>% 
+  filter(ManagerID=="PardewA") %>% 
+   arrange(gameDate) %>% 
+   mutate(cat=ifelse(res=="Win",1,0)) %>% 
+   #group_by(ManagerID)  %>% 
+   mutate(tot_sum = roll_sum(cat, 17, align = "right", fill = NA))
+
+df %>% 
+  filter(!is.na(tot_sum)) %>% 
+  mutate(order=row_number()) %>% 
+  plot_ly(x = ~ order,y = ~ tot_sum) %>% 
+  add_markers(color= ~ TEAMNAME, colors="Accent",hoverinfo="text",symbol = I(16),
+              text=~paste0(GF,"-",GA)) %>% 
+  add_lines(color=I("lightgrey"),hoverinfo="text",
+              text=~paste0(GF,"-",GA), showlegend=FALSE) %>% 
+  layout(title="Alan Pardew - Wins in 17 game windows<br>Hover for Score",
+         xaxis=list(title=""),
+         yaxis=list(title="Wins")) %>%  config(displayModeBar = F,showLink = F)
+         
+  
+
+
+```
+  
+ 
+ 
+
+***
+<p class="factoid"></p>
+***
+
+
+
+
+```{r}
+ 
+
+```
+
+
+
+
+***
+
+
+
+## 
+
+```{r}
+
+```
+
+
+
+
+
+***
+
+## Tweet of the Week
+
+
+```{r}  
+shortcode("tweet", "944971910609113088") 
+```
+
+This got a pretty good response with some Fulham fans aware that Clint Dempsey notched exactly 50 goals for his club
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6564111-bristol-city-hit-the-big-time-clasico-chat-tom-ince-v-saido-berahino-and-the-doucoure-imperative/embed/v4?eid=AQAAAO7eQ1oPKWQA" title="audioBoom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6567565-christmas-carrolls-and-sid-s-ham-garage-football-weekly/embed/v4?eid=AQAAAMTbP1qNNmQA" title="audioBoom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-24"&gameDate<="2017-12-29") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(team) %>% 
+  select(Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=250)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2017-12-29") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid"></p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
