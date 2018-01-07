@@ -1,12 +1,12 @@
 ---
 title: EPL Week 20
 author: Andrew Clark
-date: '2017-12-27'
+date: '2017-12-29'
 slug: epl-week-20
 categories:
   - eplWeekly
 tags: []
-banner: 'banners/wk19_2017.png'
+banner: 'banners/wk20_2017.png'
 description: 
 images: []
 menu: ''
@@ -56,7 +56,7 @@ goals<- readRDS("data/soccer/goals.rds")
 playerGame<- readRDS("data/soccer/playerGame.rds")
 teamGames<- readRDS("data/soccer/teamGames.rds")
 # assists<- readRDS("data/soccer/assists.rds")
-#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
 
 
 
@@ -89,8 +89,9 @@ embed_youtube("hzsCYuzgkao", width = 420, height = 315, frameborder = 0,
 
 ## Pardew Bounce
 
-Alan Pardew has a rep as someone who gives a team an instant return, extended runs good and bad and ultimate disappointment
-Well stage one hasn't happened with WBA as they have yet to win a game in siz but how true is it of his four other Premier managerships
+Alan Pardew has a rep as someone who gives a team an instant return, extended runs (good and bad) and ultimate disappointment   
+
+Well stage one hasn't happened with WBA as they have yet to win a game in six but how true is it of his four other Premier managerships. Zoom into bottom left hand corner to view first six games
 
 
 ```{r}
@@ -130,13 +131,13 @@ For the three teams he has managed to 50 games+, there is only a 5 point span at
 
  His performaces after 6 games has been, in chronological order
  
-       * West Ham United (11)
-       * Charlton(8)
-       * Newcastle United(10)
-       * Crystal Palace(10)
-       * WBA(3)
+* West Ham United (11)
+* Charlton (8)
+* Newcastle United (10)
+* Crystal Palace (10)
+* WBA (3)
        
-  So, by some margin, his worst start. The six game span has only yielded two goals
+  So, by some margin, his worst start. The six game span has also only yielded two goals for
   
   Indeed, over the last 17 games, he has only registered one victory
   
@@ -169,27 +170,51 @@ df %>%
  
 
 ***
-<p class="factoid"></p>
+<p class="factoid">The worst winless run was endured by Paul Jewell who took over bottom club Derby on 28 Nov 2007. They did not
+win in the remaining 24 games of the season under his stewardship</p>
 ***
 
 
 
 
-```{r}
- 
+## Man City plough on
 
-```
+With yet another victory - via Sterlings 13th goal of the season (as many as he has scored in the past two seasons combined) -
+City are now one shy of the 19 consecutive wins record in the big leagues of Bayern Munich
 
+One surprising aspect of this, is that they have yet to score in the first nine minutes of any game. Only Stoke have failed to score earlier
 
+![](/img/mncNoEarlyGoal.png)
 
+They have not conceded over that time period either but, nevertheless they would currently be hovering above the relegation zone if games were played over nine rather than ninety minutes
 
-***
-
-
-
-## 
 
 ```{r}
+
+timeSelect <- 9
+elapsed <- scoreLines %>% 
+  arrange(mins) %>% 
+ group_by(TEAMMATCHID,OPPMATCHID,MATCHID) %>% 
+  mutate(cumGF=cumsum(GF),cumGA=cumsum(GA)) %>% 
+  filter(mins==timeSelect)
+
+standings %>% 
+  filter(season=="2017/18") %>% 
+  select(team,MATCHID,TEAMMATCHID) %>% 
+  left_join(elapsed) %>% 
+  left_join(standings, by=c("team"="team","MATCHID"="MATCHID")) %>% 
+  select(team,OppTeam,gameDate,GF=cumGF.x,GA=cumGA.x,season) %>% 
+  mutate(points=case_when(
+    GF > GA ~ 3,
+    GA > GF ~ 0,
+    GF == GA ~ 1
+    
+  )) %>% 
+  group_by(team) %>% 
+  summarize(Points=sum(points),GF=sum(GF),GA=sum(GA),GD=GF-GA,Games=n()) %>% 
+  select(team,Points,GF,GA,GD) %>% 
+  arrange(desc(Points),desc(GD),team) %>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
 
 ```
 
@@ -203,20 +228,20 @@ df %>%
 
 
 ```{r}  
-shortcode("tweet", "944971910609113088") 
+shortcode("tweet", "946114232990310400") 
 ```
 
-This got a pretty good response with some Fulham fans aware that Clint Dempsey notched exactly 50 goals for his club
+
 
 ***
 
 ## Totally Football and Guardian Weekly Review Podcasts
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6564111-bristol-city-hit-the-big-time-clasico-chat-tom-ince-v-saido-berahino-and-the-doucoure-imperative/embed/v4?eid=AQAAAO7eQ1oPKWQA" title="audioBoom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6571348-calendar-year-records-the-return-of-tony-pulis-and-is-vvd-vfm/embed/v4?eid=AQAAAOokRVpURWQA" title="audioBoom player"></iframe>
 ***
 <p>
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6567565-christmas-carrolls-and-sid-s-ham-garage-football-weekly/embed/v4?eid=AQAAAMTbP1qNNmQA" title="audioBoom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6571447-liverpool-splash-the-cash-and-is-kane-s-record-a-big-deal-football-weekly-extra/embed/v4?eid=AQAAALMkRVq3RWQA" title="audioBoom player"></iframe>
 
 ***
 
@@ -256,7 +281,7 @@ hth %>%
 
 ## Final Factoid
 
-<p class="factoid"></p>
+<p class="factoid">Arsene Wenger celebrates matching Alex Ferguson's 810 matches in charge of an EPL game with a win. For managers with more than 50 games under their belt, his points per game average of 1.98 ranks eighth</p>
 
 
 ---

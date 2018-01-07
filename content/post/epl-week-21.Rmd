@@ -1,0 +1,235 @@
+---
+title: EPL Weeks 21/22
+author: Andrew Clark
+date: '2018-01-06'
+slug: epl-week-21
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk20_2017.png'
+description: 
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE, fig.align = 'center')
+```
+
+
+
+```{r setup}
+
+
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+# library(stringr)
+# library(vembedr) 
+# library(blogdown)
+ library(lubridate)
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+library(RcppRoll) 
+
+#library(sparkline)
+
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+
+managers<- readRDS("data/soccer/managers.rds")
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+teamGames<- readRDS("data/soccer/teamGames.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+
+
+
+
+
+```
+
+
+Combining the New Year rounds 21 and 22
+
+The congested holiday season saw Man City's winning run end at 18 games but little to suggest they wre anything other thann champions- elect    
+Meanwhile the transfer window opened January first and Liverpool were soon the team making waves
+
+
+## Match of the Day
+
+
+
+```{r topGame}
+
+embed_youtube("7KFfPrngaZc", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+<p class="factoid">Two Crystal Palace players had two players, Dann and Puncheon, suffer season-ending injuries by fouling Kevin de Bruyne</p>
+
+
+## 
+
+
+```{r}
+
+
+
+```
+
+
+  
+```{r}
+
+  
+
+
+```
+  
+ 
+ 
+
+***
+<p class="factoid">A week after highlighting how Man City had failed to score an early goal, they net within 40 seconds. Sterling now has the earliest and latest goals scored in league this season</p>
+***
+
+
+
+
+## Goals conceded
+
+A few weeks ago I created a plot that showed the time in a game at which teams had scored all of their goals. Of course, it is easy to amend the code to show when teams have conceded goals. Manchester City lead the league in both categories this season but are unlikely to match over the whole campaign the meagre 15 goals that Chelsea conceded in winning the title in 2004/5
+
+```{r}
+
+each <- playerGame %>% 
+  select(PLAYER_MATCH,season,TEAMNAME,venue,Opponents) %>% 
+  right_join(goals) %>% 
+  select(season,TEAMNAME,TIME,venue,Opponents) %>% 
+  mutate(venue=ifelse(venue=="A","H","A")) %>%  ## need to reverse venues 
+  filter(season=="2004/05")
+
+all <- each %>% 
+  group_by(Opponents) %>% 
+  tally()
+
+
+each %>% 
+  left_join(all) %>% 
+  plot_ly(x=~jitter(TIME),y=~fct_reorder(Opponents, n)) %>% 
+  add_markers(hoverinfo="text", color=~venue, colors=c("orange","blue"),
+              text=~paste0(TIME," v ",TEAMNAME)) %>% 
+  layout(margin=list(l=120),
+         title="Time of goals conceded, by venue, 2004/05",
+         xaxis=list(title="Minutes Played"),
+         yaxis=list(title="")
+  ) %>%  config(displayModeBar = F,showLink = F)
+
+
+```
+
+A couple of trivia for their season
+  
+   * Only four goals were scored in thr first 2 minutes of any game, and Chelsea allowed 2 of them
+   * They only gave up one goal in the final 20 minutes (plus added time) allowing Bolton to come back from a 2 goal deficit away from home to tie the game
+
+
+
+***
+
+## Tweet of the Week
+
+It was a tweet-free vacation but you can always catch my [feed here](https://twitter.com/pssGuy)
+
+```{r}  
+#shortcode("tweet", "946114232990310400") 
+```
+
+
+
+***
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6579674-the-best-game-of-the-year-fa-cup-weekend-and-mark-hughes-hangs-on/embed/v4?eid=AQAAAGweUFraZWQA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6580011-wilshere-s-left-foot-why-liverpool-should-sell-coutinho-and-2018-so-far-football-weekly-extra/embed/v4?eid=AQAAAA8eUForZ2QA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2017-12-29"&gameDate<="2018-01-05") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=300)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-01-05") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid"></p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
