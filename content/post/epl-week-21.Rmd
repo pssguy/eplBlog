@@ -1,12 +1,12 @@
 ---
 title: EPL Weeks 21/22
 author: Andrew Clark
-date: '2018-01-06'
+date: '2018-01-09'
 slug: epl-week-21
 categories:
   - eplWeekly
 tags: []
-banner: 'banners/wk20_2017.png'
+banner: 'banners/wk21_2017.png'
 description: 
 images: []
 menu: ''
@@ -34,15 +34,16 @@ library(blogdown) # for shortcode(tweet)
 
 
 
-# library(stringr)
+## Intermittent use
+
 # library(vembedr) 
 # library(blogdown)
- library(lubridate)
-# library(crosstalk)
+
+ library(crosstalk)
 # library(forcats)
 # library(glue)
-# library(htmltools)
-library(RcppRoll) 
+ library(htmltools)
+#library(RcppRoll) 
 
 #library(sparkline)
 
@@ -54,9 +55,11 @@ hth<- readRDS("data/soccer/hth.rds")
 managers<- readRDS("data/soccer/managers.rds")
 goals<- readRDS("data/soccer/goals.rds")
 playerGame<- readRDS("data/soccer/playerGame.rds")
+playerClub<- readRDS("data/soccer/playerClub.rds")
 teamGames<- readRDS("data/soccer/teamGames.rds")
+teamCodes<- readRDS("data/soccer/teamCodes.rds")
 # assists<- readRDS("data/soccer/assists.rds")
-scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
 
 
 
@@ -68,10 +71,10 @@ scoreLines<- readRDS("data/soccer/scoreLines.rds") #
 ```
 
 
-Combining the New Year rounds 21 and 22
+This issue combines rounds 21 and 22 of the League
 
-The congested holiday season saw Man City's winning run end at 18 games but little to suggest they wre anything other thann champions- elect    
-Meanwhile the transfer window opened January first and Liverpool were soon the team making waves
+The congested holiday season saw Man City's winning run end at 18 games but little to suggest they were anything other than champions-elect    
+Meanwhile the transfer window opened on January 1st and Liverpool were soon the team making waves
 
 
 ## Match of the Day
@@ -88,23 +91,117 @@ embed_youtube("7KFfPrngaZc", width = 420, height = 315, frameborder = 0,
 
 
 ***
-<p class="factoid">Two Crystal Palace players had two players, Dann and Puncheon, suffer season-ending injuries by fouling Kevin de Bruyne</p>
+<p class="factoid">Crystal Palace players had two players, Dann and Puncheon, suffer season-ending injuries from fouling Kevin de Bruyne</p>
 
 
-## 
+## Transfers
+
+The transfer window started with a bang as Liverpool were involved in two of the highest ever transfer deals in Premier League history. Assuming Coutinho ultimately achieves the add-on targets, his fee exceeds the first 13 of the previous 15 record holding fees for outward transfers combined
 
 
-```{r}
 
+```{r all_transfers_out}
 
+playerClub %>% 
+  filter(!is.na(FEEOUT)) %>% 
+  arrange(LEFT) %>% 
+  filter(FEEOUT  > cummax(c(-Inf, head(FEEOUT, -1)))) %>% 
+  select(PLAYERID,TEAMID,LEFT,FEEOUT) %>% 
+  left_join(teamCodes) %>% 
+  left_join(playerGame) %>% 
+  select(player=name,team=TEAMNAME,date=LEFT,Fee=FEEOUT) %>% 
+  unique() %>% 
+  filter(!is.na(player))  %>% 
+ plot_ly(x=~date,y=~Fee/1000) %>% 
+  add_lines(line = list(shape = "hv")) %>% 
+  add_markers(x=~date,y=~Fee/1000,
+              hoverinfo="text",
+              text=~paste0(player,"<br>",
+                           team,"<br>",
+                            date,"<br>",
+                             Fee/1000,"<br>")) %>% 
+  layout(title="Progression in EPL Record Transfer Fees out<br>
+         Zoom and Hover for details", showlegend=FALSE,
+         xaxis=list(title=""),
+         yaxis=list(title="Fee (Million Pounds)")) %>%  config(displayModeBar = F,showLink = F)
 
 ```
 
+Here are all the leading transactions by club. Just make your selection from the drop-down box
+
+
 
   
-```{r}
+```{r by_team}
 
+  df <- playerClub %>% 
+  filter(!is.na(FEEOUT)) %>% 
+  arrange(LEFT)
+
+myFun <- function(team) {
   
+temp <-  df %>% 
+    filter(TEAMID==team) 
+
+  temp[temp$FEEOUT > cummax(c(-Inf, head(temp$FEEOUT, -1))),] %>% 
+  select(PLAYERID,TEAMID,LEFT,FEEOUT) %>% 
+  left_join(teamCodes) %>% 
+  left_join(playerGame) %>% 
+  select(player=name,team=TEAMNAME,date=LEFT,Fee=FEEOUT) %>% 
+  unique() %>% 
+  filter(!is.na(player))
+
+} 
+
+teamIDs <- teamGames %>% 
+  pull(TEAMID) %>% 
+  unique()
+  
+res <- map_df(teamIDs,myFun)
+
+ sd <- SharedData$new(res)
+
+
+
+ fs <- filter_select(
+id = "team",
+label = "team",
+sharedData = sd,
+group =  ~ team,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+ ## this is needed as crosstalk does not work nicely with bootstrap, apparently
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+
+chart <- sd %>%
+ plot_ly(x=~date,y=~Fee/1000) %>% 
+  add_lines(line = list(shape = "hv")) %>% 
+  add_markers(x=~date,y=~Fee/1000,
+              hoverinfo="text",
+              text=~paste0(player,"<br>",
+                           team,"<br>",
+                            date,"<br>",
+                             Fee/1000,"<br>")) %>% 
+  layout(title="Progression in EPL Record Transfer Fees out by Club<br>
+         Zoom and Hover for details", showlegend=FALSE,
+         xaxis=list(title=""),
+         yaxis=list(title="Fee (Million Pounds)")) %>%  config(displayModeBar = F,showLink = F)   %>%  
+ config(displayModeBar = F,showLink = F)
+
+
+tagList(
+  fs_nobootstrap,
+  br(),
+  chart
+)
 
 
 ```
@@ -122,6 +219,8 @@ embed_youtube("7KFfPrngaZc", width = 420, height = 315, frameborder = 0,
 ## Goals conceded
 
 A few weeks ago I created a plot that showed the time in a game at which teams had scored all of their goals. Of course, it is easy to amend the code to show when teams have conceded goals. Manchester City lead the league in both categories this season but are unlikely to match over the whole campaign the meagre 15 goals that Chelsea conceded in winning the title in 2004/5
+
+For a change, I have added a range-selector - but you can still zoom in, if preferred
 
 ```{r}
 
@@ -144,16 +243,16 @@ each %>%
               text=~paste0(TIME," v ",TEAMNAME)) %>% 
   layout(margin=list(l=120),
          title="Time of goals conceded, by venue, 2004/05",
-         xaxis=list(title="Minutes Played"),
+         xaxis=list(title="Minutes Played",rangeslider = list(type = "date")),
          yaxis=list(title="")
   ) %>%  config(displayModeBar = F,showLink = F)
 
 
 ```
 
-A couple of trivia for their season
+A couple of trivia for Chelsea's title-winning season
   
-   * Only four goals were scored in thr first 2 minutes of any game, and Chelsea allowed 2 of them
+   * Only four goals were scored in the first 2 minutes of any game, and Chelsea allowed two of them
    * They only gave up one goal in the final 20 minutes (plus added time) allowing Bolton to come back from a 2 goal deficit away from home to tie the game
 
 
@@ -165,7 +264,7 @@ A couple of trivia for their season
 It was a tweet-free vacation but you can always catch my [feed here](https://twitter.com/pssGuy)
 
 ```{r}  
-#shortcode("tweet", "946114232990310400") 
+#shortcode("tweet", "") 
 ```
 
 
@@ -193,7 +292,7 @@ hth %>%
   select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
   DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
                 options= list(paging = FALSE, searching = FALSE,info=FALSE,
-                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=300)
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
 ```
 
 ***
@@ -218,7 +317,8 @@ hth %>%
 
 ## Final Factoid
 
-<p class="factoid"></p>
+<p class="factoid">Manchester City are the only team in EPL history achieve a 50+ goal difference after 22 games.
+They also hold the other podium positions with 42 (2011/12) and 38(2013/14)</p>
 
 
 ---
