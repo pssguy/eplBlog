@@ -1,0 +1,252 @@
+---
+title: EPL Week 26
+author: ''
+date: '2018-02-10'
+slug: epl-week-26
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk26_2017.png'
+description: 
+images: []
+menu: ''
+
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+
+
+
+```{r setup}
+
+
+## Required
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+## Intermittent use
+
+# library(vembedr) 
+# library(blogdown)
+
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+## Required data
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## Intermittent use
+
+managerGame<- readRDS("data/soccer/managerGame.rds")
+#managers<- readRDS("data/soccer/managers.rds")
+#goals<- readRDS("data/soccer/goals.rds")
+#playerGame<- readRDS("data/soccer/playerGame.rds")
+#playerClub<- readRDS("data/soccer/playerClub.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+#teamCodes<- readRDS("data/soccer/teamCodes.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+__For the remainder of the season, I will be travelling with a back up laptop so please excuse any shortfall in posts__
+
+***
+
+This week's crisis team, Chelsea.  
+
+
+## Match of the Day
+
+
+
+```{r topGame}
+
+embed_youtube("MT6riYHiNUQ", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+<p class="factoid">Jordon Ibe has picked up 3 assists in his most recent two games. He managed just one in 25 appearances for Bournemouth last season</p>
+
+***
+
+## Win Percentages
+
+in spite of spending well in excess of 200 million pounds on players since last season's title-winning season, Chelsea are in some danger of failing to make the top 4 and the end of Conte's reign as manager now appears to be a matter of when rather than if
+
+He and Guardiola have now managed 64 games in the Premier League with each winning 45
+
+Here are how the top manager/team combinations all-time(min 6 games) have started their incumbencies
+
+```{r }
+
+top5 <-managerGame %>% 
+  mutate(cat=ifelse(res=="Win",1,0)) %>% 
+  select(name,TEAMNAME,res,cat) %>% 
+  group_by(name,TEAMNAME) %>% 
+  summarize(games=n(),wins=sum(cat), win_pc=round(100*wins/games,2)) %>% 
+  filter(games>63) %>% 
+  arrange(desc(win_pc)) %>% 
+  head(5)
+
+test <- top5 %>% 
+  left_join(managerGame) %>% 
+  select(name,TEAMNAME,res,gameDate) %>% 
+  mutate(cat=ifelse(res=="Win",1,0)) %>% 
+  group_by(name,TEAMNAME) %>% 
+  arrange(gameDate) %>% 
+  mutate(gameOrder=row_number(),cumwins=cumsum(cat), win_pc=round(100*cumwins/gameOrder,2)) 
+
+library(glue)
+
+test %>% 
+  filter(gameOrder<65) %>% 
+  mutate(manTeam=glue("{name} ({TEAMNAME})")) %>% 
+  plot_ly(x=~gameOrder,y=~win_pc, color=~manTeam) %>% 
+  add_lines() %>% 
+  layout(title="Leading Managers Cumulative Win %",
+         xaxis=list(title="Games Managed"),
+         yaxis=list(title="% Wins")) %>%  config(displayModeBar = F,showLink = F)
+
+
+
+```
+
+At the 20 game mark, Conte had an 80% win rate but this has been on the slide in contrast to Guardiola's upward trend - particularly marked at the beginning of this season.
+  However, Mourinho's 78% trumps both over the first seaon and two-thirds in the Premier League 
+
+
+
+
+***
+
+<p class="factoid">Benteke may be struggling to score, but at least he has 7 assists - with 4 the most he has recorded in any previous season</p>
+***
+
+## Consecutive thumpings
+
+A late collapse to Watford consigned Chelsea to consecutive losses by three goal margins for the first time since they were beaten 1-4 by Man Utd. and 3-0 by Blackburn, two powerhouses in October 1995
+
+Here are the most recent occurrences for the 38 teams that have suffered the indignation at least once
+
+```{r}
+
+standings %>% 
+  select(team,gameDate,OppTeam,GF,GA) %>% 
+  group_by(team) %>% 
+  arrange(desc(gameDate)) %>% 
+  mutate(cat=ifelse(GA-GF>2,1,0),leadCat=lead(cat),consec=cat+leadCat) %>% 
+  filter(consec==2) %>% 
+  group_by(team) %>%
+  slice(1) %>% 
+  arrange(desc(gameDate)) %>% 
+  select(date=gameDate,team,GF,GA,opponents=OppTeam)%>%
+  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+         
+```
+<p>
+
+Six teams have already had consecutive drubbings handed to them this season but Premier League ever-presents, Arsenal and Liverpool, have never suffered the fate
+
+
+***
+
+## Tweet of the Week 
+
+
+
+```{r}  
+shortcode("tweet", "962020532836167680") 
+```
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6641237-karma-mystery-tours-and-the-lepers-v-the-scoundrels/embed/v4?eid=AQAAAOCRfVpVVmUA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6641577-magical-mo-salah-marvellous-misses-and-celebrity-barracking-football-weekly/embed/v4?eid=AQAAAJuRfVqpV2UA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2018-02-02" &gameDate<="2018-02-06") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-02-06") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">Looking like a 3-way race for Player of Season with pre-season favourit de Bruyne(7 goals, 22 assists) being challenged by Salah(21/11) and Kane(22/8)</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+
+
+

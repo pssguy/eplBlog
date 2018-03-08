@@ -1,0 +1,241 @@
+---
+title: EPL Week 25
+author: ''
+date: '2018-02-02'
+slug: epl-week-25
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk25_2017.png'
+description: 
+images: []
+menu: ''
+
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+
+
+
+```{r setup}
+
+
+## Required
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+## Intermittent use
+
+# library(vembedr) 
+# library(blogdown)
+
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+## Required data
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## Intermittent use
+
+#managers<- readRDS("data/soccer/managers.rds")
+#goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#playerClub<- readRDS("data/soccer/playerClub.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+#teamCodes<- readRDS("data/soccer/teamCodes.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+__For the remainder of the season, I will be travelling with a back up laptop so please excuse any shortfall in posts__
+
+***
+
+Spurs score early - but should have more often - against a lack-lustre Manchester United sporting their shiny new toy, Alexis Sanchez 
+
+
+## Match of the Day
+
+
+
+```{r topGame}
+
+embed_youtube("twxvaC-gP2E", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+
+***
+
+## One that got away, not
+
+Riyad Mahrez stayed at Leicester, in spite of a transfer request and rumours that Manchester City were willing to spend somewhere around 75 million on him
+
+There is no doubt that he has rediscovered the form he showed in the title-winning season. At the time of writing he is contributing to over 60% of his team's goals
+
+```{r }
+
+tmGoals <- standings %>% 
+   group_by(team) %>% 
+   filter(season=="2017/18"&tmGameOrder==max(tmGameOrder)) %>% 
+   select(team,cumGF)
+ 
+
+ 
+ playerGame %>% 
+   group_by(name,PLAYERID,TEAMNAME) %>% 
+   filter(season=="2017/18") %>% 
+   summarize(points=sum(Gls)+sum(Assists)) %>% 
+   rename(team=TEAMNAME) %>% 
+   left_join(tmGoals) %>% 
+   filter(points>0) %>% 
+   mutate(pc=round(100*points/cumGF,1)) %>% 
+   arrange(desc(pc)) %>% 
+   ungroup() %>% 
+   select(name,team,`%`=pc) %>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+    
+
+
+```
+
+_N.B. Up to 2 assists may be credited to each goal_
+
+On publishing, the under-the-radar leader is Brighton's Pascal Gross. Albeit helped by the team's poor scoring record, he has proven a shrewd purchase
+
+
+
+
+***
+
+<p class="factoid">Chelsea's surprising capitulation to Bournemouth means that they have now conceded 943 goals in the Premier League, tied with Man. City and two less than Arsenal. Spurs lead with 1252</p>
+***
+
+## Goal machines
+
+Both Liverpool and Manchestr City recorded 3-0 victories mid-week and are tied for 
+winning games by three goal margins,at 9
+
+City just shade Liverpool 14-13 in the number of occasions they have scored at least three goals
+
+Here are the leaders for each season at the 25 game mark
+
+```{r}
+
+standings %>% 
+   filter(GF>=3&tmYrGameOrder<=25) %>% 
+   group_by(team,season) %>% 
+   tally() %>% 
+   group_by(season) %>% 
+   arrange(desc(n)) %>% 
+   slice(1) %>% 
+  plot_ly(x=~season,y=~n,color=~team) %>% 
+  add_bars() %>% 
+  layout(title="Team with most 3+ goal games after 25 Rounds",
+         xaxis=list(title=""),
+         margin=list(b=80),
+         yaxis=list(title="Count")) %>%  config(displayModeBar = F,showLink = F)
+ 
+
+         
+```
+
+
+
+
+
+***
+
+
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6633122-swoops-swaps-and-resurgent-swans/embed/v4?eid=AQAAALr1dFqiNmUA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6633374-spurs-sweep-manchester-united-aside-plus-deadline-day-delights-football-weekly-extra/embed/v4?eid=AQAAAFX2dFqeN2UA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2018-01-28" &gameDate<="2018-02-02") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-02-01") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">Sixth time Man. Utd. have conceded in first minute (Everton lead with 10) and second time to Spurs. Eriksen joining Jermain Defoe's effort in 2009/10</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+
+
+

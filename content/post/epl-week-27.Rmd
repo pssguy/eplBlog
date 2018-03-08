@@ -1,0 +1,276 @@
+---
+title: EPL Week 27
+author: Andrew Clark
+date: '2018-02-12'
+slug: epl-week-27
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk27_2017.png'
+description: 
+images: []
+menu: ''
+
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+
+
+
+```{r setup}
+
+
+## Required
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+## Intermittent use
+
+# library(vembedr) 
+# library(blogdown)
+
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+## Required data
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## Intermittent use
+
+#managerGame<- readRDS("data/soccer/managerGame.rds")
+#managers<- readRDS("data/soccer/managers.rds")
+#goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#playerClub<- readRDS("data/soccer/playerClub.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+#teamCodes<- readRDS("data/soccer/teamCodes.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+__For the remainder of the season, I will be travelling with a back up laptop so please excuse any shortfall in posts and site updates__
+
+***
+
+
+## Match of the Day
+
+
+
+```{r topGame}
+
+embed_youtube("r45wUXosH-A", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+<p class="factoid">/p>
+
+***
+
+## Aguero-a-go-go
+
+With the signing of Jesus last season and the pursuit of Alexis Sanchez in the recent transfer window, it appears as though Sergio Aguero is no longer the favourite son at Manchester City. However, he continues scoring as a dast a rate as ever
+ His four goals against Leicester made him the first player to manage that feat on three occasions and he now accounts for two of the four occasions in which as many goals have been scored by one player in the seconf forty-five minutes
+ 
+ At the time of writing, multi-goal games now account for over 50%  of his goals - only exceeded by Kane and Henry of those players that have scored at least 100
+ Hover any point for furter information
+ 
+ 
+```{r}
+allGoals <-playerGame %>% 
+  group_by(PLAYERID) %>% 
+  filter(PLAYERID!="OWNGOAL") %>% 
+  summarize(totGoals=sum(Gls)) %>% 
+  arrange(desc(totGoals))
+
+multiGoals <-playerGame %>% 
+  group_by(PLAYERID) %>% 
+  filter(PLAYERID!="OWNGOAL"&Gls>1) %>% 
+  summarize(totMultiGoals=sum(Gls)) %>% 
+  arrange(desc(totMultiGoals))
+
+test <-allGoals %>% 
+  left_join(multiGoals) %>% 
+  mutate(multi_pc=round(100*totMultiGoals/totGoals,1)) %>% 
+  filter(totGoals!=0) %>% 
+  mutate(multi_pc=ifelse(is.na(multi_pc),0,multi_pc))
+
+pgMini <- playerGame %>%  ## so wil only show those that have made an appearance - but that is prob ok
+  select(PLAYERID,name) %>% 
+  unique()
+
+test %>% 
+  left_join(pgMini) %>% 
+ plot_ly(x=~totGoals,y=~multi_pc,
+        hoverinfo="text",
+        text=~paste0(name,"<br>Tot: ",totGoals,
+                     "<br>Multi-Game: ",multi_pc,"%")
+ ) %>% 
+  layout(title="Share of Goals in Multi-Goal games",
+         xaxis=list(title="Goals Scored"),
+         yaxis=list(title="%")) %>%  config(displayModeBar = F,showLink = F)
+  
+```
+ 
+ It will be interesting to see if Kane keeps this up - it would help if he did not miss penalties!
+
+## Player of Year
+
+With more than 70% of the season now under the belt, thoughts turn toward the individual prize of player of the season. Attacking players usually take the laurels (last season's awards to Kante proving an exceptiion) and that is likely to be the case again this season
+
+Of pre-season favourites, Pogba and Sanchez  can surely be discounted whilst Sterling and Salah have forced their way into the reckoning. The general pick was de Bruyne and he has done little to disappoint
+
+```{r}
+top5 <-playerGame %>% 
+  filter(season=="2017/18"&gameDate<"2018-02-13") %>% 
+  group_by(name,PLAYERID) %>% 
+  mutate(points=Gls+Assists) %>% 
+  summarize(cat=sum(points)) %>% 
+  arrange(desc(cat)) %>% 
+  head(5) %>% 
+  pull(PLAYERID)
+
+playerGame %>% 
+  filter(season=="2017/18"&PLAYERID %in% top5) %>% 
+  arrange(gameDate) %>% 
+  group_by(name,PLAYERID) %>% 
+  mutate(cumGoals=cumsum(Gls),cumAssists=cumsum(Assists),
+         cumPoints=cumGoals+cumAssists) %>% 
+  select(name,Goals=cumGoals,Assists=cumAssists,Points=cumPoints,gameDate) %>% 
+  plot_ly(x=~gameDate,y=~Points, color=~name) %>% 
+    add_lines(line=list(shape="hv"),
+              hoverinfo="text",
+              text=~paste0(name,
+                           "<br>Goals: ",Goals,
+                           "<br>assists: ",Assists)) %>% 
+  layout(title="Goals and Assist by top 5 players",
+         xaxis=list(title=""),
+         yaxis=list(title="Cumulative Points")) %>%  config(displayModeBar = F,showLink = F)
+```
+
+_N.B. Up to 2 assists per goal are allowed_
+
+
+
+Clicking on an individual player will help identify their performance over time
+
+Aguero had a fast start with 6 goals and 4 assists in his first half-dozen games but 
+was then rotated in and out of the team. However a trio of three-point games since mid-December have put him back in the race
+
+Obviously, this could go down to the wire, but with City almost certain to win the title, the influential de Bruyne probably still has the edge
+
+
+
+
+
+
+
+***
+
+<p class="factoid">Nine teams won their matches in this round, but none of them have a sequence any longer</p>
+***
+
+
+
+## Tweet of the Week 
+
+
+
+```{r}  
+shortcode("tweet", "962257142525939712") 
+```
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6670169-tottenham-take-charge-super-salah-and-derry-goes-football-weekly/embed/v4?eid=AQAAAKKzglpZx2UA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6669885-the-mousa-dembele-appreciation-society-and-jese-s-hot-breath-on-charlie-adam-s-neck/embed/v4?eid=AQAAAKG1glo9xmUA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2018-02-07" &gameDate<="2018-02-14") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-02-14") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">Dembele gets a lot of love in the Totally Football podcast above, but his assist against Arsenal was just the second of season and he has no goals. At 30, Spurs really need to upgrade on him and Sissoko if they want to press on next year </p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+
+
+
+
+

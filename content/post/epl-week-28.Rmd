@@ -1,0 +1,260 @@
+---
+title: EPL Week 28
+author: ''
+date: '2018-03-03'
+slug: epl-week-28
+categories:
+  - eplWeekly
+tags: []
+banner: 'banners/wk28_2017.png'
+description: 
+images: []
+menu: ''
+
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+
+
+
+```{r setup}
+
+
+## Required
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+library(shiny)
+
+
+
+
+
+## Intermittent use
+
+# library(vembedr) 
+# library(blogdown)
+
+ library(crosstalk)
+# library(forcats)
+# library(glue)
+ library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+## Required data
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## Intermittent use
+
+#managerGame<- readRDS("data/soccer/managerGame.rds")
+#managers<- readRDS("data/soccer/managers.rds")
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#playerClub<- readRDS("data/soccer/playerClub.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+#teamCodes<- readRDS("data/soccer/teamCodes.rds")
+assists<- readRDS("data/soccer/assists.rds")
+#scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+__For the remainder of the season, I will be travelling with a back up laptop so please excuse any shortfall in posts and site updates__
+
+***
+
+
+## Match of the Day
+
+
+
+```{r topGame}
+
+embed_youtube("KEHDkGtolcg", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+<p class="factoid">Ashley Young needs to play just over 3 full games to record the most minutes in a season wearing a Man. Utd. shirt/p>
+
+***
+
+## Top Combos
+
+OptaJoe recently tweeted that the Martial and Lukaku had combined for 6 Premier League goals (each with 3 goals and 3 assists). As you may know, my database allows for two assists - and this impacts the results quite significantly, although that combo is still the best. Follow changes over the renainder of the season and see if Pogba manages a single assist for Lukaku this year
+
+By comparison, at the time of writing, Kane kas combined on 9 goals with both Alli(7 goals/2 assists) and Eriksen (6/3) whilst Salah/Firmino is at 10(4/6)
+ 
+
+
+```{r sd}
+
+assister <- assists %>% 
+  left_join(playerGame) %>% 
+  select(name,PLAYERID,PLAYER_MATCH_GOAL,gameDate,Opponents,season)
+
+
+
+scorer <- goals %>% 
+  left_join(playerGame) %>% 
+  select(scorer=name,scorerID=PLAYERID,PLAYER_MATCH_GOAL,theDate=gameDate,season)
+
+
+
+
+
+id <- "LUKAKUR"
+
+lukaku_assisting <-  assister %>% 
+  filter(PLAYERID==id&season=="2017/18") %>% 
+  left_join(scorer) %>% 
+  count(scorer, sort = TRUE) %>% 
+  rename(Ass=n,name=scorer)
+
+## may not be best way to 
+
+lukaku_scoring <-  scorer %>% 
+  filter(scorerID==id&season=="2017/18") %>% 
+  left_join(assister) %>% 
+  count(name, sort = TRUE) %>% 
+  rename(Gls=n) 
+
+lukaku_assisting %>% 
+  full_join(lukaku_scoring) %>% 
+  mutate(Gls=ifelse(is.na(Gls),0,Gls),Ass=ifelse(is.na(Ass),0,Ass),Total=Gls+Ass) %>% 
+  arrange(desc(Total),desc(Gls)) %>% 
+  select(collaborator=name,Gls,Ass,Total) %>%
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+  
+```
+ 
+ 
+
+
+## Crucial Cracks
+
+Harry Kane turned up with a late winner for Spurs again this week. In 5 of his past 9 scoring appearances he has been there sole  
+
+Here are the results for this category over the years
+
+```{r}
+
+playerGame %>% 
+  filter(Gls>0) %>% 
+  select(name,TEAMMATCHID,Gls) %>% 
+  left_join(standings) %>% 
+  mutate(pc=Gls/GF) %>% 
+  group_by(name,season,team) %>% 
+  filter(pc==1) %>% 
+  tally() %>%
+  rename(count=n) %>% 
+  arrange(desc(season),desc(count)) %>% 
+  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+Search for teams,players and seasons, as desired
+
+Obviously, it is more difficult to be a sole provider when your team are scoring many goals. For instance, this season only Sterling has been the sole goalscorer in more than one game
+
+
+***
+
+<p class="factoid">Christian Eriksen became the 23rd player to record 100 assists(inc. secondary) and just the second Spurs player to achieve the feat after Darren Anderton (126)</p>
+***
+
+
+
+## Tweet of the Week 
+
+
+
+```{r}  
+shortcode("tweet", "969554552700788737") 
+```
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6693732-arsenal-s-new-nadir-mctominay-dominates-and-the-ballad-of-royston-drenthe/embed/v4?eid=AQAAAA1RmlpkI2YA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6693975-arsenal-s-decade-long-capitulation-and-pardew-on-the-brink-football-weekly/embed/v4?eid=AQAAANJQmlpXJGYA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2018-02-14" &gameDate<="2018-03-03") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-03-03") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">WBA may look doomed - and over half of the teams in bottom place at this stage of the season remain there - but in the past seven seasons, Wigan twice and Leicester have escaped relegation from the depths</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+
+
+
+
+
+
+
