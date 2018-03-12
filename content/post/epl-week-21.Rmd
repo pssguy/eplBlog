@@ -28,7 +28,7 @@ library(DT) # for tables
 library(vembedr) # for videos
 library(blogdown) # for shortcode(tweet)
 
-
+library(shiny)
 
 
 

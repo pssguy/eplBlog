@@ -1,0 +1,269 @@
+---
+title: EPL Week 30
+author: Andrew Clark
+date: '2018-03-15'
+categories:
+  - eplWeekly
+slug: epl-week-30
+banner: banners/wk28_2017.png
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+
+
+
+```{r setup}
+
+
+## Required
+
+library(tidyverse) #for data carpentry
+library(plotly) # for plots
+library(DT) # for tables
+library(vembedr) # for videos
+library(blogdown) # for shortcode(tweet)
+
+
+
+
+
+
+
+## Intermittent use
+
+# library(vembedr) 
+# library(blogdown)
+
+# library(crosstalk)
+# library(forcats)
+# library(glue)
+# library(htmltools)
+#library(RcppRoll) 
+
+#library(sparkline)
+
+
+## Required data
+
+standings<- readRDS("data/soccer/standings.rds")
+hth<- readRDS("data/soccer/hth.rds")
+
+## Intermittent use
+
+managerGame<- readRDS("data/soccer/managerGame.rds")
+managers<- readRDS("data/soccer/managers.rds")
+matchTeam<- readRDS("data/soccer/matchTeam.rds")
+goals<- readRDS("data/soccer/goals.rds")
+playerGame<- readRDS("data/soccer/playerGame.rds")
+#playerClub<- readRDS("data/soccer/playerClub.rds")
+#teamGames<- readRDS("data/soccer/teamGames.rds")
+#teamCodes<- readRDS("data/soccer/teamCodes.rds")
+# assists<- readRDS("data/soccer/assists.rds")
+scoreLines<- readRDS("data/soccer/scoreLines.rds") #
+
+
+
+```
+
+__For the remainder of the season, I will be travelling with a back up laptop so please excuse any shortfall in posts and site updates__
+
+***
+
+
+## Match of the Day
+
+Rashford schools Alex-Arnold
+
+
+
+```{r topGame}
+
+embed_youtube("CvZuoNWASbw", width = 420, height = 315, frameborder = 0,
+   allowfullscreen = TRUE, query = NULL) 
+
+
+```
+
+***
+<p class="factoid">Palace joined WBA with a league-leading ninth one-goal defeat. Every team has suffered at least one such occurrence this season. Surprisingly Huddersfield have lost by a single goal just once in their</p>
+
+***
+
+## Manager changes
+
+Several teams have changed manager's this season in an attempt to acquire a 'New manger Bounce'. Whether, or not,this concept has any validity (Managers are usually sacked after a bad run and some reversion to mean performance would be expected if they stayed) there has certainly been some significant variation in outcome
+
+Other than Southampton - who may stll decide to take the plunge - and the promoted clubs, all those teams currently in most imminent danger have called in a new guy. 
+
+Here are their records
+ 
+ 
+```{r}
+
+# teams that have changed managers during season
+changeTeams <- managers %>% 
+  filter(Joined>"2017-08-10") %>% 
+  pull(TEAMNAME) %>% 
+  unique()
+
+allManagerStints <- 
+  managerGame %>% 
+  select(name,ManagerTeam,Joined,Left) %>% 
+  unique()
+
+
+temp <-managerGame %>% 
+  filter(gameDate>"2017-08-01"&TEAMNAME %in% changeTeams) %>% 
+  group_by(TEAMNAME,ManagerID,ManagerTeam,name) %>% 
+  dplyr::summarise(sumPoints=sum(points),games=n(),ppg=round(sumPoints/games,2)) %>% 
+  ungroup()
+## unsworth is in their twice error in raw material
+## temp just gives summary not game duration
+
+
+teamRecord <- temp %>% 
+  inner_join(allManagerStints) %>% 
+  mutate(started=ifelse(Joined<"2017-08-10",as.Date("2017-08-10",origin = "1900-01-01"),as.Date(Joined,origin = "1900-01-01"))) %>% 
+  mutate(st=as.Date(started,origin="1970-01-01"))
+# hack but looks good hrbrmisc may proves usefurl - or lubridate
+
+minY <- min(teamRecord$ppg)-0.1
+maxY <- max(teamRecord$ppg)+0.1
+
+plot_ly(teamRecord, color = ~TEAMNAME) %>%
+  add_segments(x = ~st, xend = ~Left, y = ~ppg, yend = ~ppg,
+               hoverinfo="text",
+               text=~paste0(name,
+                            "<br>",TEAMNAME,
+                            "<br>Games:",games,
+                            "<br>ppg:",ppg)) %>% 
+  layout(title="Average Points per Game by Manager 2017/18",
+         xaxis=list(title=""),
+         yaxis=list(title="Points per Game")) %>%  config(displayModeBar = F,showLink = F)
+  
+```
+ 
+ Double-Click on the team name to isolate just their data. The short segments (barring de Boer at Crustal Palace) represent caretakers    
+ 
+ Other than WBA - where Alan Pardew's managerial career in the Premier League looks set to end - there have been some improvement; Though Stoke's is marginal and may not suffice to save them
+ 
+
+## Super Subs
+
+Burnley have proved this season's  good-news story and after a sticky spell are again pushing for a Europa spot. One reason has been the form of new-purchase, Chris Wood, and he came on as a sub, Sturday, to set up the first goal and score two others. Three points in agame for a sub is a pretty rare event - occurring on average just over once  a  season
+
+
+
+```{r}
+
+playerGame %>% 
+  filter(subOn>0&(Gls+Assists)>2) %>% 
+  select(name,TEAMNAME,season,gameDate,Assists,Gls,mins) %>% 
+  arrange(desc(gameDate)) %>%
+  select(player=name,team=TEAMNAME,season,date=gameDate,Goals=Gls,Assists,mins=mins) %>% 
+                         DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+
+```
+
+_N.B. Unlike official statistics, I allow up to two assists per goal_    
+
+Oscar and David Beckham, feature twice
+
+Stand-out performances include Solskjaer's four goals in 22 minutes and 
+Wigan;s Amr Zaki who pitched in 2 goals and an assist in just 6 minutes in a game versus Hull - a team he was subsequently played for without scoring or assisting on a single goal
+---
+
+
+
+***
+
+<p class="factoid"></p>
+***
+
+
+
+## Tweet of the Week 
+
+Palace joining WBA with most 1 goal defeats
+
+
+
+```{r}  
+shortcode("tweet", "970276394851880961") 
+```
+
+
+## Totally Football and Guardian Weekly Review Podcasts
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6706745-rubbernecking-chocolate-legs-and-jay-bothroyd/embed/v4?eid=AQAAAEiMnlo5VmYA" title="Audioboom player"></iframe>
+***
+<p>
+
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6706857-chelsea-walk-into-city-s-jaws-arsenal-fall-again-and-the-pulis-connection-football-weekly/embed/v4?eid=AQAAAG6MnlqpVmYA" title="Audioboom player"></iframe>
+
+***
+
+## Results and Table
+
+```{r results}
+## results - amy have to copy and run in console
+hth %>% 
+  filter(season=="2017/18"&gameDate>="2018-03-06" &gameDate<="2018-03-13") %>% ## may need to put in day later?
+  filter(venue=="H") %>% 
+  arrange(gameDate,team) %>% 
+  select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
+  DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
+                options= list(paging = FALSE, searching = FALSE,info=FALSE,
+                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+```
+
+***
+<p>
+
+```{r standings}
+
+
+# table
+hth %>% 
+  filter(season=="2017/18"&gameDate<="2018-03-13") %>% 
+  group_by(team) %>% 
+  mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
+  summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 
+  arrange(desc(Pts),desc(GD),desc(GF),team) %>%
+  DT::datatable(class='compact stripe hover row-border order-column',colnames = c('', 'P', 'Pts', 'W','D', 'L', 'GD','GF'),
+                rownames=TRUE,options= list(paging = FALSE, searching = FALSE,info=FALSE))
+
+
+```
+
+
+## Final Factoid
+
+<p class="factoid">West Ham suffer three consecutive defeats by 3 goals exactly ten years since they lost 3 games on the trot 0-4</p>
+
+
+---
+
+
+
+Plenty more NEW data at the [premiersoccerstats site](https://mytinyshinys.shinyapps.io/premierLeague/)
+
+Feel free to contact me if you have any questions or work offers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
