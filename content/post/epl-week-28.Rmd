@@ -149,7 +149,7 @@ lukaku_assisting %>%
 
 ## Crucial Cracks
 
-Harry Kane turned up with a late winner for Spurs again this week. In 5 of his past 9 scoring appearances he has been there sole  
+Harry Kane turned up with a late winner for Spurs again this week. In 5 of his past 9 scoring appearances he has been their only player to find the net
 
 Here are the results for this category over the years
 
@@ -205,7 +205,7 @@ shortcode("tweet", "969554552700788737")
 ```{r results}
 ## results - amy have to copy and run in console
 hth %>% 
-  filter(season=="2017/18"&gameDate>="2018-02-14" &gameDate<="2018-03-03") %>% ## may need to put in day later?
+  filter(season=="2017/18"&gameDate>="2018-02-14" &gameDate<="2018-03-01") %>% ## may need to put in day later?
   filter(venue=="H") %>% 
   arrange(gameDate,team) %>% 
   select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
@@ -222,7 +222,7 @@ hth %>%
 
 # table
 hth %>% 
-  filter(season=="2017/18"&gameDate<="2018-03-03") %>% 
+  filter(season=="2017/18"&gameDate<="2018-03-01") %>% 
   group_by(team) %>% 
   mutate(W = ifelse(res=="Win",1,0),L = ifelse(res=="Loss",1,0),D = ifelse(res=="Draw",1,0)) %>%
   summarise(P=n(),Pts=sum(points),W=sum(W),D=sum(D),L=sum(L),GD=sum(GF)-sum(GA),GF=sum(GF)) %>% 

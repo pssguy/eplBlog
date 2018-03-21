@@ -1,11 +1,11 @@
 ---
 title: EPL Week 30
 author: Andrew Clark
-date: '2018-03-15'
+date: '2018-03-14'
 categories:
   - eplWeekly
 slug: epl-week-30
-banner: banners/wk28_2017.png
+banner: banners/wk30_2017.png
 ---
 
 ```{r, echo=FALSE}
@@ -88,7 +88,7 @@ embed_youtube("CvZuoNWASbw", width = 420, height = 315, frameborder = 0,
 ```
 
 ***
-<p class="factoid">Palace joined WBA with a league-leading ninth one-goal defeat. Every team has suffered at least one such occurrence this season. Surprisingly Huddersfield have lost by a single goal just once in their</p>
+<p class="factoid">Palace joined WBA with a league-leading ninth one-goal defeat. Every team has suffered at least one such occurrence this season. Surprisingly Huddersfield have lost by a single goal just once in their 15 defeats</p>
 
 ***
 
@@ -181,29 +181,28 @@ Wigan;s Amr Zaki who pitched in 2 goals and an assist in just 6 minutes in a gam
 
 ***
 
-<p class="factoid"></p>
-***
+
 
 
 
 ## Tweet of the Week 
 
-Palace joining WBA with most 1 goal defeats
+
 
 
 
 ```{r}  
-shortcode("tweet", "970276394851880961") 
+shortcode("tweet", "973146759135481856") 
 ```
 
 
 ## Totally Football and Guardian Weekly Review Podcasts
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6706745-rubbernecking-chocolate-legs-and-jay-bothroyd/embed/v4?eid=AQAAAEiMnlo5VmYA" title="Audioboom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6718931-toxicity-complicity-and-pitchside-relief/embed/v4?eid=AQAAAM4NqFrThWYA" title="Audioboom player"></iframe>
 ***
 <p>
 
-<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6706857-chelsea-walk-into-city-s-jaws-arsenal-fall-again-and-the-pulis-connection-football-weekly/embed/v4?eid=AQAAAG6MnlqpVmYA" title="Audioboom player"></iframe>
+<iframe width="100%" height="300" style="background-color:transparent; display:block; padding: 0; max-width: 700px;" frameborder="0" allowtransparency="allowtransparency" scrolling="no" src="//embeds.audioboom.com/posts/6719096-did-upton-park-die-for-this-football-weekly/embed/v4?eid=AQAAAJwNqFp4hmYA" title="Audioboom player"></iframe>
 
 ***
 
@@ -218,7 +217,7 @@ hth %>%
   select(Date=gameDate,Home=team,GF,GA,Away=OppTeam) %>% 
   DT::datatable(rownames=FALSE,class='compact stripe hover row-border',colnames = c('', '', '', ''),
                 options= list(paging = FALSE, searching = FALSE,info=FALSE,
-                              columnDefs = list(list(width = '40%', targets = list(0,3)))),width=400)
+                              columnDefs = list(list(width = '25%', targets = list(0,1,4)))),width=400)
 ```
 
 ***
