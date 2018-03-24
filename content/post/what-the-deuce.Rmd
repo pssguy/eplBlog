@@ -1,0 +1,225 @@
+---
+title: What the deuce!
+author: Andrew Clark
+date: '2018-03-25'
+slug: what-the-deuce
+categories:
+  - sports
+  - tennis
+tags: []
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+At the recent [Satrday conference](https://capetown2018.satrdays.org/) in Cape Town, [Stephanie Kovalchik](@StatsOnTheT) gave a keynote speech
+relating to her work at Tennis Australia
+
+One of her accomplishments  is the [deuce package](https://github.com/skoval/deuce)  which is a 'collection of data sources and tools for extracting data for professional men's and women's tennis'
+
+I thought I would take it for a spin
+
+First load the packages required - including crosstalk and htmltools for interactivity
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+```{r setup}
+library(tidyverse)
+library(plotly)
+
+library(deuce)
+
+library(crosstalk)
+library(htmltools)
+
+
+```
+
+There are several datasets.
+
+For this post, I am going to concentrate on the ELO rankings.  Unlike the official rankings, Elo ratings give credit for who you play, not the round or tournament in which you play them. However, like any rankings, any comparison
+over different time-periods should be treated with caution
+
+The period covered is the Open era - when all tournaments had prize money and the elite professionals - like Rod Laver and Lew Hoad - rejoined the main circuit
+
+Let's check out the men first
+
+```{r tables}
+
+#data("atp_players")
+
+data("atp_elo")
+
+
+head(atp_elo)
+
+atp_elo %>% 
+  count(player_name) %>% 
+  plot_ly(x= ~n) %>% 
+  add_histogram() %>% 
+  layout(title="Distribution of Player ATP Match careers",
+         xaxis=list(title="Number of Matches"),
+         yaxis=list(title="Player Count")) %>% config(displayModeBar = F, showLink = F)
+  
+
+
+```
+
+There are over 300,000 rows, featuring more than 4,000 players - most of whom
+have records of 5 matches or list in the datset. Jimmy Connors leads with  1462 betwen 1970 and 1996
+
+Toggle back to data.frame window to view variable details
+
+---
+
+I am first going to take a look at Britain's greatest tennis player during this era, Andy Murray.
+
+I need to do some processing on the raw atp_elo data to get one ranking per tournament and process the 'round' info to be more meaningful in a chart
+
+```{r Murray}
+
+# get ELO rating at end of each tournament
+murray <-atp_elo %>% 
+  filter(player_name=="Andy Murray") %>% 
+  group_by(tourney_start_date) %>% 
+  slice(n())
+
+# create new factor variable for stage at which he exits tournament
+
+murray <- murray %>% 
+  mutate(exit= case_when(
+         str_sub(round,1,1) == "R"&str_sub(round,2,2) != "R" ~ str_sub(round, start = 2),
+         round == "QF" ~ "Quarters",
+         round == "SF" ~ "Semis",
+         round == "F"&win == 0 ~ "Final",
+         round == "F"&win == 1 ~ "Winner",
+         TRUE                     ~ "Unknown"
+         )
+  ) %>% 
+  mutate(exit=as.factor(exit))
+
+# create better order for legend
+revOrder <- c("Winner","Final","Semis","Quarters","16","32","64","128","Unknown")
+
+  murray %>% 
+    plot_ly(x=~ tourney_start_date, y = ~overall_elo) %>% 
+    add_markers(hoverinfo="text", color =~ fct_relevel(exit, revOrder),
+                 colors ="Spectral",
+                text=~paste(
+                  tourney_name," - ",year(tourney_start_date),
+                  "<br>v ",opponent_name,
+                  "<br> Round Reached: ",exit,
+                   "<br>ELO: ",round(overall_elo)))  %>% 
+    layout(title="ELO Rankings over time - Andy Murray",
+            xaxis=list(title="Tournament Start Date"),
+            yaxis =  list(title = "ELO Ranking")
+           ) %>% 
+     config(displayModeBar = F, showLink = F)
+                  
+                
+  
+
+
+```
+
+Hover the data for more info - specifically relating to his final game in each tournament
+
+You can double-click on the legend to isolate the round he reached at each tournament. Interstingly, he has lost in 10 finals since Wimbledon 2012 - all bar one to Novak Djokevic
+
+---
+
+We can extend this to all players - although for speed of processing I have restricted to the top 100
+
+```{r men_elo}
+
+
+# create vector of top 100 players
+# based on their max elo rating
+
+bestEver <-atp_elo %>% 
+  group_by(player_name) %>% 
+  arrange(desc(overall_elo)) %>% 
+  slice(1) %>% 
+  arrange(desc(overall_elo)) %>% 
+  ungroup() %>% ## otherwise slice does not appear to work
+  slice(1:100) %>% 
+  pull(player_name)
+
+
+df <-atp_elo %>% 
+      filter(player_name %in% bestEver) %>% 
+    mutate(exit= case_when(
+         str_sub(round,1,1) == "R"&str_sub(round,2,2) != "R" ~ str_sub(round, start = 2),
+         round == "QF" ~ "Quarters",
+         round == "SF" ~ "Semis",
+         round == "F"&win == 0 ~ "Final",
+         round == "F"&win == 1 ~ "Winner",
+         TRUE                     ~ "Unknown"
+         )
+  ) %>% 
+  group_by(tourney_start_date,player_name) %>% 
+  slice(n()) 
+
+# create sharedData for interactivity
+ sd <- SharedData$new(df)
+
+
+# select input details
+ fs <- filter_select(
+id = "player_name",
+label = "Select Player",
+sharedData = sd,
+group =  ~ player_name,
+allLevels = FALSE,
+multiple = FALSE
+)
+
+ ## this is needed as crosstalk does not work nicely with bootstrap
+fs_nobootstrap <- fs
+
+attr(fs_nobootstrap, "html_dependencies") <- Filter(
+  function(dep) {dep$name != "bootstrap"},
+  attr(fs_nobootstrap, "html_dependencies")
+)
+
+#print(player_name)
+print(sd$player_name)
+
+#create chart
+chart <-  sd %>% 
+    plot_ly(x=~ tourney_start_date, y = ~overall_elo,height=300) %>% 
+    add_markers(hoverinfo="text",  color =~ fct_relevel(exit, revOrder),
+                 colors ="Spectral",
+                text=~paste(
+                  tourney_name," - ",year(tourney_start_date),
+                  "<br>v ",opponent_name,
+                  "<br> Round Reached: ",exit,
+                   "<br>ELO: ",round(overall_elo)))  %>% 
+    layout(title="ELO Rankings over time",
+            xaxis=list(title="Tournament Start Date"),
+            yaxis =  list(title = "ELO Ranking")) %>% 
+     config(displayModeBar = F, showLink = F)
+
+
+# display correctly
+tagList(
+  fs_nobootstrap,
+  br(),
+  chart
+)
+
+
+
+
+ 
+
+
+
+
+```
+
+
+Currently, the default is to show all players - so make sure to select only one from the input selector!
