@@ -40,7 +40,9 @@ library(htmltools)
 
 There are several datasets.
 
-For this post, I am going to concentrate on the ELO rankings.  Unlike the official rankings, Elo ratings give credit for who you play, not the round or tournament in which you play them. However, like any rankings, any comparison
+## Men's ELO Ratings
+
+For this post, I am going to commence with the ELO rankings.  Unlike the official rankings, Elo ratings give credit for who you play, not the round or tournament in which you play them. However, like any rankings, any comparison
 over different time-periods should be treated with caution
 
 The period covered is the Open era - when all tournaments had prize money and the elite professionals - like Rod Laver and Lew Hoad - rejoined the main circuit
@@ -74,6 +76,8 @@ have records of 5 matches or list in the datset. Jimmy Connors leads with  1462 
 Toggle back to data.frame window to view variable details
 
 ---
+
+### Andy Murray
 
 I am first going to take a look at Britain's greatest tennis player during this era, Andy Murray.
 
@@ -129,7 +133,7 @@ Hover the data for more info - specifically relating to his final game in each t
 
 You can double-click on the legend to isolate the round he reached at each tournament. Interstingly, he has lost in 10 finals since Wimbledon 2012 - all bar one to Novak Djokevic
 
----
+### Other Top 100 all time
 
 We can extend this to all players - although for speed of processing I have restricted to the top 100
 
@@ -223,3 +227,67 @@ tagList(
 
 
 Currently, the default is to show all players - so make sure to select only one from the input selector!
+
+## Women Rankings by Country
+
+Let's look at another dataset - world rankings; this time concentrating on the women and in particular, whether any one country has ruled the roost
+
+This will necessitate utilizing a couple of the other datasets. Information is available from the mid 1980's
+
+I have averaged each player's ranking points over the year and then selected the top ten players
+
+```{r}
+
+data("wta_players")
+data("wta_rankings")
+
+## mean ranking points in year from  1986
+
+wta_rank <- wta_rankings %>% 
+  mutate(year=year(date)) %>% 
+  group_by(player_id,year) %>%
+  summarize(avPoints=mean(ranking_points,na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  group_by(year) %>% 
+  arrange(desc(avPoints)) %>% 
+  slice(1:10) %>% 
+  filter(year>1985) %>% 
+  left_join(wta_players) %>% 
+  select(name,country_code,year,avPoints)
+
+# Now collate by country by year and make a plot
+
+wta_rank %>% 
+  count(country_code,year) %>% 
+  group_by(country_code) %>% 
+  plot_ly(x=~year,y=~n, color=~country_code) %>% 
+  add_bars() %>% 
+  layout(barmode = 'stack',
+         title="Distribution of Top Ten WTA Players<br> by
+         Country by Year",
+         xaxis=list(title=""),
+         yaxis =  list(title="Count")) %>% config(displayModeBar = F, showLink = F)
+
+```
+
+     Double-click on the legend (which you can scroll down to see more countries) to see individual countries by year. The USA has only missed out in one season but has relied on Serena Williams (now 36) for representation in recent seasons. Russia had a good spell earlier this century
+     
+---
+
+Below is a searchable, sortable table that shows individuals who have contributed to the above graph
+
+```{r top_ten_table}
+
+wta_rank %>% 
+  arrange(desc(avPoints)) %>% 
+  group_by(year) %>% 
+  mutate(rank=row_number(),Points=round(avPoints,0)) %>%
+  select(Player=name, Country = country_code,Year=year,Points,
+         `Annual Rank`=rank) %>% 
+  DT::datatable(class='compact stripe hover row-border order-column',rownames=FALSE,options= list(paging = TRUE, searching = TRUE,info=FALSE))
+
+```
+
+Again, comparing across time-periods for relative ability is probably not that relevant
+
+Great Britain, which had some Majors champions, like Wade and Jones, prior to the period under consideration did not have a single top ten player until Konta in 2017
