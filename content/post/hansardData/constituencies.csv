@@ -1,0 +1,651 @@
+about,constituency_type,gss_code,os_name,ended_date_value,ended_date_datatype,label_value,started_date_value,started_date_datatype
+http://data.parliament.uk/resources/146747,County,W07000049,,NA,NA,Aberavon,2010-05-06,dateTime
+http://data.parliament.uk/resources/146748,County,W07000058,Aberconwy Co Const,NA,NA,Aberconwy,2010-05-06,dateTime
+http://data.parliament.uk/resources/143474,Borough,S14000001,Aberdeen North Burgh Const,NA,NA,Aberdeen North,2005-04-05,dateTime
+http://data.parliament.uk/resources/143480,Borough,S14000002,Aberdeen South Burgh Const,NA,NA,Aberdeen South,2005-04-05,dateTime
+http://data.parliament.uk/resources/146556,County,S14000058,West Aberdeenshire and Kincardine Co Const,NA,NA,West Aberdeenshire and Kincardine,2005-04-05,dateTime
+http://data.parliament.uk/resources/143496,County,S14000003,Airdrie and Shotts Co Const,NA,NA,Airdrie and Shotts,2005-04-05,dateTime
+http://data.parliament.uk/resources/146749,Borough,E14000530,Aldershot Boro Const,NA,NA,Aldershot,2010-05-06,dateTime
+http://data.parliament.uk/resources/146750,Borough,E14000531,Aldridge-Brownhills Boro Const,NA,NA,Aldridge-Brownhills,2010-05-06,dateTime
+http://data.parliament.uk/resources/146751,Borough,E14000532,Altrincham and Sale West Boro Const,NA,NA,Altrincham and Sale West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146752,County,W07000043,,NA,NA,Alyn and Deeside,2010-05-06,dateTime
+http://data.parliament.uk/resources/146753,County,E14000533,Amber Valley Co Const,NA,NA,Amber Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/143519,County,S14000004,Angus Co Const,NA,NA,Angus,2005-04-05,dateTime
+http://data.parliament.uk/resources/146919,County,N06000005,,NA,NA,East Antrim,2010-05-06,dateTime
+http://data.parliament.uk/resources/147094,County,N06000012,,NA,NA,North Antrim,2010-05-06,dateTime
+http://data.parliament.uk/resources/147196,County,N06000014,,NA,NA,South Antrim,2010-05-06,dateTime
+http://data.parliament.uk/resources/146754,County,W07000057,Arfon Co Const,NA,NA,Arfon,2010-05-06,dateTime
+http://data.parliament.uk/resources/143527,County,S14000005,Argyll and Bute Co Const,NA,NA,Argyll and Bute,2005-04-05,dateTime
+http://data.parliament.uk/resources/146755,County,E14000534,Arundel and South Downs Co Const,NA,NA,Arundel and South Downs,2010-05-06,dateTime
+http://data.parliament.uk/resources/146756,County,E14000535,Ashfield Co Const,NA,NA,Ashfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/146757,County,E14000536,Ashford Co Const,NA,NA,Ashford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146758,Borough,E14000537,Ashton-under-Lyne Boro Const,NA,NA,Ashton-under-Lyne,2010-05-06,dateTime
+http://data.parliament.uk/resources/146759,County,E14000538,Aylesbury Co Const,NA,NA,Aylesbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/143559,County,S14000006,"Ayr, Carrick and Cumnock Co Const",NA,NA,"Ayr, Carrick and Cumnock",2005-04-05,dateTime
+http://data.parliament.uk/resources/144074,County,S14000010,Central Ayrshire Co Const,NA,NA,Central Ayrshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/145564,County,S14000048,North Ayrshire and Arran Co Const,NA,NA,North Ayrshire and Arran,2005-04-05,dateTime
+http://data.parliament.uk/resources/146760,County,E14000539,Banbury Co Const,NA,NA,Banbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/143570,County,S14000007,Banff and Buchan Co Const,NA,NA,Banff and Buchan,2005-04-05,dateTime
+http://data.parliament.uk/resources/146761,Borough,E14000540,Barking Boro Const,NA,NA,Barking,2010-05-06,dateTime
+http://data.parliament.uk/resources/146762,Borough,E14000541,Barnsley Central Boro Const,NA,NA,Barnsley Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146763,County,E14000542,Barnsley East Co Const,NA,NA,Barnsley East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146764,County,E14000543,Barrow and Furness Co Const,NA,NA,Barrow and Furness,2010-05-06,dateTime
+http://data.parliament.uk/resources/147197,County,E14000933,South Basildon and East Thurrock Co Const,NA,NA,South Basildon and East Thurrock,2010-05-06,dateTime
+http://data.parliament.uk/resources/146765,Borough,E14000544,Basildon and Billericay Boro Const,NA,NA,Basildon and Billericay,2010-05-06,dateTime
+http://data.parliament.uk/resources/146766,Borough,E14000545,Basingstoke Boro Const,NA,NA,Basingstoke,2010-05-06,dateTime
+http://data.parliament.uk/resources/146767,County,E14000546,Bassetlaw Co Const,NA,NA,Bassetlaw,2010-05-06,dateTime
+http://data.parliament.uk/resources/146768,Borough,E14000547,Bath Boro Const,NA,NA,Bath,2010-05-06,dateTime
+http://data.parliament.uk/resources/146769,Borough,E14000548,Batley and Spen Boro Const,NA,NA,Batley and Spen,2010-05-06,dateTime
+http://data.parliament.uk/resources/146770,Borough,E14000549,Battersea Boro Const,NA,NA,Battersea,2010-05-06,dateTime
+http://data.parliament.uk/resources/146771,County,E14000550,Beaconsfield Co Const,NA,NA,Beaconsfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/146772,Borough,E14000551,Beckenham Boro Const,NA,NA,Beckenham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146773,Borough,E14000552,Bedford Boro Const,NA,NA,Bedford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147063,County,E14000813,Mid Bedfordshire Co Const,NA,NA,Mid Bedfordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147100,County,E14000841,North East Bedfordshire Co Const,NA,NA,North East Bedfordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147214,County,E14000949,,NA,NA,South West Bedfordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146774,Borough,N06000001,,NA,NA,Belfast East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146775,Borough,N06000002,,NA,NA,Belfast North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146776,Borough,N06000003,,NA,NA,Belfast South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146777,Borough,N06000004,,NA,NA,Belfast West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146778,Borough,E14000553,Bermondsey and Old Southwark Boro Const,NA,NA,Bermondsey and Old Southwark,2010-05-06,dateTime
+http://data.parliament.uk/resources/146779,County,E14000554,Berwick-upon-Tweed Co Const,NA,NA,Berwick-upon-Tweed,2010-05-06,dateTime
+http://data.parliament.uk/resources/143676,County,S14000008,"Berwickshire, Roxburgh and Selkirk Co Const",NA,NA,"Berwickshire, Roxburgh and Selkirk",2005-04-05,dateTime
+http://data.parliament.uk/resources/146780,Borough,E14000555,Bethnal Green and Bow Boro Const,NA,NA,Bethnal Green and Bow,2010-05-06,dateTime
+http://data.parliament.uk/resources/146781,County,E14000556,Beverley and Holderness Co Const,NA,NA,Beverley and Holderness,2010-05-06,dateTime
+http://data.parliament.uk/resources/146782,County,E14000557,Bexhill and Battle Co Const,NA,NA,Bexhill and Battle,2010-05-06,dateTime
+http://data.parliament.uk/resources/146783,Borough,E14000558,Bexleyheath and Crayford Boro Const,NA,NA,Bexleyheath and Crayford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146784,Borough,E14000559,Birkenhead Boro Const,NA,NA,Birkenhead,2010-05-06,dateTime
+http://data.parliament.uk/resources/146785,Borough,E14000560,"Birmingham, Edgbaston Boro Const",NA,NA,"Birmingham, Edgbaston",2010-05-06,dateTime
+http://data.parliament.uk/resources/146786,Borough,E14000561,"Birmingham, Erdington Boro Const",NA,NA,"Birmingham, Erdington",2010-05-06,dateTime
+http://data.parliament.uk/resources/146787,Borough,E14000562,"Birmingham, Hall Green Boro Const",NA,NA,"Birmingham, Hall Green",2010-05-06,dateTime
+http://data.parliament.uk/resources/146788,Borough,E14000563,"Birmingham, Hodge Hill Boro Const",NA,NA,"Birmingham, Hodge Hill",2010-05-06,dateTime
+http://data.parliament.uk/resources/146789,Borough,E14000564,"Birmingham, Ladywood Boro Const",NA,NA,"Birmingham, Ladywood",2010-05-06,dateTime
+http://data.parliament.uk/resources/146790,Borough,E14000565,"Birmingham, Northfield Boro Const",NA,NA,"Birmingham, Northfield",2010-05-06,dateTime
+http://data.parliament.uk/resources/146791,Borough,E14000566,"Birmingham, Perry Barr Boro Const",NA,NA,"Birmingham, Perry Barr",2010-05-06,dateTime
+http://data.parliament.uk/resources/146792,Borough,E14000567,"Birmingham, Selly Oak Boro Const",NA,NA,"Birmingham, Selly Oak",2010-05-06,dateTime
+http://data.parliament.uk/resources/146793,Borough,E14000568,"Birmingham, Yardley Boro Const",NA,NA,"Birmingham, Yardley",2010-05-06,dateTime
+http://data.parliament.uk/resources/146794,County,E14000569,Bishop Auckland Co Const,NA,NA,Bishop Auckland,2010-05-06,dateTime
+http://data.parliament.uk/resources/146795,Borough,E14000570,Blackburn Boro Const,NA,NA,Blackburn,2010-05-06,dateTime
+http://data.parliament.uk/resources/146796,Borough,E14000571,Blackley and Broughton Boro Const,NA,NA,Blackley and Broughton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146797,Borough,E14000572,Blackpool North and Cleveleys Boro Const,NA,NA,Blackpool North and Cleveleys,2010-05-06,dateTime
+http://data.parliament.uk/resources/146798,Borough,E14000573,Blackpool South Boro Const,NA,NA,Blackpool South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146799,County,W07000072,,NA,NA,Blaenau Gwent,2010-05-06,dateTime
+http://data.parliament.uk/resources/146800,Borough,E14000574,Blaydon Boro Const,NA,NA,Blaydon,2010-05-06,dateTime
+http://data.parliament.uk/resources/146801,Borough,E14000575,,NA,NA,Blyth Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146802,County,E14000576,Bognor Regis and Littlehampton Co Const,NA,NA,Bognor Regis and Littlehampton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146803,County,E14000577,Bolsover Co Const,NA,NA,Bolsover,2010-05-06,dateTime
+http://data.parliament.uk/resources/146804,Borough,E14000578,Bolton North East Boro Const,NA,NA,Bolton North East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146805,Borough,E14000579,Bolton South East Boro Const,NA,NA,Bolton South East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146806,County,E14000580,Bolton West Co Const,NA,NA,Bolton West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146807,Borough,E14000581,Bootle Boro Const,NA,NA,Bootle,2010-05-06,dateTime
+http://data.parliament.uk/resources/146808,County,E14000582,Boston and Skegness Co Const,NA,NA,Boston and Skegness,2010-05-06,dateTime
+http://data.parliament.uk/resources/146809,County,E14000583,Bosworth Co Const,NA,NA,Bosworth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146810,Borough,E14000584,Bournemouth East Boro Const,NA,NA,Bournemouth East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146811,Borough,E14000585,Bournemouth West Boro Const,NA,NA,Bournemouth West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146812,County,E14000586,Bracknell Co Const,NA,NA,Bracknell,2010-05-06,dateTime
+http://data.parliament.uk/resources/146813,Borough,E14000587,Bradford East Boro Const,NA,NA,Bradford East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146814,Borough,E14000588,Bradford South Boro Const,NA,NA,Bradford South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146815,Borough,E14000589,Bradford West Boro Const,NA,NA,Bradford West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146816,County,E14000590,Braintree Co Const,NA,NA,Braintree,2010-05-06,dateTime
+http://data.parliament.uk/resources/146817,County,W07000068,,NA,NA,Brecon and Radnorshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146818,Borough,E14000591,Brent Central Boro Const,NA,NA,Brent Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146819,Borough,E14000592,Brent North Boro Const,NA,NA,Brent North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146820,Borough,E14000593,Brentford and Isleworth Boro Const,NA,NA,Brentford and Isleworth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146821,County,E14000594,Brentwood and Ongar Co Const,NA,NA,Brentwood and Ongar,2010-05-06,dateTime
+http://data.parliament.uk/resources/146822,County,W07000073,Bridgend Co Const,NA,NA,Bridgend,2010-05-06,dateTime
+http://data.parliament.uk/resources/146823,County,E14000595,Bridgwater and West Somerset Co Const,NA,NA,Bridgwater and West Somerset,2010-05-06,dateTime
+http://data.parliament.uk/resources/146824,County,E14000596,Brigg and Goole Co Const,NA,NA,Brigg and Goole,2010-05-06,dateTime
+http://data.parliament.uk/resources/146825,Borough,E14000597,"Brighton, Kemptown Boro Const",NA,NA,"Brighton, Kemptown",2010-05-06,dateTime
+http://data.parliament.uk/resources/146826,Borough,E14000598,"Brighton, Pavilion Boro Const",NA,NA,"Brighton, Pavilion",2010-05-06,dateTime
+http://data.parliament.uk/resources/146827,Borough,E14000599,Bristol East Boro Const,NA,NA,Bristol East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146828,Borough,E14000600,Bristol North West Boro Const,NA,NA,Bristol North West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146829,Borough,E14000601,Bristol South Boro Const,NA,NA,Bristol South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146830,Borough,E14000602,Bristol West Boro Const,NA,NA,Bristol West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146831,County,E14000603,Broadland Co Const,NA,NA,Broadland,2010-05-06,dateTime
+http://data.parliament.uk/resources/146832,Borough,E14000604,Bromley and Chislehurst Boro Const,NA,NA,Bromley and Chislehurst,2010-05-06,dateTime
+http://data.parliament.uk/resources/146833,County,E14000605,,NA,NA,Bromsgrove,2010-05-06,dateTime
+http://data.parliament.uk/resources/146834,Borough,E14000606,,NA,NA,Broxbourne,2010-05-06,dateTime
+http://data.parliament.uk/resources/146835,County,E14000607,Broxtowe Co Const,NA,NA,Broxtowe,2010-05-06,dateTime
+http://data.parliament.uk/resources/146836,County,E14000608,Buckingham Co Const,NA,NA,Buckingham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146837,Borough,E14000609,,NA,NA,Burnley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146838,County,E14000610,Burton Co Const,NA,NA,Burton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146839,Borough,E14000611,Bury North Boro Const,NA,NA,Bury North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146840,Borough,E14000612,Bury South Boro Const,NA,NA,Bury South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146841,County,E14000613,Bury St. Edmunds Co Const,NA,NA,Bury St Edmunds,2010-05-06,dateTime
+http://data.parliament.uk/resources/146842,County,W07000076,Caerphilly Co Const,NA,NA,Caerphilly,2010-05-06,dateTime
+http://data.parliament.uk/resources/144003,County,S14000009,"Caithness, Sutherland and Easter Ross Co Const",NA,NA,"Caithness, Sutherland and Easter Ross",2005-04-05,dateTime
+http://data.parliament.uk/resources/146843,County,E14000614,Calder Valley Co Const,NA,NA,Calder Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146844,Borough,E14000615,Camberwell and Peckham Boro Const,NA,NA,Camberwell and Peckham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146845,County,E14000616,Camborne and Redruth Co Const,NA,NA,Camborne and Redruth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146846,Borough,E14000617,Cambridge Boro Const,NA,NA,Cambridge,2010-05-06,dateTime
+http://data.parliament.uk/resources/147101,County,E14000842,North East Cambridgeshire Co Const,NA,NA,North East Cambridgeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147114,County,E14000855,North West Cambridgeshire Co Const,NA,NA,North West Cambridgeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147198,County,E14000934,South Cambridgeshire Co Const,NA,NA,South Cambridgeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147202,County,E14000937,South East Cambridgeshire Co Const,NA,NA,South East Cambridgeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146847,County,E14000618,Cannock Chase Co Const,NA,NA,Cannock Chase,2010-05-06,dateTime
+http://data.parliament.uk/resources/146848,County,E14000619,Canterbury Co Const,NA,NA,Canterbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/146849,Borough,W07000050,,NA,NA,Cardiff Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146850,Borough,W07000051,,NA,NA,Cardiff North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146851,Borough,W07000080,Cardiff South and Penarth Boro Const,NA,NA,Cardiff South and Penarth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146852,Borough,W07000079,Cardiff West Boro Const,NA,NA,Cardiff West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146853,Borough,E14000620,Carlisle Boro Const,NA,NA,Carlisle,2010-05-06,dateTime
+http://data.parliament.uk/resources/146854,County,W07000067,Carmarthen East and Dinefwr Co Const,NA,NA,Carmarthen East and Dinefwr,2010-05-06,dateTime
+http://data.parliament.uk/resources/146855,County,W07000066,Carmarthen West and South Pembrokeshire Co Const,NA,NA,Carmarthen West and South Pembrokeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146856,Borough,E14000621,Carshalton and Wallington Boro Const,NA,NA,Carshalton and Wallington,2010-05-06,dateTime
+http://data.parliament.uk/resources/146857,Borough,E14000622,,NA,NA,Castle Point,2010-05-06,dateTime
+http://data.parliament.uk/resources/146860,County,W07000064,Ceredigion Co Const,NA,NA,Ceredigion,2010-05-06,dateTime
+http://data.parliament.uk/resources/146861,County,E14000625,Charnwood Co Const,NA,NA,Charnwood,2010-05-06,dateTime
+http://data.parliament.uk/resources/146862,County,E14000626,Chatham and Aylesford Co Const,NA,NA,Chatham and Aylesford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146863,Borough,E14000627,Cheadle Boro Const,NA,NA,Cheadle,2010-05-06,dateTime
+http://data.parliament.uk/resources/146864,Borough,E14000628,Chelmsford Boro Const,NA,NA,Chelmsford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146865,Borough,E14000629,Chelsea and Fulham Boro Const,NA,NA,Chelsea and Fulham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146866,Borough,E14000630,Cheltenham Boro Const,NA,NA,Cheltenham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146867,County,E14000631,Chesham and Amersham Co Const,NA,NA,Chesham and Amersham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146876,County,E14000640,City of Chester Co Const,NA,NA,City of Chester,2010-05-06,dateTime
+http://data.parliament.uk/resources/146868,Borough,E14000632,Chesterfield Boro Const,NA,NA,Chesterfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/146869,County,E14000633,Chichester Co Const,NA,NA,Chichester,2010-05-06,dateTime
+http://data.parliament.uk/resources/146870,Borough,E14000634,,NA,NA,Chingford and Woodford Green,2010-05-06,dateTime
+http://data.parliament.uk/resources/146871,County,E14000635,Chippenham Co Const,NA,NA,Chippenham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146872,Borough,E14000636,Chipping Barnet Boro Const,NA,NA,Chipping Barnet,2010-05-06,dateTime
+http://data.parliament.uk/resources/146873,County,E14000637,Chorley Co Const,NA,NA,Chorley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146874,County,E14000638,Christchurch Co Const,NA,NA,Christchurch,2010-05-06,dateTime
+http://data.parliament.uk/resources/146875,Borough,E14000639,Cities of London and Westminster Boro Const,NA,NA,Cities of London and Westminster,2010-05-06,dateTime
+http://data.parliament.uk/resources/146878,County,E14000642,Clacton Co Const,NA,NA,Clacton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146879,County,E14000643,,NA,NA,Cleethorpes,2010-05-06,dateTime
+http://data.parliament.uk/resources/146880,County,W07000062,Clwyd South Co Const,NA,NA,Clwyd South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146881,County,W07000059,Clwyd West Co Const,NA,NA,Clwyd West,2010-05-06,dateTime
+http://data.parliament.uk/resources/144188,Borough,S14000011,"Coatbridge, Chryston and Bellshill Burgh Const",NA,NA,"Coatbridge, Chryston and Bellshill",2005-04-05,dateTime
+http://data.parliament.uk/resources/146882,Borough,E14000644,Colchester Boro Const,NA,NA,Colchester,2010-05-06,dateTime
+http://data.parliament.uk/resources/146883,County,E14000645,Colne Valley Co Const,NA,NA,Colne Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146884,County,E14000646,,NA,NA,Congleton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146885,County,E14000647,Copeland Co Const,NA,NA,Copeland,2010-05-06,dateTime
+http://data.parliament.uk/resources/146886,County,E14000648,,NA,NA,Corby,2010-05-06,dateTime
+http://data.parliament.uk/resources/147095,County,E14000837,North Cornwall Co Const,NA,NA,North Cornwall,2010-05-06,dateTime
+http://data.parliament.uk/resources/147203,County,E14000938,South East Cornwall Co Const,NA,NA,South East Cornwall,2010-05-06,dateTime
+http://data.parliament.uk/resources/147259,County,E14000991,The Cotswolds Co Const,NA,NA,The Cotswolds,2010-05-06,dateTime
+http://data.parliament.uk/resources/146887,Borough,E14000649,Coventry North East Boro Const,NA,NA,Coventry North East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146888,Borough,E14000650,Coventry North West Boro Const,NA,NA,Coventry North West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146889,Borough,E14000651,Coventry South Boro Const,NA,NA,Coventry South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146890,Borough,E14000652,,NA,NA,Crawley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146891,County,E14000653,Crewe and Nantwich Co Const,NA,NA,Crewe and Nantwich,2010-05-06,dateTime
+http://data.parliament.uk/resources/146892,Borough,E14000654,Croydon Central Boro Const,NA,NA,Croydon Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146893,Borough,E14000655,Croydon North Boro Const,NA,NA,Croydon North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146894,Borough,E14000656,Croydon South Boro Const,NA,NA,Croydon South,2010-05-06,dateTime
+http://data.parliament.uk/resources/144264,County,S14000012,"Cumbernauld, Kilsyth and Kirkintilloch East Co Con",NA,NA,"Cumbernauld, Kilsyth and Kirkintilloch East",2005-04-05,dateTime
+http://data.parliament.uk/resources/146895,County,W07000070,Cynon Valley Co Const,NA,NA,Cynon Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146896,Borough,E14000657,Dagenham and Rainham Boro Const,NA,NA,Dagenham and Rainham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146897,Borough,E14000658,Darlington Boro Const,NA,NA,Darlington,2010-05-06,dateTime
+http://data.parliament.uk/resources/146898,County,E14000659,Dartford Co Const,NA,NA,Dartford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146899,County,E14000660,Daventry Co Const,NA,NA,Daventry,2010-05-06,dateTime
+http://data.parliament.uk/resources/146900,County,W07000042,,NA,NA,Delyn,2010-05-06,dateTime
+http://data.parliament.uk/resources/146901,Borough,E14000661,Denton and Reddish Boro Const,NA,NA,Denton and Reddish,2010-05-06,dateTime
+http://data.parliament.uk/resources/146902,Borough,E14000662,Derby North Boro Const,NA,NA,Derby North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146903,Borough,E14000663,Derby South Boro Const,NA,NA,Derby South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146904,County,E14000664,Derbyshire Dales Co Const,NA,NA,Derbyshire Dales,2010-05-06,dateTime
+http://data.parliament.uk/resources/147064,County,E14000814,Mid Derbyshire Co Const,NA,NA,Mid Derbyshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147102,County,E14000843,North East Derbyshire Co Const,NA,NA,North East Derbyshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147199,County,E14000935,South Derbyshire Co Const,NA,NA,South Derbyshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146905,County,E14000665,Devizes Co Const,NA,NA,Devizes,2010-05-06,dateTime
+http://data.parliament.uk/resources/146858,County,E14000623,Central Devon Co Const,NA,NA,Central Devon,2010-05-06,dateTime
+http://data.parliament.uk/resources/146920,County,E14000678,East Devon Co Const,NA,NA,East Devon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147096,County,E14000838,North Devon Co Const,NA,NA,North Devon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147215,County,E14000950,South West Devon Co Const,NA,NA,South West Devon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147269,County,E14001000,Torridge and West Devon Co Const,NA,NA,Torridge and West Devon,2010-05-06,dateTime
+http://data.parliament.uk/resources/146906,County,E14000666,Dewsbury Co Const,NA,NA,Dewsbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/146907,County,E14000667,Don Valley Co Const,NA,NA,Don Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146908,Borough,E14000668,Doncaster Central Boro Const,NA,NA,Doncaster Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146909,County,E14000669,Doncaster North Co Const,NA,NA,Doncaster North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147065,County,E14000815,Mid Dorset and North Poole Co Const,NA,NA,Mid Dorset and North Poole,2010-05-06,dateTime
+http://data.parliament.uk/resources/147097,County,E14000839,North Dorset Co Const,NA,NA,North Dorset,2010-05-06,dateTime
+http://data.parliament.uk/resources/147200,County,E14000936,,NA,NA,South Dorset,2010-05-06,dateTime
+http://data.parliament.uk/resources/147303,County,E14001031,,NA,NA,West Dorset,2010-05-06,dateTime
+http://data.parliament.uk/resources/146910,County,E14000670,Dover Co Const,NA,NA,Dover,2010-05-06,dateTime
+http://data.parliament.uk/resources/146911,Borough,E14000671,Dudley North Boro Const,NA,NA,Dudley North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146912,Borough,E14000672,Dudley South Boro Const,NA,NA,Dudley South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146913,Borough,E14000673,Dulwich and West Norwood Boro Const,NA,NA,Dulwich and West Norwood,2010-05-06,dateTime
+http://data.parliament.uk/resources/144371,County,S14000013,Dumfries and Galloway Co Const,NA,NA,Dumfries and Galloway,2005-04-05,dateTime
+http://data.parliament.uk/resources/144374,County,S14000014,"Dumfriesshire, Clydesdale and Tweeddale Co Const",NA,NA,"Dumfriesshire, Clydesdale and Tweeddale",2005-04-05,dateTime
+http://data.parliament.uk/resources/144425,County,S14000018,East Dunbartonshire Co Const,NA,NA,East Dunbartonshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/146577,County,S14000059,West Dunbartonshire Co Const,NA,NA,West Dunbartonshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/144382,Borough,S14000015,Dundee East Burgh Const,NA,NA,Dundee East,2005-04-05,dateTime
+http://data.parliament.uk/resources/144387,Borough,S14000016,Dundee West Burgh Const,NA,NA,Dundee West,2005-04-05,dateTime
+http://data.parliament.uk/resources/144389,County,S14000017,Dunfermline and West Fife Co Const,NA,NA,Dunfermline and West Fife,2005-04-05,dateTime
+http://data.parliament.uk/resources/147099,County,E14000840,North Durham Co Const,NA,NA,North Durham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147115,County,E14000856,North West Durham Co Const,NA,NA,North West Durham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146877,County,E14000641,,NA,NA,City of Durham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146914,County,W07000061,Dwyfor Meirionnydd Co Const,NA,NA,Dwyfor Meirionnydd,2010-05-06,dateTime
+http://data.parliament.uk/resources/146915,Borough,E14000674,Ealing Central and Acton Boro Const,NA,NA,Ealing Central and Acton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146916,Borough,E14000675,Ealing North Boro Const,NA,NA,Ealing North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146917,Borough,E14000676,"Ealing, Southall Boro Const",NA,NA,"Ealing, Southall",2010-05-06,dateTime
+http://data.parliament.uk/resources/146918,County,E14000677,Easington Co Const,NA,NA,Easington,2010-05-06,dateTime
+http://data.parliament.uk/resources/146921,Borough,E14000679,East Ham Boro Const,NA,NA,East Ham,2010-05-06,dateTime
+http://data.parliament.uk/resources/144445,County,S14000019,"East Kilbride, Strathaven and Lesmahagow Co Const",NA,NA,"East Kilbride, Strathaven and Lesmahagow",2005-04-05,dateTime
+http://data.parliament.uk/resources/146923,County,N06000006,,NA,NA,East Londonderry,2010-05-06,dateTime
+http://data.parliament.uk/resources/144451,County,S14000020,East Lothian Co Const,NA,NA,East Lothian,2005-04-05,dateTime
+http://data.parliament.uk/resources/146927,Borough,E14000684,Eastbourne Boro Const,NA,NA,Eastbourne,2010-05-06,dateTime
+http://data.parliament.uk/resources/146928,Borough,E14000685,Eastleigh Boro Const,NA,NA,Eastleigh,2010-05-06,dateTime
+http://data.parliament.uk/resources/146929,County,E14000686,Eddisbury Co Const,NA,NA,Eddisbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/144495,Borough,S14000022,Edinburgh East Burgh Const,NA,NA,Edinburgh East,2005-04-05,dateTime
+http://data.parliament.uk/resources/144501,Borough,S14000023,Edinburgh North and Leith Burgh Const,NA,NA,Edinburgh North and Leith,2005-04-05,dateTime
+http://data.parliament.uk/resources/144507,Borough,S14000024,Edinburgh South Burgh Const,NA,NA,Edinburgh South,2005-04-05,dateTime
+http://data.parliament.uk/resources/144508,Borough,S14000025,Edinburgh South West Burgh Const,NA,NA,Edinburgh South West,2005-04-05,dateTime
+http://data.parliament.uk/resources/144514,Borough,S14000026,Edinburgh West Burgh Const,NA,NA,Edinburgh West,2005-04-05,dateTime
+http://data.parliament.uk/resources/146930,Borough,E14000687,Edmonton Boro Const,NA,NA,Edmonton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146931,County,E14000688,Ellesmere Port and Neston Co Const,NA,NA,Ellesmere Port and Neston,2010-05-06,dateTime
+http://data.parliament.uk/resources/146932,County,E14000689,Elmet and Rothwell Co Const,NA,NA,Elmet and Rothwell,2010-05-06,dateTime
+http://data.parliament.uk/resources/146933,Borough,E14000690,Eltham Boro Const,NA,NA,Eltham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146934,Borough,E14000691,Enfield North Boro Const,NA,NA,Enfield North,2010-05-06,dateTime
+http://data.parliament.uk/resources/146935,Borough,E14000692,"Enfield, Southgate Boro Const",NA,NA,"Enfield, Southgate",2010-05-06,dateTime
+http://data.parliament.uk/resources/146936,County,E14000693,Epping Forest Co Const,NA,NA,Epping Forest,2010-05-06,dateTime
+http://data.parliament.uk/resources/146937,Borough,E14000694,Epsom and Ewell Boro Const,NA,NA,Epsom and Ewell,2010-05-06,dateTime
+http://data.parliament.uk/resources/146938,County,E14000695,Erewash Co Const,NA,NA,Erewash,2010-05-06,dateTime
+http://data.parliament.uk/resources/146939,Borough,E14000696,Erith and Thamesmead Boro Const,NA,NA,Erith and Thamesmead,2010-05-06,dateTime
+http://data.parliament.uk/resources/146940,Borough,E14000697,,NA,NA,Esher and Walton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146941,Borough,E14000698,Exeter Boro Const,NA,NA,Exeter,2010-05-06,dateTime
+http://data.parliament.uk/resources/144575,County,S14000028,Falkirk Co Const,NA,NA,Falkirk,2005-04-05,dateTime
+http://data.parliament.uk/resources/146942,County,E14000699,,NA,NA,Fareham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146943,County,E14000700,Faversham and Mid Kent Co Const,NA,NA,Faversham and Mid Kent,2010-05-06,dateTime
+http://data.parliament.uk/resources/146944,Borough,E14000701,Feltham and Heston Boro Const,NA,NA,Feltham and Heston,2010-05-06,dateTime
+http://data.parliament.uk/resources/146945,County,N06000007,,NA,NA,Fermanagh and South Tyrone,2010-05-06,dateTime
+http://data.parliament.uk/resources/145595,County,S14000049,North East Fife Co Const,NA,NA,North East Fife,2005-04-05,dateTime
+http://data.parliament.uk/resources/146946,County,E14000702,Filton and Bradley Stoke Co Const,NA,NA,Filton and Bradley Stoke,2010-05-06,dateTime
+http://data.parliament.uk/resources/146947,Borough,E14000703,Finchley and Golders Green Boro Const,NA,NA,Finchley and Golders Green,2010-05-06,dateTime
+http://data.parliament.uk/resources/146948,County,E14000704,Folkestone and Hythe Co Const,NA,NA,Folkestone and Hythe,2010-05-06,dateTime
+http://data.parliament.uk/resources/146949,County,E14000705,,NA,NA,Forest of Dean,2010-05-06,dateTime
+http://data.parliament.uk/resources/146950,County,N06000008,,NA,NA,Foyle,2010-05-06,dateTime
+http://data.parliament.uk/resources/146951,County,E14000706,Fylde Co Const,NA,NA,Fylde,2010-05-06,dateTime
+http://data.parliament.uk/resources/146952,County,E14000707,Gainsborough Co Const,NA,NA,Gainsborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/146953,Borough,E14000708,Garston and Halewood Boro Const,NA,NA,Garston and Halewood,2010-05-06,dateTime
+http://data.parliament.uk/resources/146954,Borough,E14000709,Gateshead Boro Const,NA,NA,Gateshead,2010-05-06,dateTime
+http://data.parliament.uk/resources/146955,County,E14000710,Gedling Co Const,NA,NA,Gedling,2010-05-06,dateTime
+http://data.parliament.uk/resources/146956,Borough,E14000711,Gillingham and Rainham Boro Const,NA,NA,Gillingham and Rainham,2010-05-06,dateTime
+http://data.parliament.uk/resources/144663,Borough,S14000029,Glasgow Central Burgh Const,NA,NA,Glasgow Central,2005-04-05,dateTime
+http://data.parliament.uk/resources/144664,Borough,S14000030,Glasgow East Burgh Const,NA,NA,Glasgow East,2005-04-05,dateTime
+http://data.parliament.uk/resources/144665,Borough,S14000031,Glasgow North Burgh Const,NA,NA,Glasgow North,2005-04-05,dateTime
+http://data.parliament.uk/resources/144666,Borough,S14000032,Glasgow North East Burgh Const,NA,NA,Glasgow North East,2005-04-05,dateTime
+http://data.parliament.uk/resources/144667,Borough,S14000033,Glasgow North West Burgh Const,NA,NA,Glasgow North West,2005-04-05,dateTime
+http://data.parliament.uk/resources/144668,Borough,S14000034,Glasgow South Burgh Const,NA,NA,Glasgow South,2005-04-05,dateTime
+http://data.parliament.uk/resources/144669,Borough,S14000035,Glasgow South West Burgh Const,NA,NA,Glasgow South West,2005-04-05,dateTime
+http://data.parliament.uk/resources/144734,County,S14000036,Glenrothes Co Const,NA,NA,Glenrothes,2005-04-05,dateTime
+http://data.parliament.uk/resources/146957,Borough,E14000712,Gloucester Boro Const,NA,NA,Gloucester,2010-05-06,dateTime
+http://data.parliament.uk/resources/144744,County,S14000037,Gordon Co Const,NA,NA,Gordon,2005-04-05,dateTime
+http://data.parliament.uk/resources/146958,Borough,E14000713,,NA,NA,Gosport,2010-05-06,dateTime
+http://data.parliament.uk/resources/146959,County,W07000046,Gower Co Const,NA,NA,Gower,2010-05-06,dateTime
+http://data.parliament.uk/resources/146960,County,E14000714,Grantham and Stamford Co Const,NA,NA,Grantham and Stamford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146961,County,E14000715,,NA,NA,Gravesham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146962,Borough,E14000716,,NA,NA,Great Grimsby,2010-05-06,dateTime
+http://data.parliament.uk/resources/146963,County,E14000717,,NA,NA,Great Yarmouth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146964,Borough,E14000718,Greenwich and Woolwich Boro Const,NA,NA,Greenwich and Woolwich,2010-05-06,dateTime
+http://data.parliament.uk/resources/146965,County,E14000719,Guildford Co Const,NA,NA,Guildford,2010-05-06,dateTime
+http://data.parliament.uk/resources/146966,Borough,E14000720,Hackney North and Stoke Newington Boro Const,NA,NA,Hackney North and Stoke Newington,2010-05-06,dateTime
+http://data.parliament.uk/resources/146967,Borough,E14000721,Hackney South and Shoreditch Boro Const,NA,NA,Hackney South and Shoreditch,2010-05-06,dateTime
+http://data.parliament.uk/resources/146968,Borough,E14000722,Halesowen and Rowley Regis Boro Const,NA,NA,Halesowen and Rowley Regis,2010-05-06,dateTime
+http://data.parliament.uk/resources/146969,Borough,E14000723,Halifax Boro Const,NA,NA,Halifax,2010-05-06,dateTime
+http://data.parliament.uk/resources/146970,County,E14000724,Haltemprice and Howden Co Const,NA,NA,Haltemprice and Howden,2010-05-06,dateTime
+http://data.parliament.uk/resources/146971,County,E14000725,Halton Co Const,NA,NA,Halton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146972,Borough,E14000726,Hammersmith Boro Const,NA,NA,Hammersmith,2010-05-06,dateTime
+http://data.parliament.uk/resources/146922,County,E14000680,East Hampshire Co Const,NA,NA,East Hampshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147103,County,E14000844,North East Hampshire Co Const,NA,NA,North East Hampshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147116,County,E14000857,North West Hampshire Co Const,NA,NA,North West Hampshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146973,Borough,E14000727,Hampstead and Kilburn Boro Const,NA,NA,Hampstead and Kilburn,2010-05-06,dateTime
+http://data.parliament.uk/resources/146974,County,E14000728,Harborough Co Const,NA,NA,Harborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/146975,County,E14000729,Harlow Co Const,NA,NA,Harlow,2010-05-06,dateTime
+http://data.parliament.uk/resources/146976,County,E14000730,Harrogate and Knaresborough Co Const,NA,NA,Harrogate and Knaresborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/146977,Borough,E14000731,Harrow East Boro Const,NA,NA,Harrow East,2010-05-06,dateTime
+http://data.parliament.uk/resources/146978,Borough,E14000732,Harrow West Boro Const,NA,NA,Harrow West,2010-05-06,dateTime
+http://data.parliament.uk/resources/146979,Borough,E14000733,,NA,NA,Hartlepool,2010-05-06,dateTime
+http://data.parliament.uk/resources/146980,County,E14000734,Harwich and North Essex Co Const,NA,NA,Harwich and North Essex,2010-05-06,dateTime
+http://data.parliament.uk/resources/146981,County,E14000735,Hastings and Rye Co Const,NA,NA,Hastings and Rye,2010-05-06,dateTime
+http://data.parliament.uk/resources/146982,Borough,E14000736,Havant Boro Const,NA,NA,Havant,2010-05-06,dateTime
+http://data.parliament.uk/resources/146983,Borough,E14000737,Hayes and Harlington Boro Const,NA,NA,Hayes and Harlington,2010-05-06,dateTime
+http://data.parliament.uk/resources/146984,County,E14000738,Hazel Grove Co Const,NA,NA,Hazel Grove,2010-05-06,dateTime
+http://data.parliament.uk/resources/146985,County,E14000739,Hemel Hempstead Co Const,NA,NA,Hemel Hempstead,2010-05-06,dateTime
+http://data.parliament.uk/resources/146986,County,E14000740,Hemsworth Co Const,NA,NA,Hemsworth,2010-05-06,dateTime
+http://data.parliament.uk/resources/146987,Borough,E14000741,Hendon Boro Const,NA,NA,Hendon,2010-05-06,dateTime
+http://data.parliament.uk/resources/146988,County,E14000742,Henley Co Const,NA,NA,Henley,2010-05-06,dateTime
+http://data.parliament.uk/resources/146989,County,E14000743,Hereford and South Herefordshire Co Const,NA,NA,Hereford and South Herefordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147106,County,E14000847,North Herefordshire Co Const,NA,NA,North Herefordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146990,County,E14000744,Hertford and Stortford Co Const,NA,NA,Hertford and Stortford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147104,County,E14000845,North East Hertfordshire Co Const,NA,NA,North East Hertfordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147216,County,E14000951,South West Hertfordshire Co Const,NA,NA,South West Hertfordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/146991,County,E14000745,,NA,NA,Hertsmere,2010-05-06,dateTime
+http://data.parliament.uk/resources/146992,County,E14000746,Hexham Co Const,NA,NA,Hexham,2010-05-06,dateTime
+http://data.parliament.uk/resources/146993,County,E14000747,Heywood and Middleton Co Const,NA,NA,Heywood and Middleton,2010-05-06,dateTime
+http://data.parliament.uk/resources/146994,County,E14000748,High Peak Co Const,NA,NA,High Peak,2010-05-06,dateTime
+http://data.parliament.uk/resources/146995,County,E14000749,Hitchin and Harpenden Co Const,NA,NA,Hitchin and Harpenden,2010-05-06,dateTime
+http://data.parliament.uk/resources/146996,Borough,E14000750,Holborn and St. Pancras Boro Const,NA,NA,Holborn and St Pancras,2010-05-06,dateTime
+http://data.parliament.uk/resources/146997,Borough,E14000751,Hornchurch and Upminster Boro Const,NA,NA,Hornchurch and Upminster,2010-05-06,dateTime
+http://data.parliament.uk/resources/146998,Borough,E14000752,,NA,NA,Hornsey and Wood Green,2010-05-06,dateTime
+http://data.parliament.uk/resources/146999,County,E14000753,Horsham Co Const,NA,NA,Horsham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147000,Borough,E14000754,Houghton and Sunderland South Boro Const,NA,NA,Houghton and Sunderland South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147001,Borough,E14000755,Hove Boro Const,NA,NA,Hove,2010-05-06,dateTime
+http://data.parliament.uk/resources/147002,Borough,E14000756,Huddersfield Boro Const,NA,NA,Huddersfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147018,Borough,E14000771,Kingston upon Hull East Boro Const,NA,NA,Kingston upon Hull East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147019,Borough,E14000772,Kingston upon Hull North Boro Const,NA,NA,Kingston upon Hull North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147020,Borough,E14000773,Kingston upon Hull West and Hessle Boro Const,NA,NA,Kingston upon Hull West and Hessle,2010-05-06,dateTime
+http://data.parliament.uk/resources/147003,County,E14000757,Huntingdon Co Const,NA,NA,Huntingdon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147004,Borough,E14000758,Hyndburn Boro Const,NA,NA,Hyndburn,2010-05-06,dateTime
+http://data.parliament.uk/resources/147005,Borough,E14000759,Ilford North Boro Const,NA,NA,Ilford North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147006,Borough,E14000760,,NA,NA,Ilford South,2010-05-06,dateTime
+http://data.parliament.uk/resources/145015,County,S14000038,Inverclyde Co Const,NA,NA,Inverclyde,2005-04-05,dateTime
+http://data.parliament.uk/resources/145021,County,S14000039,"Inverness, Nairn, Badenoch and Strathspey Co Const",NA,NA,"Inverness, Nairn, Badenoch and Strathspey",2005-04-05,dateTime
+http://data.parliament.uk/resources/147007,Borough,E14000761,Ipswich Boro Const,NA,NA,Ipswich,2010-05-06,dateTime
+http://data.parliament.uk/resources/147008,County,E14000762,,NA,NA,Isle of Wight,2010-05-06,dateTime
+http://data.parliament.uk/resources/147009,Borough,E14000763,,NA,NA,Islington North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147010,Borough,E14000764,,NA,NA,Islington South and Finsbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/147011,County,W07000077,Islwyn Co Const,NA,NA,Islwyn,2010-05-06,dateTime
+http://data.parliament.uk/resources/147012,Borough,E14000765,Jarrow Boro Const,NA,NA,Jarrow,2010-05-06,dateTime
+http://data.parliament.uk/resources/147013,County,E14000766,,NA,NA,Keighley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147014,County,E14000767,Kenilworth and Southam Co Const,NA,NA,Kenilworth and Southam,2010-05-06,dateTime
+http://data.parliament.uk/resources/147015,Borough,E14000768,Kensington Boro Const,NA,NA,Kensington,2010-05-06,dateTime
+http://data.parliament.uk/resources/147016,County,E14000769,Kettering Co Const,NA,NA,Kettering,2010-05-06,dateTime
+http://data.parliament.uk/resources/145084,County,S14000040,Kilmarnock and Loudoun Co Const,NA,NA,Kilmarnock and Loudoun,2005-04-05,dateTime
+http://data.parliament.uk/resources/147017,Borough,E14000770,Kingston and Surbiton Boro Const,NA,NA,Kingston and Surbiton,2010-05-06,dateTime
+http://data.parliament.uk/resources/147021,Borough,E14000774,Kingswood Boro Const,NA,NA,Kingswood,2010-05-06,dateTime
+http://data.parliament.uk/resources/145121,County,S14000041,Kirkcaldy and Cowdenbeath Co Const,NA,NA,Kirkcaldy and Cowdenbeath,2005-04-05,dateTime
+http://data.parliament.uk/resources/147022,Borough,E14000775,Knowsley Boro Const,NA,NA,Knowsley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147023,County,N06000009,,NA,NA,Lagan Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/145138,County,S14000042,Lanark and Hamilton East Co Const,NA,NA,Lanark and Hamilton East,2005-04-05,dateTime
+http://data.parliament.uk/resources/147305,County,E14001033,,NA,NA,West Lancashire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147024,County,E14000776,Lancaster and Fleetwood Co Const,NA,NA,Lancaster and Fleetwood,2010-05-06,dateTime
+http://data.parliament.uk/resources/147025,Borough,E14000777,Leeds Central Boro Const,NA,NA,Leeds Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147026,Borough,E14000778,Leeds East Boro Const,NA,NA,Leeds East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147027,Borough,E14000779,Leeds North East Boro Const,NA,NA,Leeds North East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147028,Borough,E14000780,Leeds North West Boro Const,NA,NA,Leeds North West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147029,Borough,E14000781,Leeds West Boro Const,NA,NA,Leeds West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147030,Borough,E14000782,Leicester East Boro Const,NA,NA,Leicester East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147031,Borough,E14000783,Leicester South Boro Const,NA,NA,Leicester South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147032,Borough,E14000784,Leicester West Boro Const,NA,NA,Leicester West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147117,County,E14000858,,NA,NA,North West Leicestershire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147205,County,E14000940,South Leicestershire Co Const,NA,NA,South Leicestershire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147033,County,E14000785,Leigh Co Const,NA,NA,Leigh,2010-05-06,dateTime
+http://data.parliament.uk/resources/147034,County,E14000786,Lewes Co Const,NA,NA,Lewes,2010-05-06,dateTime
+http://data.parliament.uk/resources/147035,Borough,E14000787,Lewisham East Boro Const,NA,NA,Lewisham East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147036,Borough,E14000788,Lewisham West and Penge Boro Const,NA,NA,Lewisham West and Penge,2010-05-06,dateTime
+http://data.parliament.uk/resources/147037,Borough,E14000789,"Lewisham, Deptford Boro Const",NA,NA,"Lewisham, Deptford",2010-05-06,dateTime
+http://data.parliament.uk/resources/147038,Borough,E14000790,Leyton and Wanstead Boro Const,NA,NA,Leyton and Wanstead,2010-05-06,dateTime
+http://data.parliament.uk/resources/147039,County,E14000791,Lichfield Co Const,NA,NA,Lichfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147040,Borough,E14000792,Lincoln Boro Const,NA,NA,Lincoln,2010-05-06,dateTime
+http://data.parliament.uk/resources/145242,County,S14000043,Linlithgow and East Falkirk Co Const,NA,NA,Linlithgow and East Falkirk,2005-04-05,dateTime
+http://data.parliament.uk/resources/147041,Borough,E14000793,"Liverpool, Riverside Boro Const",NA,NA,"Liverpool, Riverside",2010-05-06,dateTime
+http://data.parliament.uk/resources/147042,Borough,E14000794,"Liverpool, Walton Boro Const",NA,NA,"Liverpool, Walton",2010-05-06,dateTime
+http://data.parliament.uk/resources/147043,Borough,E14000795,"Liverpool, Wavertree Boro Const",NA,NA,"Liverpool, Wavertree",2010-05-06,dateTime
+http://data.parliament.uk/resources/147044,Borough,E14000796,"Liverpool, West Derby Boro Const",NA,NA,"Liverpool, West Derby",2010-05-06,dateTime
+http://data.parliament.uk/resources/145286,County,S14000044,Livingston Co Const,NA,NA,Livingston,2005-04-05,dateTime
+http://data.parliament.uk/resources/147045,County,W07000045,,NA,NA,Llanelli,2010-05-06,dateTime
+http://data.parliament.uk/resources/147046,County,E14000797,Loughborough Co Const,NA,NA,Loughborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/147047,County,E14000798,Louth and Horncastle Co Const,NA,NA,Louth and Horncastle,2010-05-06,dateTime
+http://data.parliament.uk/resources/147048,County,E14000799,,NA,NA,Ludlow,2010-05-06,dateTime
+http://data.parliament.uk/resources/147049,Borough,E14000800,Luton North Boro Const,NA,NA,Luton North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147050,Borough,E14000801,Luton South Boro Const,NA,NA,Luton South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147051,County,E14000802,Macclesfield Co Const,NA,NA,Macclesfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147052,County,E14000803,Maidenhead Co Const,NA,NA,Maidenhead,2010-05-06,dateTime
+http://data.parliament.uk/resources/147053,County,E14000804,Maidstone and The Weald Co Const,NA,NA,Maidstone and The Weald,2010-05-06,dateTime
+http://data.parliament.uk/resources/147054,County,E14000805,Makerfield Co Const,NA,NA,Makerfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147055,County,E14000806,Maldon Co Const,NA,NA,Maldon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147056,Borough,E14000807,Manchester Central Boro Const,NA,NA,Manchester Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147057,Borough,E14000808,"Manchester, Gorton Boro Const",NA,NA,"Manchester, Gorton",2010-05-06,dateTime
+http://data.parliament.uk/resources/147058,Borough,E14000809,"Manchester, Withington Boro Const",NA,NA,"Manchester, Withington",2010-05-06,dateTime
+http://data.parliament.uk/resources/147059,County,E14000810,Mansfield Co Const,NA,NA,Mansfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147060,County,E14000811,Meon Valley Co Const,NA,NA,Meon Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147061,County,E14000812,Meriden Co Const,NA,NA,Meriden,2010-05-06,dateTime
+http://data.parliament.uk/resources/147062,County,W07000071,,NA,NA,Merthyr Tydfil and Rhymney,2010-05-06,dateTime
+http://data.parliament.uk/resources/147068,County,N06000010,,NA,NA,Mid Ulster,2010-05-06,dateTime
+http://data.parliament.uk/resources/147070,Borough,E14000819,Middlesbrough Boro Const,NA,NA,Middlesbrough,2010-05-06,dateTime
+http://data.parliament.uk/resources/147071,County,E14000820,Middlesbrough South and East Cleveland Co Const,NA,NA,Middlesbrough South and East Cleveland,2010-05-06,dateTime
+http://data.parliament.uk/resources/145437,County,S14000045,Midlothian Co Const,NA,NA,Midlothian,2005-04-05,dateTime
+http://data.parliament.uk/resources/147072,County,E14000821,Milton Keynes North Co Const,NA,NA,Milton Keynes North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147073,Borough,E14000822,Milton Keynes South Boro Const,NA,NA,Milton Keynes South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147074,Borough,E14000823,Mitcham and Morden Boro Const,NA,NA,Mitcham and Morden,2010-05-06,dateTime
+http://data.parliament.uk/resources/147075,County,E14000824,,NA,NA,Mole Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147076,County,W07000054,,NA,NA,Monmouth,2010-05-06,dateTime
+http://data.parliament.uk/resources/147077,County,W07000063,Montgomeryshire Co Const,NA,NA,Montgomeryshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/145464,County,S14000046,Moray Co Const,NA,NA,Moray,2005-04-05,dateTime
+http://data.parliament.uk/resources/147078,County,E14000825,Morecambe and Lunesdale Co Const,NA,NA,Morecambe and Lunesdale,2010-05-06,dateTime
+http://data.parliament.uk/resources/147079,County,E14000826,Morley and Outwood Co Const,NA,NA,Morley and Outwood,2010-05-06,dateTime
+http://data.parliament.uk/resources/145482,Borough,S14000047,Motherwell and Wishaw Burgh Const,NA,NA,Motherwell and Wishaw,2005-04-05,dateTime
+http://data.parliament.uk/resources/145485,County,S14000027,Na h-Eileanan an Iar Co Const,NA,NA,Na h-Eileanan an Iar,2005-04-05,dateTime
+http://data.parliament.uk/resources/147080,County,W07000069,Neath Co Const,NA,NA,Neath,2010-05-06,dateTime
+http://data.parliament.uk/resources/147081,County,E14000827,New Forest East Co Const,NA,NA,New Forest East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147082,County,E14000828,New Forest West Co Const,NA,NA,New Forest West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147083,County,E14000829,Newark Co Const,NA,NA,Newark,2010-05-06,dateTime
+http://data.parliament.uk/resources/147084,County,E14000830,Newbury Co Const,NA,NA,Newbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/147085,Borough,E14000831,Newcastle upon Tyne Central Boro Const,NA,NA,Newcastle upon Tyne Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147086,Borough,E14000832,Newcastle upon Tyne East Boro Const,NA,NA,Newcastle upon Tyne East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147087,Borough,E14000833,Newcastle upon Tyne North Boro Const,NA,NA,Newcastle upon Tyne North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147088,Borough,E14000834,,NA,NA,Newcastle-under-Lyme,2010-05-06,dateTime
+http://data.parliament.uk/resources/147089,County,W07000055,,NA,NA,Newport East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147090,County,W07000056,,NA,NA,Newport West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147091,County,N06000011,,NA,NA,Newry and Armagh,2010-05-06,dateTime
+http://data.parliament.uk/resources/147092,County,E14000835,Newton Abbot Co Const,NA,NA,Newton Abbot,2010-05-06,dateTime
+http://data.parliament.uk/resources/147066,County,E14000816,Mid Norfolk Co Const,NA,NA,Mid Norfolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147107,County,E14000848,North Norfolk Co Const,NA,NA,North Norfolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147118,County,E14000859,North West Norfolk Co Const,NA,NA,North West Norfolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147206,County,E14000941,South Norfolk Co Const,NA,NA,South Norfolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147217,County,E14000952,South West Norfolk Co Const,NA,NA,South West Norfolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147093,County,E14000836,"Normanton, Pontefract and Castleford Co Const",NA,NA,"Normanton, Pontefract and Castleford",2010-05-06,dateTime
+http://data.parliament.uk/resources/147098,County,N06000013,,NA,NA,North Down,2010-05-06,dateTime
+http://data.parliament.uk/resources/147120,Borough,E14000861,Northampton North Boro Const,NA,NA,Northampton North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147121,Borough,E14000862,Northampton South Boro Const,NA,NA,Northampton South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147207,County,E14000942,South Northamptonshire Co Const,NA,NA,South Northamptonshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147122,Borough,E14000863,Norwich North Boro Const,NA,NA,Norwich North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147123,Borough,E14000864,Norwich South Boro Const,NA,NA,Norwich South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147124,Borough,E14000865,Nottingham East Boro Const,NA,NA,Nottingham East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147125,Borough,E14000866,Nottingham North Boro Const,NA,NA,Nottingham North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147126,Borough,E14000867,Nottingham South Boro Const,NA,NA,Nottingham South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147127,County,E14000868,Nuneaton Co Const,NA,NA,Nuneaton,2010-05-06,dateTime
+http://data.parliament.uk/resources/145694,County,S14000050,Ochil and South Perthshire Co Const,NA,NA,Ochil and South Perthshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/147128,County,W07000074,Ogmore Co Const,NA,NA,Ogmore,2010-05-06,dateTime
+http://data.parliament.uk/resources/147129,Borough,E14000869,Old Bexley and Sidcup Boro Const,NA,NA,Old Bexley and Sidcup,2010-05-06,dateTime
+http://data.parliament.uk/resources/147130,County,E14000870,Oldham East and Saddleworth Co Const,NA,NA,Oldham East and Saddleworth,2010-05-06,dateTime
+http://data.parliament.uk/resources/147131,Borough,E14000871,Oldham West and Royton Boro Const,NA,NA,Oldham West and Royton,2010-05-06,dateTime
+http://data.parliament.uk/resources/145716,County,S14000051,Orkney and Shetland Co Const,NA,NA,Orkney and Shetland,2005-04-05,dateTime
+http://data.parliament.uk/resources/147132,Borough,E14000872,Orpington Boro Const,NA,NA,Orpington,2010-05-06,dateTime
+http://data.parliament.uk/resources/147133,Borough,E14000873,Oxford East Boro Const,NA,NA,Oxford East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147134,County,E14000874,Oxford West and Abingdon Co Const,NA,NA,Oxford West and Abingdon,2010-05-06,dateTime
+http://data.parliament.uk/resources/145745,County,S14000052,Paisley and Renfrewshire North Co Const,NA,NA,Paisley and Renfrewshire North,2005-04-05,dateTime
+http://data.parliament.uk/resources/145746,County,S14000053,Paisley and Renfrewshire South Co Const,NA,NA,Paisley and Renfrewshire South,2005-04-05,dateTime
+http://data.parliament.uk/resources/147135,Borough,E14000875,,NA,NA,Pendle,2010-05-06,dateTime
+http://data.parliament.uk/resources/147136,County,E14000876,Penistone and Stocksbridge Co Const,NA,NA,Penistone and Stocksbridge,2010-05-06,dateTime
+http://data.parliament.uk/resources/147137,County,E14000877,Penrith and The Border Co Const,NA,NA,Penrith and The Border,2010-05-06,dateTime
+http://data.parliament.uk/resources/145776,County,S14000054,Perth and North Perthshire Co Const,NA,NA,Perth and North Perthshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/147138,Borough,E14000878,Peterborough Boro Const,NA,NA,Peterborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/147139,Borough,E14000879,"Plymouth, Moor View Boro Const",NA,NA,"Plymouth, Moor View",2010-05-06,dateTime
+http://data.parliament.uk/resources/147140,Borough,E14000880,"Plymouth, Sutton and Devonport Boro Const",NA,NA,"Plymouth, Sutton and Devonport",2010-05-06,dateTime
+http://data.parliament.uk/resources/147141,County,W07000075,Pontypridd Co Const,NA,NA,Pontypridd,2010-05-06,dateTime
+http://data.parliament.uk/resources/147142,Borough,E14000881,Poole Boro Const,NA,NA,Poole,2010-05-06,dateTime
+http://data.parliament.uk/resources/147143,Borough,E14000882,Poplar and Limehouse Boro Const,NA,NA,Poplar and Limehouse,2010-05-06,dateTime
+http://data.parliament.uk/resources/147144,Borough,E14000883,Portsmouth North Boro Const,NA,NA,Portsmouth North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147145,Borough,E14000884,Portsmouth South Boro Const,NA,NA,Portsmouth South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147146,County,W07000065,Preseli Pembrokeshire Co Const,NA,NA,Preseli Pembrokeshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147147,Borough,E14000885,Preston Boro Const,NA,NA,Preston,2010-05-06,dateTime
+http://data.parliament.uk/resources/147148,Borough,E14000886,Pudsey Boro Const,NA,NA,Pudsey,2010-05-06,dateTime
+http://data.parliament.uk/resources/147149,Borough,E14000887,Putney Boro Const,NA,NA,Putney,2010-05-06,dateTime
+http://data.parliament.uk/resources/147150,County,E14000888,Rayleigh and Wickford Co Const,NA,NA,Rayleigh and Wickford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147151,Borough,E14000889,Reading East Boro Const,NA,NA,Reading East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147152,County,E14000890,Reading West Co Const,NA,NA,Reading West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147153,Borough,E14000891,,NA,NA,Redcar,2010-05-06,dateTime
+http://data.parliament.uk/resources/147154,County,E14000892,Redditch Co Const,NA,NA,Redditch,2010-05-06,dateTime
+http://data.parliament.uk/resources/147155,Borough,E14000893,Reigate Boro Const,NA,NA,Reigate,2010-05-06,dateTime
+http://data.parliament.uk/resources/144454,County,S14000021,East Renfrewshire Co Const,NA,NA,East Renfrewshire,2005-04-05,dateTime
+http://data.parliament.uk/resources/147156,County,W07000052,,NA,NA,Rhondda,2010-05-06,dateTime
+http://data.parliament.uk/resources/147157,County,E14000894,Ribble Valley Co Const,NA,NA,Ribble Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147159,Borough,E14000896,Richmond Park Boro Const,NA,NA,Richmond Park,2010-05-06,dateTime
+http://data.parliament.uk/resources/147158,County,E14000895,Richmond (Yorks) Co Const,NA,NA,Richmond (Yorks),2010-05-06,dateTime
+http://data.parliament.uk/resources/147160,County,E14000897,Rochdale Co Const,NA,NA,Rochdale,2010-05-06,dateTime
+http://data.parliament.uk/resources/147161,County,E14000898,Rochester and Strood Co Const,NA,NA,Rochester and Strood,2010-05-06,dateTime
+http://data.parliament.uk/resources/147162,County,E14000899,Rochford and Southend East Co Const,NA,NA,Rochford and Southend East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147163,Borough,E14000900,Romford Boro Const,NA,NA,Romford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147164,County,E14000901,Romsey and Southampton North Co Const,NA,NA,Romsey and Southampton North,2010-05-06,dateTime
+http://data.parliament.uk/resources/145916,County,S14000055,"Ross, Skye and Lochaber Co Const",NA,NA,"Ross, Skye and Lochaber",2005-04-05,dateTime
+http://data.parliament.uk/resources/147165,Borough,E14000902,Rossendale and Darwen Boro Const,NA,NA,Rossendale and Darwen,2010-05-06,dateTime
+http://data.parliament.uk/resources/147166,County,E14000903,Rother Valley Co Const,NA,NA,Rother Valley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147167,Borough,E14000904,Rotherham Boro Const,NA,NA,Rotherham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147168,County,E14000905,Rugby Co Const,NA,NA,Rugby,2010-05-06,dateTime
+http://data.parliament.uk/resources/147169,Borough,E14000906,"Ruislip, Northwood and Pinner Boro Const",NA,NA,"Ruislip, Northwood and Pinner",2010-05-06,dateTime
+http://data.parliament.uk/resources/147170,County,E14000907,,NA,NA,Runnymede and Weybridge,2010-05-06,dateTime
+http://data.parliament.uk/resources/147171,County,E14000908,Rushcliffe Co Const,NA,NA,Rushcliffe,2010-05-06,dateTime
+http://data.parliament.uk/resources/145961,Borough,S14000056,Rutherglen and Hamilton West Burgh Const,NA,NA,Rutherglen and Hamilton West,2005-04-05,dateTime
+http://data.parliament.uk/resources/147172,County,E14000909,Rutland and Melton Co Const,NA,NA,Rutland and Melton,2010-05-06,dateTime
+http://data.parliament.uk/resources/147173,County,E14000910,Saffron Walden Co Const,NA,NA,Saffron Walden,2010-05-06,dateTime
+http://data.parliament.uk/resources/147174,Borough,E14000911,Salford and Eccles Boro Const,NA,NA,Salford and Eccles,2010-05-06,dateTime
+http://data.parliament.uk/resources/147175,County,E14000912,Salisbury Co Const,NA,NA,Salisbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/147176,County,E14000913,,NA,NA,Scarborough and Whitby,2010-05-06,dateTime
+http://data.parliament.uk/resources/147177,County,E14000914,Scunthorpe Co Const,NA,NA,Scunthorpe,2010-05-06,dateTime
+http://data.parliament.uk/resources/147178,County,E14000915,Sedgefield Co Const,NA,NA,Sedgefield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147179,County,E14000916,Sefton Central Co Const,NA,NA,Sefton Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147180,County,E14000917,Selby and Ainsty Co Const,NA,NA,Selby and Ainsty,2010-05-06,dateTime
+http://data.parliament.uk/resources/147181,County,E14000918,Sevenoaks Co Const,NA,NA,Sevenoaks,2010-05-06,dateTime
+http://data.parliament.uk/resources/147182,Borough,E14000919,Sheffield Central Boro Const,NA,NA,Sheffield Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147183,Borough,E14000920,Sheffield South East Boro Const,NA,NA,Sheffield South East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147184,Borough,E14000921,"Sheffield, Brightside and Hillsborough Boro Const",NA,NA,"Sheffield, Brightside and Hillsborough",2010-05-06,dateTime
+http://data.parliament.uk/resources/147185,County,E14000922,"Sheffield, Hallam Co Const",NA,NA,"Sheffield, Hallam",2010-05-06,dateTime
+http://data.parliament.uk/resources/147186,Borough,E14000923,"Sheffield, Heeley Boro Const",NA,NA,"Sheffield, Heeley",2010-05-06,dateTime
+http://data.parliament.uk/resources/147187,County,E14000924,Sherwood Co Const,NA,NA,Sherwood,2010-05-06,dateTime
+http://data.parliament.uk/resources/147188,County,E14000925,Shipley Co Const,NA,NA,Shipley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147189,County,E14000926,,NA,NA,Shrewsbury and Atcham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147108,County,E14000849,,NA,NA,North Shropshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147190,County,E14000927,Sittingbourne and Sheppey Co Const,NA,NA,Sittingbourne and Sheppey,2010-05-06,dateTime
+http://data.parliament.uk/resources/147191,County,E14000928,Skipton and Ripon Co Const,NA,NA,Skipton and Ripon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147192,County,E14000929,Sleaford and North Hykeham Co Const,NA,NA,Sleaford and North Hykeham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147193,Borough,E14000930,Slough Boro Const,NA,NA,Slough,2010-05-06,dateTime
+http://data.parliament.uk/resources/147194,Borough,E14000931,Solihull Boro Const,NA,NA,Solihull,2010-05-06,dateTime
+http://data.parliament.uk/resources/147109,County,E14000850,North Somerset Co Const,NA,NA,North Somerset,2010-05-06,dateTime
+http://data.parliament.uk/resources/147105,County,E14000846,North East Somerset Co Const,NA,NA,North East Somerset,2010-05-06,dateTime
+http://data.parliament.uk/resources/147195,County,E14000932,Somerton and Frome Co Const,NA,NA,Somerton and Frome,2010-05-06,dateTime
+http://data.parliament.uk/resources/147201,County,N06000015,,NA,NA,South Down,2010-05-06,dateTime
+http://data.parliament.uk/resources/147204,County,E14000939,South Holland and The Deepings Co Const,NA,NA,South Holland and The Deepings,2010-05-06,dateTime
+http://data.parliament.uk/resources/147208,County,E14000943,South Ribble Co Const,NA,NA,South Ribble,2010-05-06,dateTime
+http://data.parliament.uk/resources/147209,Borough,E14000944,South Shields Boro Const,NA,NA,South Shields,2010-05-06,dateTime
+http://data.parliament.uk/resources/147220,Borough,E14000955,"Southampton, Itchen Boro Const",NA,NA,"Southampton, Itchen",2010-05-06,dateTime
+http://data.parliament.uk/resources/147221,Borough,E14000956,"Southampton, Test Boro Const",NA,NA,"Southampton, Test",2010-05-06,dateTime
+http://data.parliament.uk/resources/147222,Borough,E14000957,Southend West Boro Const,NA,NA,Southend West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147223,Borough,E14000958,,NA,NA,Southport,2010-05-06,dateTime
+http://data.parliament.uk/resources/147224,Borough,E14000959,,NA,NA,Spelthorne,2010-05-06,dateTime
+http://data.parliament.uk/resources/147225,County,E14000960,St. Albans Co Const,NA,NA,St Albans,2010-05-06,dateTime
+http://data.parliament.uk/resources/147226,County,E14000961,St. Austell and Newquay Co Const,NA,NA,St Austell and Newquay,2010-05-06,dateTime
+http://data.parliament.uk/resources/147227,Borough,E14000962,St. Helens North Boro Const,NA,NA,St Helens North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147228,Borough,E14000963,St. Helens South and Whiston Boro Const,NA,NA,St Helens South and Whiston,2010-05-06,dateTime
+http://data.parliament.uk/resources/147229,County,E14000964,St. Ives Co Const,NA,NA,St Ives,2010-05-06,dateTime
+http://data.parliament.uk/resources/147230,County,E14000965,Stafford Co Const,NA,NA,Stafford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147231,County,E14000966,Staffordshire Moorlands Co Const,NA,NA,Staffordshire Moorlands,2010-05-06,dateTime
+http://data.parliament.uk/resources/147210,County,E14000945,South Staffordshire Co Const,NA,NA,South Staffordshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147232,County,E14000967,Stalybridge and Hyde Co Const,NA,NA,Stalybridge and Hyde,2010-05-06,dateTime
+http://data.parliament.uk/resources/147233,County,E14000968,Stevenage Co Const,NA,NA,Stevenage,2010-05-06,dateTime
+http://data.parliament.uk/resources/146244,County,S14000057,Stirling Co Const,NA,NA,Stirling,2005-04-05,dateTime
+http://data.parliament.uk/resources/147234,Borough,E14000969,Stockport Boro Const,NA,NA,Stockport,2010-05-06,dateTime
+http://data.parliament.uk/resources/147235,Borough,E14000970,Stockton North Boro Const,NA,NA,Stockton North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147236,Borough,E14000971,Stockton South Boro Const,NA,NA,Stockton South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147237,Borough,E14000972,Stoke-on-Trent Central Boro Const,NA,NA,Stoke-on-Trent Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147238,Borough,E14000973,Stoke-on-Trent North Boro Const,NA,NA,Stoke-on-Trent North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147239,Borough,E14000974,Stoke-on-Trent South Boro Const,NA,NA,Stoke-on-Trent South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147240,County,E14000975,Stone Co Const,NA,NA,Stone,2010-05-06,dateTime
+http://data.parliament.uk/resources/147241,Borough,E14000976,Stourbridge Boro Const,NA,NA,Stourbridge,2010-05-06,dateTime
+http://data.parliament.uk/resources/147242,County,N06000016,,NA,NA,Strangford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147243,County,E14000977,Stratford-on-Avon Co Const,NA,NA,Stratford-on-Avon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147244,Borough,E14000978,Streatham Boro Const,NA,NA,Streatham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147245,Borough,E14000979,Stretford and Urmston Boro Const,NA,NA,Stretford and Urmston,2010-05-06,dateTime
+http://data.parliament.uk/resources/147246,County,E14000980,Stroud Co Const,NA,NA,Stroud,2010-05-06,dateTime
+http://data.parliament.uk/resources/146859,County,E14000624,Central Suffolk and North Ipswich Co Const,NA,NA,Central Suffolk and North Ipswich,2010-05-06,dateTime
+http://data.parliament.uk/resources/147247,County,E14000981,Suffolk Coastal Co Const,NA,NA,Suffolk Coastal,2010-05-06,dateTime
+http://data.parliament.uk/resources/147211,County,E14000946,South Suffolk Co Const,NA,NA,South Suffolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147306,County,E14001034,West Suffolk Co Const,NA,NA,West Suffolk,2010-05-06,dateTime
+http://data.parliament.uk/resources/147248,Borough,E14000982,Sunderland Central Boro Const,NA,NA,Sunderland Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/146924,County,E14000681,,NA,NA,East Surrey,2010-05-06,dateTime
+http://data.parliament.uk/resources/147249,County,E14000983,,NA,NA,Surrey Heath,2010-05-06,dateTime
+http://data.parliament.uk/resources/147218,County,E14000953,South West Surrey Co Const,NA,NA,South West Surrey,2010-05-06,dateTime
+http://data.parliament.uk/resources/147067,County,E14000817,Mid Sussex Co Const,NA,NA,Mid Sussex,2010-05-06,dateTime
+http://data.parliament.uk/resources/147251,Borough,E14000985,Sutton Coldfield Boro Const,NA,NA,Sutton Coldfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147250,Borough,E14000984,Sutton and Cheam Boro Const,NA,NA,Sutton and Cheam,2010-05-06,dateTime
+http://data.parliament.uk/resources/147252,Borough,W07000048,,NA,NA,Swansea East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147253,Borough,W07000047,,NA,NA,Swansea West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147110,County,E14000851,North Swindon Co Const,NA,NA,North Swindon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147212,County,E14000947,South Swindon Co Const,NA,NA,South Swindon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147254,County,E14000986,Tamworth Co Const,NA,NA,Tamworth,2010-05-06,dateTime
+http://data.parliament.uk/resources/147255,County,E14000987,,NA,NA,Tatton,2010-05-06,dateTime
+http://data.parliament.uk/resources/147256,County,E14000988,Taunton Deane Co Const,NA,NA,Taunton Deane,2010-05-06,dateTime
+http://data.parliament.uk/resources/147257,Borough,E14000989,Telford Boro Const,NA,NA,Telford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147258,County,E14000990,Tewkesbury Co Const,NA,NA,Tewkesbury,2010-05-06,dateTime
+http://data.parliament.uk/resources/147111,County,E14000852,North Thanet Co Const,NA,NA,North Thanet,2010-05-06,dateTime
+http://data.parliament.uk/resources/147213,County,E14000948,South Thanet Co Const,NA,NA,South Thanet,2010-05-06,dateTime
+http://data.parliament.uk/resources/147261,County,E14000993,Thirsk and Malton Co Const,NA,NA,Thirsk and Malton,2010-05-06,dateTime
+http://data.parliament.uk/resources/147262,County,E14000994,Thornbury and Yate Co Const,NA,NA,Thornbury and Yate,2010-05-06,dateTime
+http://data.parliament.uk/resources/147263,Borough,E14000995,Thurrock Boro Const,NA,NA,Thurrock,2010-05-06,dateTime
+http://data.parliament.uk/resources/147264,County,E14000996,Tiverton and Honiton Co Const,NA,NA,Tiverton and Honiton,2010-05-06,dateTime
+http://data.parliament.uk/resources/147265,County,E14000997,,NA,NA,Tonbridge and Malling,2010-05-06,dateTime
+http://data.parliament.uk/resources/147266,Borough,E14000998,Tooting Boro Const,NA,NA,Tooting,2010-05-06,dateTime
+http://data.parliament.uk/resources/147267,Borough,E14000999,Torbay Boro Const,NA,NA,Torbay,2010-05-06,dateTime
+http://data.parliament.uk/resources/147268,County,W07000053,,NA,NA,Torfaen,2010-05-06,dateTime
+http://data.parliament.uk/resources/147270,County,E14001001,Totnes Co Const,NA,NA,Totnes,2010-05-06,dateTime
+http://data.parliament.uk/resources/147271,Borough,E14001002,,NA,NA,Tottenham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147272,County,E14001003,Truro and Falmouth Co Const,NA,NA,Truro and Falmouth,2010-05-06,dateTime
+http://data.parliament.uk/resources/147273,County,E14001004,Tunbridge Wells Co Const,NA,NA,Tunbridge Wells,2010-05-06,dateTime
+http://data.parliament.uk/resources/147274,Borough,E14001005,,NA,NA,Twickenham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147275,Borough,E14001006,Tynemouth Boro Const,NA,NA,Tynemouth,2010-05-06,dateTime
+http://data.parliament.uk/resources/147112,Borough,E14000853,North Tyneside Boro Const,NA,NA,North Tyneside,2010-05-06,dateTime
+http://data.parliament.uk/resources/147276,County,N06000017,,NA,NA,Upper Bann,2010-05-06,dateTime
+http://data.parliament.uk/resources/147277,Borough,E14001007,Uxbridge and South Ruislip Boro Const,NA,NA,Uxbridge and South Ruislip,2010-05-06,dateTime
+http://data.parliament.uk/resources/147278,County,W07000060,Vale of Clwyd Co Const,NA,NA,Vale of Clwyd,2010-05-06,dateTime
+http://data.parliament.uk/resources/147279,County,W07000078,Vale of Glamorgan Co Const,NA,NA,Vale of Glamorgan,2010-05-06,dateTime
+http://data.parliament.uk/resources/147280,Borough,E14001008,Vauxhall Boro Const,NA,NA,Vauxhall,2010-05-06,dateTime
+http://data.parliament.uk/resources/147281,County,E14001009,Wakefield Co Const,NA,NA,Wakefield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147282,Borough,E14001010,Wallasey Boro Const,NA,NA,Wallasey,2010-05-06,dateTime
+http://data.parliament.uk/resources/147283,Borough,E14001011,Walsall North Boro Const,NA,NA,Walsall North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147284,Borough,E14001012,Walsall South Boro Const,NA,NA,Walsall South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147285,Borough,E14001013,,NA,NA,Walthamstow,2010-05-06,dateTime
+http://data.parliament.uk/resources/147286,County,E14001014,,NA,NA,Wansbeck,2010-05-06,dateTime
+http://data.parliament.uk/resources/147287,County,E14001015,Wantage Co Const,NA,NA,Wantage,2010-05-06,dateTime
+http://data.parliament.uk/resources/147288,Borough,E14001016,Warley Boro Const,NA,NA,Warley,2010-05-06,dateTime
+http://data.parliament.uk/resources/147289,Borough,E14001017,Warrington North Boro Const,NA,NA,Warrington North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147290,Borough,E14001018,Warrington South Boro Const,NA,NA,Warrington South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147291,Borough,E14001019,Warwick and Leamington Boro Const,NA,NA,Warwick and Leamington,2010-05-06,dateTime
+http://data.parliament.uk/resources/147113,County,E14000854,North Warwickshire Co Const,NA,NA,North Warwickshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147292,Borough,E14001020,Washington and Sunderland West Boro Const,NA,NA,Washington and Sunderland West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147293,Borough,E14001021,Watford Boro Const,NA,NA,Watford,2010-05-06,dateTime
+http://data.parliament.uk/resources/147294,County,E14001022,Waveney Co Const,NA,NA,Waveney,2010-05-06,dateTime
+http://data.parliament.uk/resources/147295,County,E14001023,Wealden Co Const,NA,NA,Wealden,2010-05-06,dateTime
+http://data.parliament.uk/resources/147296,County,E14001024,Weaver Vale Co Const,NA,NA,Weaver Vale,2010-05-06,dateTime
+http://data.parliament.uk/resources/147297,County,E14001025,Wellingborough Co Const,NA,NA,Wellingborough,2010-05-06,dateTime
+http://data.parliament.uk/resources/147298,County,E14001026,,NA,NA,Wells,2010-05-06,dateTime
+http://data.parliament.uk/resources/147299,County,E14001027,,NA,NA,Welwyn Hatfield,2010-05-06,dateTime
+http://data.parliament.uk/resources/147300,County,E14001028,Wentworth and Dearne Co Const,NA,NA,Wentworth and Dearne,2010-05-06,dateTime
+http://data.parliament.uk/resources/147301,Borough,E14001029,West Bromwich East Boro Const,NA,NA,West Bromwich East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147302,Borough,E14001030,West Bromwich West Boro Const,NA,NA,West Bromwich West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147304,Borough,E14001032,West Ham Boro Const,NA,NA,West Ham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147307,County,N06000018,,NA,NA,West Tyrone,2010-05-06,dateTime
+http://data.parliament.uk/resources/147309,Borough,E14001036,Westminster North Boro Const,NA,NA,Westminster North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147310,County,E14001037,Westmorland and Lonsdale Co Const,NA,NA,Westmorland and Lonsdale,2010-05-06,dateTime
+http://data.parliament.uk/resources/147311,County,E14001038,Weston-Super-Mare Co Const,NA,NA,Weston-super-Mare,2010-05-06,dateTime
+http://data.parliament.uk/resources/147312,County,E14001039,Wigan Co Const,NA,NA,Wigan,2010-05-06,dateTime
+http://data.parliament.uk/resources/147119,County,E14000860,North Wiltshire Co Const,NA,NA,North Wiltshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147219,County,E14000954,South West Wiltshire Co Const,NA,NA,South West Wiltshire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147313,Borough,E14001040,Wimbledon Boro Const,NA,NA,Wimbledon,2010-05-06,dateTime
+http://data.parliament.uk/resources/147314,County,E14001041,Winchester Co Const,NA,NA,Winchester,2010-05-06,dateTime
+http://data.parliament.uk/resources/147315,County,E14001042,Windsor Co Const,NA,NA,Windsor,2010-05-06,dateTime
+http://data.parliament.uk/resources/147316,County,E14001043,Wirral South Co Const,NA,NA,Wirral South,2010-05-06,dateTime
+http://data.parliament.uk/resources/147317,County,E14001044,Wirral West Co Const,NA,NA,Wirral West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147318,County,E14001045,Witham Co Const,NA,NA,Witham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147319,County,E14001046,Witney Co Const,NA,NA,Witney,2010-05-06,dateTime
+http://data.parliament.uk/resources/147320,County,E14001047,,NA,NA,Woking,2010-05-06,dateTime
+http://data.parliament.uk/resources/147321,County,E14001048,Wokingham Co Const,NA,NA,Wokingham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147322,Borough,E14001049,Wolverhampton North East Boro Const,NA,NA,Wolverhampton North East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147323,Borough,E14001050,Wolverhampton South East Boro Const,NA,NA,Wolverhampton South East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147324,Borough,E14001051,Wolverhampton South West Boro Const,NA,NA,Wolverhampton South West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147325,Borough,E14001052,,NA,NA,Worcester,2010-05-06,dateTime
+http://data.parliament.uk/resources/147069,County,E14000818,Mid Worcestershire Co Const,NA,NA,Mid Worcestershire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147308,County,E14001035,West Worcestershire Co Const,NA,NA,West Worcestershire,2010-05-06,dateTime
+http://data.parliament.uk/resources/147326,County,E14001053,Workington Co Const,NA,NA,Workington,2010-05-06,dateTime
+http://data.parliament.uk/resources/147327,County,E14001054,Worsley and Eccles South Co Const,NA,NA,Worsley and Eccles South,2010-05-06,dateTime
+http://data.parliament.uk/resources/146925,County,E14000682,East Worthing and Shoreham Co Const,NA,NA,East Worthing and Shoreham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147328,Borough,E14001055,Worthing West Boro Const,NA,NA,Worthing West,2010-05-06,dateTime
+http://data.parliament.uk/resources/147260,County,E14000992,The Wrekin Co Const,NA,NA,The Wrekin,2010-05-06,dateTime
+http://data.parliament.uk/resources/147329,County,W07000044,,NA,NA,Wrexham,2010-05-06,dateTime
+http://data.parliament.uk/resources/147330,County,E14001056,Wycombe Co Const,NA,NA,Wycombe,2010-05-06,dateTime
+http://data.parliament.uk/resources/147332,County,E14001058,Wyre Forest Co Const,NA,NA,Wyre Forest,2010-05-06,dateTime
+http://data.parliament.uk/resources/147331,County,E14001057,Wyre and Preston North Co Const,NA,NA,Wyre and Preston North,2010-05-06,dateTime
+http://data.parliament.uk/resources/147333,Borough,E14001059,,NA,NA,Wythenshawe and Sale East,2010-05-06,dateTime
+http://data.parliament.uk/resources/147334,County,E14001060,Yeovil Co Const,NA,NA,Yeovil,2010-05-06,dateTime
+http://data.parliament.uk/resources/147335,County,W07000041,,NA,NA,Ynys Môn,2010-05-06,dateTime
+http://data.parliament.uk/resources/147336,Borough,E14001061,York Central Boro Const,NA,NA,York Central,2010-05-06,dateTime
+http://data.parliament.uk/resources/147337,County,E14001062,York Outer Co Const,NA,NA,York Outer,2010-05-06,dateTime
+http://data.parliament.uk/resources/146926,County,E14000683,East Yorkshire Co Const,NA,NA,East Yorkshire,2010-05-06,dateTime

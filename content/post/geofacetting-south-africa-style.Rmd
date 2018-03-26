@@ -38,7 +38,9 @@ There is also a portal Nesstar where it is possible to download lots of census a
 ## 2016 Household survey
 
 The 12MB takes a few seconds to read in but results in a data.frame with 274 columns so there
-are quite a lot of variables available to plot. 
+are quite a lot of variables available to plot.
+
+### Roofing
 
 Lets summarize by province the variable, Q52Roof, which indicates for each
 household the construction material for the roof
@@ -127,4 +129,119 @@ roofs %>%
 
 ```
   
-  So Corrugated Iron/Zinc rules - associated with shacks - rules other than in Cape Town
+  So Corrugated Iron/Zinc rules - associated with shacks - rules other than in the Western Cape province where asbestos and tile account for similar proportions
+  
+  ### Language
+  
+  South Africa has 11 official languages - with probably English the most used in official
+  business and as a second language
+  
+  The data provides the language in which the main part of the interview conducted(Q101Lan) so should give some indication of language dispersion
+  
+  We can follow a similar procedure to that above
+  
+```{r}
+
+
+languageTypes<- tibble(code=c(1:11,99),description =c(
+  "Afrikaans",
+  "English",
+  "Isindebele/South Ndebele/North Ndebele",
+  "IsiXhosa/Xhosa",
+  "IsiZulu/Zulu",
+  "Sepedi/Northern Sotho",
+  "Sesotho/Southern Sotho/Sotho",
+  "Setswana/Tswana",
+  "Siswati/Swazi",
+  "Tshivenda/Venda",
+  "Xitsonga/Tsonga",
+  "Unspecified")
+)
+#data code
+languages <- df %>% 
+  group_by(Prov,Q101Lan) %>% 
+  tally() %>% 
+  left_join(provinces,by=c("Prov"="prov_id")) %>% 
+  left_join(languageTypes,by=c("Q101Lan"="code")) %>% 
+  select(province,description,n) %>% 
+  #ungroup() %>% 
+  group_by(province) %>% 
+  mutate(pc=round(100*n/sum(n),1)) %>% 
+  #ungroup() %>% 
+         mutate(description = ifelse(pc > 3, description, "Other")) %>% 
+  group_by(description,province) %>% 
+  summarise(pc = sum(pc))
+
+#chart code
+
+languages %>% 
+  ggplot(aes(description,pc,fill=description)) +
+  geom_col() +
+  facet_geo(~ province, grid = "sa_prov_grid1") +
+  scale_fill_brewer(palette="Paired") +
+  labs(title = "South Africa % First Language by province",
+    caption = "Data Source: SA 2016 Household Survey",
+    y = "%",
+    x="") +
+   theme_bw() +
+   theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+
+```
+  
+  This method of mapping highlights both the extereme variation across the provinces and
+  how different languages can be very dominant by region
+  
+  
+```{r dominant_language}
+
+langOrder <- languages %>% 
+  arrange(desc(pc)) %>% 
+  group_by(province) %>% 
+  slice(1) %>% 
+  arrange(desc(pc)) %>% 
+  pull(description) %>% 
+  as_factor()
+
+
+languages %>% 
+  arrange(desc(pc)) %>% 
+  group_by(province) %>% 
+  slice(1) %>% 
+  arrange(desc(pc)) %>% 
+  plot_ly(x=~pc,y=~fct_reorder(province, pc)) %>% 
+  add_markers(color=~description, marker = list(size = 15)) %>% 
+  add_lines(x=~pc,y=~fct_reorder(province, pc,color=I("red"))) %>% 
+  layout(
+    title = "Dominant Language by Province",
+    xaxis = list(title = "Percentage"),
+    yaxis = list(title = ""),
+    margin = list(l = 100)
+  )
+
+
+
+languages %>% 
+  arrange(desc(pc)) %>% 
+  group_by(province) %>% 
+  slice(1) %>% 
+  arrange(desc(pc)) %>% 
+  plot_ly(color = I("gray80")) %>%
+  add_segments(x = ~0, xend = ~pc, y = ~fct_reorder(province, pc), yend = ~fct_reorder(province, pc), showlegend = FALSE) %>%
+  add_markers(x=~pc,y=~fct_reorder(province, pc),color=~description,marker = list(size = 15))  %>% 
+  layout(
+    title = "Dominant Language by Province",
+    xaxis = list(title = "Percentage"),
+    yaxis = list(title = ""),
+    margin = list(l = 100, pad =5) %>% config(displayModeBar = F, showLink = F)
+  )
+  
+ # p <- plot_ly(s, color = I("gray80")) %>%
+ #  add_segments(x = ~Women, xend = ~Men, y = ~School, yend = ~School, showlegend = FALSE) %>%
+ #  add_markers(x = ~Women, y = ~School, name = "Women", color = I("pink"))
+```
+  
+  
