@@ -1,0 +1,130 @@
+---
+title: geofacetting South Africa style
+author: Andrew Clark
+date: '2018-03-27'
+slug: geofacetting-south-africa-style
+categories:
+  - opendata
+tags:
+  - geofacet
+banner: ''
+description: ''
+heimages: []
+menu: ''
+---
+
+
+Not sure if I have blogged about Ryan hafens has recently started what is promised to be a series of blog posts about his geofacet package. In the first post, he argues the case for why this approach is superior to other forms of choropleth. I have previously...
+
+It is possible to create one's own map to apply yo geofacetting and luckily one has already been created for the nine provinces of South Africa - where I am currently visiting
+
+There is also a portal Nesstar where it is possible to download lots of census and household survey data in many tpes of format including csvs
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+```{r setup}
+library(tidyverse)
+
+
+library(geofacet)
+
+
+```
+
+There is also a portal Nesstar where it is possible to download lots of census and household survey data in many tpes of format including csvs/ Along with a pdf describing the data
+
+## 2016 Household survey
+
+The 12MB takes a few seconds to read in but results in a data.frame with 274 columns so there
+are quite a lot of variables available to plot. 
+
+Lets summarize by province the variable, Q52Roof, which indicates for each
+household the construction material for the roof
+
+
+```{r}
+
+df <- read_csv("data/GHS-2016-HOUSE_F1.csv")
+
+df %>% 
+  group_by(Prov,Q52Roof) %>% 
+  tally()
+
+
+```
+
+Well that looks okay but there are a few points to address
+
+  * The Provinces need to be named
+  * The Type of Roof needs to be described
+  * The Numbers need to be a percentage - Combining the small values will make chart neater
+  
+```{r roof_processing}
+
+# I have already created a lookup table for provinces
+
+provinces <- read_csv("data/sa_provinces.csv")
+
+# The above-mentioned pdf provides the description for each of the Roof codes
+
+roofTypes <- tibble(code=c(1:13,99),description =c(
+  "Bricks",
+  "Cement",
+  "Corrugated",
+  "Wood",
+  "Plastic",
+  "Cardboard",
+  "Mud/Cement",
+  "Wattle",
+  "Tile",
+  "Mud",
+  "Thatch",
+  "Asbestos",
+  "Other",
+  "Unspecified")
+)
+
+## Lets do some data-carpentry
+
+roofs <- df %>% 
+  group_by(Prov,Q52Roof) %>% 
+  tally() %>% 
+  left_join(provinces,by=c("Prov"="prov_id")) %>% 
+  left_join(roofTypes,by=c("Q52Roof"="code")) %>% 
+  select(province,description,n) %>% 
+  #ungroup() %>% 
+  group_by(province) %>% 
+  mutate(pc=round(100*n/sum(n),1)) %>% 
+  #ungroup() %>% 
+         mutate(description = ifelse(pc > 3, description, "Other")) %>% 
+  group_by(description,province) %>% 
+  summarise(pc = sum(pc))
+
+roofs
+
+```
+  
+  
+  We now have data we can plot using ggplot and geofacet
+  
+```{r roofs_plot}
+
+roofs %>% 
+  ggplot(aes(description,pc,fill=description)) +
+  geom_col() +
+  facet_geo(~ province, grid = "sa_prov_grid1") +
+  labs(title = "South Africa % Roof Types by province",
+    caption = "Data Source: SA 2016 Household Survey",
+    y = "%",
+    x="") +
+   theme_bw() +
+   theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) 
+
+
+```
+  
+  So Corrugated Iron/Zinc rules - associated with shacks - rules other than in Cape Town
