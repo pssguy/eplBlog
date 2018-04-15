@@ -1,0 +1,293 @@
+---
+title: Visualizing Networks
+author: Andrew Clark
+date: '2018-04-16'
+slug: visualizing-networks
+categories:
+  - community
+  - soccer
+  - packages
+tags:
+  - igraph
+  - visNetwork
+banner: ''
+description: ''
+images: []
+menu: ''
+---
+
+Armed with a free month of [Data Camp](https://www.datacamp.com/courses/tech:r), I have been taking a look at one or two areas I am pretty uninformed about, including [Social Networks](https://www.datacamp.com/courses/network-analysis-in-r)
+
+The course is run by fellow ex-pat and soccer/football enthusiast, [James Curley](https://twitter.com/jalapic). He is the author of the slightly- understated [engsoccerdata](https://github.com/jalapic/engsoccerdata) package
+
+His course is concentrated around the [igraph](http://igraph.org/r/) package but touches on others including [visNetwork](http://datastorm-open.github.io/visNetwork/) for which I found this [blog post](https://www.jessesadler.com/post/network-analysis-with-r/) by [Jesse Sandler](https://twitter.com/vivalosburros), particularly useful
+
+## Setup
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+```
+
+I will first load the packages and data, kindly provided by pssguy(aka me) of Premier League player appearances over the past 26 seasons
+
+```{r setup}
+
+library(tidyverse)
+
+library(visNetwork)
+library(igraph)
+
+
+playerGame<- readRDS("data/soccer/playerGame.rds")
+standings<- readRDS("data/soccer/standings.rds")
+```
+
+Networks are composed of nodes(or vertices) and edges(or links) comprising of entities and their relationship and can be directed or undirected. The example used in the aforementioned blog post uses a dataset of 16th Century correspondence between cities.In this case, the 'from' and 'to' have meaning so is, by definition, a directed network
+
+My analysis just looks at which players have **started** Premier League games together, so is undirected. There is no deep investigation of the data: it is just a first go at trying out the packages.
+
+The original intent was to concentrate on Manchester United players to see if I could visually identify the 3 great sides built under Sir Alex Ferguson but an overlap in players made that unappealing. In the end, I chose the team I support, Crystal Palace
+
+## visNetwork
+
+As it's name implies, this package concentrates on visualization and is built around the requirement for two data frames. One is for the nodes - in this case all the players - which must contain at a mimimum an 'id' column. The other is for the edges (player starting combinations), which needs a 'from' and 'to' column, relating to the ids.
+
+However, additional attributes may be added to both datsets to be utilized in the visualization such as how many games a player started and how often with any other starter. At the time of publication, the data covers all Premier League games Crystal Palace played from August 1992 to early April 2018 - but will update as time progresses - at least whilst the team maintains its current status in the top English division!
+
+### Data processing
+
+I have a dataset, playerGame, which lists all players appearances with an id for each match, TEAMMATCHID _ Apologies for incosistent naming. I was innocent back in the early 1990's_
+
+```{r munging_raw_data}
+
+## make a team variable and enter a value
+team <- "Crystal P"
+
+games <- playerGame %>% 
+  filter(TEAMNAME == team) %>% 
+  pull(TEAMMATCHID) %>% 
+  unique()
+
+players <-playerGame %>% 
+     filter(TEAMNAME==team,START>0) %>% 
+     group_by(name) %>% 
+     tally()
+
+```
+
+The team has played `r length(games)` games with `r nrow(players)` players having started at least one game. The latter figure can form the basis of the nodes table, but we need to ascertain who has played with each other for the edges data.frame
+
+As is often the case, a question on [Stackoverflow](https://stackoverflow.com/questions/49779908/how-can-i-create-a-data-frame-in-r-of-how-many-times-players-start-together-in-g) helped with the coding
+The process takeas a few seconds to generate a dataframe of 1600+ rows of player-combinations
+
+```{r munging_events}
+
+# function  and mappingto extract all 11 starters from each game
+starters <- function(game) { 
+  playerGame %>% 
+     filter(game==TEAMMATCHID,START>0) %>% 
+     pull(name)
+}
+
+data <- map(games,starters)
+
+# Find combinations, sorted to ensure the earlier alphabets are in the first column
+df <- do.call(rbind, lapply(data, function(x) { data.frame(t(combn(sort(x), 2)))  })) 
+
+# Calculate the number of instances where 2 players appear with each other
+df <-df %>% group_by(X1, X2) %>% summarise(count = n()) 
+
+
+
+```
+
+To tie in with the standard nomenclature, I will rename the data.frames to nodes and edges adding an id column to the former and creating to and from  columns linking to the id in nodes in the latter. I will also add some columns which can be used for labelling etc. on the diagram
+
+Switch between the output tabs to get an idea of the data resulting
+
+```{r munging_cooked_data}
+
+nodes <- players %>% 
+        rowid_to_column("id") %>% 
+        mutate(title = paste0(name, " started ",n," games")) %>% 
+        mutate(title=ifelse(n>1,paste0(name, " started ",n," games"), paste0(name, " started ",n," game"))) %>% 
+        rename(value = n, label = name) 
+
+edges <- df %>% 
+     left_join(nodes,by = c("X1" = "label")) %>% 
+      rename(from = id) %>% 
+     left_join(nodes, by = c("X2" = "label")) %>% 
+       rename( to = id) %>% 
+     select(from, to, weight =  count) %>% 
+        ungroup() %>% 
+    select(-X1)
+
+head(nodes)
+head(edges)
+
+
+```
+
+In the nodes data.frame, in addition to the requisite id field, I have the players name, total number of starts(value) and a tool-tip
+
+In the edges df, the weight represents the number of times players identified by 'from' and 'to' have started together. This could be used to weight the size of edges, although I have not actually done this in the plot 
+
+### Visualization
+
+We are now - with a couple more adjustments - in the position to produce a final, interactive chart
+
+Using the visIgraphLayout() function speeds up rendering and is pretty well obligatory once you reach the number of nodes and edges used here
+
+```{r visNetwork_chart}
+
+title = paste0("All ",team," Starters")
+
+
+
+visNetwork(nodes, edges, main = title) %>% # automatically adds weight from edges
+  visIgraphLayout(layout = "layout_with_fr") %>% #usingvisIgraph speeds up
+  visEdges(color="lightgrey") %>% 
+  visNodes(color=list(highlight = "yellow")) %>% 
+  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
+
+```
+
+Voila!! (I hope)
+
+The chart is probably best viewed in a browser. The plot can be panned and zoomed in and out with the keyboard. The node size reflects the number of games an individual has played with exact data provide by hovering over any point
+
+A specific player can either be selected from the names in drop down box or by clicking on a particular node. In either event, players he has never appeared with are greyed out
+
+---
+
+### Observations
+
+From the visualization, a couple of things may be noted. The nodes form 3, or maybe 4, distinct groups or 'communities'; and there are a couple of individuals that enable all nodes to form a single chain    
+
+ Crystal Palace have actually been in the Premier League on five distinct occasions. For single years 1992/3, 1994/5, 1997/8, 2004/5; and ever since 2013/4. There is a lot of overlap in player representation in the first two campaigns, several between the second and third but only one each in the latter two links. Dougie Freedman appeared in both 1997/8 (just 2 starts) and 2004/5 whilst Julian Speroni is the 2004/5(6 starts) to 2013/4 join - and in fact is still on the squad
+ 
+ Clearly this could easily be adapted to a shiny app covering all teams that have appeared
+ There are many options for further customization provided in the package
+ 
+ ---
+ 
+## igraph
+ 
+ The, more long-standing, igraph package is based on base graphics so is not interactive. However, it does have some functions that can add knowledge so I will have a brief look at what that can provide as well
+ 
+ Rather than dataframes, igraph uses adjacency matrices as a basis for analysis/plotting so the data we have used so far needs some transformation
+ 
+ I will tend to use default options. Adding attributes and display options are described in the DataCamp tutorial and documentation
+ 
+```{r igraph_munging}
+
+crp.mat <-as.matrix(edges[,1:2])
+
+# Convert  matrix to an igraph object
+g <- graph.edgelist(crp.mat, directed = FALSE)
+
+plot(g)
+
+```
+ 
+The default plot has a familiar - albeit less attractive - look
+
+One function that igraph can perform is community detection. Here are a couple of methods
+
+Firstly the fast-greedy method, which is particularly good for large networks
+
+```{r communities}
+
+# Perform fast-greedy community detection on network graph
+kc = fastgreedy.community(g) #list of 2 merges and modularity
+
+
+# Determine sizes of each community
+sizes(kc) #4 with split 29/28/23/59
+
+
+# Plot the community structure of the network 
+plot(kc, g) # autonatically colors groups
+
+
+```
+
+Sweet. It detects four groups but indicates from coloring the overlap between the first two seasons. Note that Freedman (40) and Speroni(79) stand out, appearing in the grouping where they have played most games and have most edges
+
+An alternative approach available in igraph is the edge.betweeness model
+
+```{r edge.betweeness}
+
+gc =  edge.betweenness.community(g)
+
+# Determine sizes of each community
+sizes(gc) # again 4 groups 59/23/25/33
+
+# Plot 
+plot(gc, g)
+
+```
+
+A very similar result. It is always comforting if two distinct methods arrive at the same outcome
+
+### More igraph analysis
+
+A couple of questions that might be asked 
+
+ 
+ * What is the longest number of chains and who is on it
+ * How closely is any specific player linked to others
+ 
+ The former - or at least an example thereof - can be obtained using the get_diameter() function
+ 
+```{r}
+ids <- get_diameter(g)  #
+
+nodes$label[ids]
+
+
+```
+ 
+ So, currently (remember this may change over time as the data updates) there is a 7 player chain between Palace's most recent debutant, Aaron Wan-Bissaka, and a young Grant Watts, who started a couple of games back in 1992/93 but spent most of his career in non-League football
+ 
+ Obviously, from our past knowledge, Speroni and Freedamn appear in this list.    
+ Let's finally look at how far distant Freedman is from any other player
+ 
+```{r ego_graph}
+
+
+# Make an ego graph. diameter(g) is #
+g_freedman <- make_ego_graph(g, diameter(g), nodes = 40, mode = c("all"))[[1]] #List of 10
+
+# Get a vector of geodesic distances of all vertices from vertex 40
+dists <- distances(g_freedman, 40)
+
+# Create a color palette of length equal to the maximal geodesic distance plus one. Though prob not necessary
+
+library(RColorBrewer)
+n <- length(get_diameter(g))+1
+colors <- brewer.pal(n,"Dark2")
+
+# Set color attribute to vertices of network g184.
+V(g_freedman)$color <- colors[dists+1] # like cex above set beforehand
+
+# Visualize the network based on geodesic distance from vertex 184 (patient zero). No layout nicely though looks good
+plot(g_freedman, 
+     vertex.label = dists, 
+     vertex.label.color = "white",
+     vertex.label.cex = 0.6, #HMM
+     edge.color = 'grey',
+     vertex.size = 7,
+     edge.arrow.size = .05,
+     main = "Geodesic Distances from Chosen Player"
+     )
+
+```
+
+```
+ 
+ The most common level is a "I played with a player who played with Freedman"
+ 
+ There is a lot more to both these packages for you to play around with and me to add to in the future
+ 
+ 
