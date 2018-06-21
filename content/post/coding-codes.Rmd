@@ -1,0 +1,129 @@
+---
+title: Coding Codes
+author: Andrew Clark
+date: '2018-06-19'
+slug: coding-codes
+categories: []
+tags: []
+banner: 'banners/slater.jpg'
+description: ''
+images: []
+menu: ''
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, warning = FALSE, message=FALSE, echo=FALSE,  fig.align = 'center')
+
+```
+
+One of my sons has signed up with the [S.H.O.E. Academy](http://www.shoeacademy.org/)  a fun site for espionage fans. 
+
+
+One of the regular tasks is to decipher messages using a code wheel
+
+![](img/codeWheel.jpg)
+
+The is made up of two concentric circles each made up the letters of the alphabet with the outer ring in regular order and the inner ring, which you can spin, effectively randomized
+
+
+The challenge for the agent is to find which letter in the inner ring to use to align with the 'A' in the outer ring. Then each letter in the message can be read off the inner ring and the match to the outer ring is the correct answer. For instance, the key letter in the picture above is 'L', and a code of 'RMT YEFV' transcribes to "get help" 
+
+This can be a pretty time-consuming task, particularly when the message is long and the initial cut-out of the wheel was a little poor meaning that matches are not immediately apparent. In addition, it is not something that can be memorized as their are 26 variations of the initial alignment possible
+
+This seemed to be a good example of using R both to speed up the result and to impress on my son of the power of coding
+
+---
+
+## Letter Alignment
+
+We need two vectors, one for each wheel. The first is fixed,  the latter whilst having the letters is a proscribed order will commence from different positions
+
+
+```{r}
+
+# No need for full tidyverse
+library(stringr)
+
+# Capital letters + space for easier legibility
+vector_out <- c(LETTERS," ")
+
+vector_in <- c("I","P","S","F","H","K","X","V","N","Q","E",
+               "T","U","O","A","D","G","J","L","Z","C","B","M",
+               "W","R","Y")
+
+
+
+
+# Function to re-order vector_in based on key letter
+code_fun <- function(key_letter) {
+
+# Derive index of key letter  
+start <- str_which(vector_in,key_letter) 
+
+# Create two sections of inner wheel
+part_1 <- vector_in[start:26] 
+part_2 <- vector_in[1:start-1]
+
+# Combine them and add the space to match vector_out
+c(part_1,part_2," ")
+
+}
+
+## create input for use in decoding function
+
+# variable
+key_letter <- "C"
+
+vector_in_new <- code_fun(key_letter)
+vector_in_new
+
+
+
+```
+
+## Decoding Message
+
+This requires us to split the scrambled message into individual
+letters, find their index and match that to the other vector and thus decipher messsage
+
+
+```{r}
+
+
+decode_fun <- function(text_in) {
+  
+  # create two empty vectors 
+match_integers <- vector("integer",length(text_in))
+match_characters <- vector("character",length(text_in))
+
+# split input into individual letters    
+text_in_vector <- str_split(text_in,"")[[1]]
+
+## these loops could be combined
+for(i in 1:length(text_in_vector)) {
+match_integers[i] <-str_which(vector_in_new,text_in_vector[i]) #4
+}
+match_integers
+
+for(i in 1:length(text_in_vector)) {
+match_characters[i] <-  vector_out[match_integers[i]]
+}
+match_characters
+
+## collapse back to words
+
+str_c(match_characters, collapse="")
+
+}
+
+text_in <- "GR VRRW BCMHAQ S MCVO XCHR OPR MCKK OPSU QKCMR SU YAKK NY MNXQAORT PCMHRTU CVW OPR QPNVRU CTR CKK BAIIRW UQL PNOKSVR MNWR SU PSIPONQU OSMHRO VAXBRT XSVAU CWXSUUSNV QTSMR"
+
+# create message amd make  more legible
+message <- str_to_title(decode_fun(text_in))
+message
+
+```
+
+And here is the agent in non-smiling mode
+
+![](img/slater.jpg)
